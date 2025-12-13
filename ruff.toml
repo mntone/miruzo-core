@@ -1,0 +1,30 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [".git", ".pyenv", ".pytest_cache", ".pytype"]
+
+line-length = 108
+indent-width = 4
+
+
+[lint]
+select = ["A", "ANN", "B", "COM", "FAST", "I"]
+ignore = [
+	"ANN401", # any-type
+	"B002",   # unary-prefix-increment-decrement
+	"B031",   # reuse-of-groupby-generator
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+
+
+[lint.isort]
+force-wrap-aliases = true
+known-local-folder = ["app"]
+
+[lint.pycodestyle]
+max-line-length = 100
+
+[format]
+indent-style = "tab"
+quote-style = "single"
+docstring-code-format = true

@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "uvicorn: reload",
+			"type": "shell",
+			"command": "uvicorn app.main:app --env-file .env.development --host 0.0.0.0 --port 1024 --reload --reload-dir ./app",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"isBackground": true
+		}
+	]
+}

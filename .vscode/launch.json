@@ -1,0 +1,23 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "FastAPI debug",
+			"type": "debugpy",
+			"cwd": "${workspaceFolder}",
+			"request": "launch",
+			"module": "uvicorn",
+			"args": [
+				"app.main:app",
+				"--env-file",
+				".env.development",
+				"--host",
+				"0.0.0.0",
+				"--port",
+				"1024",
+				"--reload"
+			],
+			"jinja": true
+		}
+	]
+}

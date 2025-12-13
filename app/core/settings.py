@@ -1,0 +1,56 @@
+from enum import Enum
+from pathlib import Path
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.variant_config import DEFAULT_VARIANT_LAYERS, VariantLayer
+
+
+class DatabaseBackend(str, Enum):
+	POSTGRE_SQL = 'postgres'
+	SQLITE = 'sqlite'
+
+
+class Environment(str, Enum):
+	DEVELOPMENT = 'development'
+	PRODUCTION = 'production'
+
+
+_ALLOWED_ENVIRONMENTS = {env.value for env in Environment}
+
+
+class Settings(BaseSettings):
+	model_config = SettingsConfigDict(
+		env_file=('.env', '.env.production'),
+		env_file_encoding='utf-8',
+	)
+
+	environment: Environment = Environment.PRODUCTION
+
+	database_backend: DatabaseBackend = DatabaseBackend.SQLITE
+	database_url: str = 'sqlite:///miruzo.sqlite'
+
+	gataku_root: Path = '../gataku'
+	assets_root: Path = '../gataku/out/downloads'
+	static_root: Path = './static'
+
+	variant_layers: tuple[VariantLayer, ...] = DEFAULT_VARIANT_LAYERS
+
+	@property
+	def debug(self) -> bool:
+		return self.environment == Environment.DEVELOPMENT
+
+	@classmethod
+	@field_validator('environment', mode='before')
+	def _normalize_environment(cls, value: object) -> object:
+		if isinstance(value, Environment) or value is None:
+			return value
+		if isinstance(value, str):
+			normalized = value.lower()
+			if normalized in _ALLOWED_ENVIRONMENTS:
+				return normalized
+		raise ValueError("environment must be 'development' or 'production'")
+
+
+settings = Settings()
