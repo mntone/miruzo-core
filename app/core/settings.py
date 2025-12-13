@@ -52,5 +52,22 @@ class Settings(BaseSettings):
 				return normalized
 		raise ValueError("environment must be 'development' or 'production'")
 
+	@classmethod
+	@field_validator('database_url')
+	def _normalize_sqlite_url(cls, value: str) -> str:
+		if not value.startswith('sqlite:///'):
+			return value
+
+		raw_path = value.removeprefix('sqlite:///')
+		path = Path(raw_path)
+
+		if not path.is_absolute():
+			baseDir = Path(__file__).resolve().parent.parent
+			path = baseDir / path
+
+		path.parent.mkdir(parents=True, exist_ok=True)
+
+		return f'sqlite:///{path}'
+
 
 settings = Settings()
