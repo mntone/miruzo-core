@@ -32,6 +32,10 @@ who is executing them.
 - Markdown files must be wrapped at 80 characters
 - Do not introduce ad-hoc helpers when an equivalent exists in
   `app/services/images/` or shared test utilities
+- Only add `from __future__ import annotations` (or other future imports) when a
+  file truly needs it; if a newer language feature would significantly improve
+  performance or readability, raise it so we can evaluate bumping the minimum
+  Python version together
 
 ## API & Services Conventions
 
