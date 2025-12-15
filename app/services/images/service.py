@@ -4,7 +4,7 @@ from typing import Set
 from app.models.api.images.list import ImageListModel
 from app.models.api.images.responses import ContextResponse, ImageListResponse
 from app.services.images.repository.base import ImageRepository
-from app.services.images.variants import compute_allowed_formats, normalize_variants_for_format
+from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 
 
 class ImageService:

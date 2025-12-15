@@ -11,6 +11,7 @@ def compute_allowed_formats(excluded: list[str] | None) -> set[str]:
 	Compute the effective allowed formats by removing the excluded ones.
 	Fallback formats are always included to keep legacy clients working.
 	"""
+
 	excluded_set = {fmt.lower() for fmt in excluded} if excluded else set()
 	allowed = _SUPPORTED_FORMATS - excluded_set
 	return allowed | _DEFAULT_FALLBACK_FORMATS

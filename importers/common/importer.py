@@ -11,7 +11,7 @@ from sqlmodel import Session
 from app.core.settings import settings
 from app.database import engine, init_database
 from app.models.enums import ImageStatus
-from app.models.records import ImageRecord
+from app.models.records import ImageRecord, VariantRecord
 from app.services.images.thumbnails import (
 	VariantReport,
 	collect_existing_variants,
@@ -180,7 +180,7 @@ def import_jsonl(
 			width = None
 			height = None
 			original_variant = None
-			variant_records: list[dict[str, dict]] = []
+			variant_records: list[list[VariantRecord]] = []
 			variant_reports: list[VariantReport] = []
 			try:
 				with PILImage.open(src_path) as pil_image:

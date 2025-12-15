@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Iterable, Sequence
 
 from sqlmodel import Session
 
+from app.core.variant_config import VariantFormat, VariantSlotkey, VariantSpec
 from app.models.enums import ImageStatus
 from app.models.records import ImageRecord, VariantRecord
 
@@ -87,3 +88,22 @@ def add_image_record(
 	session.commit()
 	session.refresh(record)
 	return record
+
+
+def build_variant_spec(
+	layer_id: int,
+	width: int,
+	*,
+	container: str = 'webp',
+	codecs: str | None = 'vp8',
+	required: bool = False,
+	quality: int | None = None,
+) -> VariantSpec:
+	return VariantSpec(
+		slotkey=VariantSlotkey(layer_id, width),
+		layer_id=layer_id,
+		width=width,
+		format=VariantFormat(container=container, codecs=codecs, file_extension=f'.{container}'),
+		quality=quality,
+		required=required,
+	)

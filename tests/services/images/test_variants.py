@@ -5,7 +5,7 @@ from typing import Iterable
 from tests.services.images.utils import build_variant
 
 from app.models.records import VariantRecord
-from app.services.images.variants import compute_allowed_formats, normalize_variants_for_format
+from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 
 
 def _flatten_non_fallback(layers: Iterable[list[VariantRecord]]) -> list[VariantRecord]:

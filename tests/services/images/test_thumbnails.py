@@ -6,14 +6,10 @@ from typing import Iterator
 import pytest
 from PIL import Image as PILImage
 
-from app.core.variant_config import VariantFormat, VariantLayer, VariantSpec
+from tests.services.images.utils import build_variant_spec
+
+from app.core.variant_config import VariantLayer
 from app.services.images import thumbnails
-
-
-class DummyImage:
-	def __init__(self, fmt: str, info: dict | None = None) -> None:
-		self.format = fmt
-		self.info = info or {}
 
 
 @pytest.fixture()
@@ -23,36 +19,23 @@ def tmp_image(tmp_path: Path) -> Iterator[PILImage.Image]:
 	image.save(path, format='PNG')
 
 	with PILImage.open(path) as img:
-		yield img.copy()
-
-
-def test_is_lossless_source_detects_lossless_webp() -> None:
-	image = DummyImage('WEBP', info={'lossless': True})
-	assert thumbnails._is_lossless_source(image) is True
-
-
-def test_is_lossless_source_detects_lossy_webp() -> None:
-	image = DummyImage('WEBP', info={'lossless': False})
-	assert thumbnails._is_lossless_source(image) is False
+		image_copy = img.copy()
+		image_copy.filename = str(path)
+		yield image_copy
 
 
 def test_generate_variants_skips_unrequired_upscale(tmp_image: PILImage.Image, tmp_path: Path) -> None:
 	static_root = tmp_path / 'static'
 	static_root.mkdir()
 
-	layer = VariantLayer(
-		name='primary',
-		layer_id=1,
-		specs=(
-			VariantSpec(label='w200', width=200, format=VariantFormat('webp', 'image/webp', '.webp')),
-			VariantSpec(
-				label='w600',
-				width=600,
-				format=VariantFormat('webp', 'image/webp', '.webp'),
-				required=False,
-			),
-		),
+	specs = (
+		build_variant_spec(1, 200, required=True),
+		build_variant_spec(1, 600, required=False),
 	)
+	for spec in specs:
+		(static_root / spec.slotkey.label).mkdir(parents=True)
+
+	layer = VariantLayer(name='primary', layer_id=1, specs=specs)
 
 	variants, reports = thumbnails.generate_variants(
 		image=tmp_image,
@@ -72,18 +55,10 @@ def test_generate_variants_respects_required_flag(tmp_image: PILImage.Image, tmp
 	static_root = tmp_path / 'static'
 	static_root.mkdir()
 
-	layer = VariantLayer(
-		name='primary',
-		layer_id=1,
-		specs=(
-			VariantSpec(
-				label='w600',
-				width=600,
-				format=VariantFormat('webp', 'image/webp', '.webp'),
-				required=True,
-			),
-		),
-	)
+	spec = build_variant_spec(1, 600, required=True)
+	(static_root / spec.slotkey.label).mkdir(parents=True)
+
+	layer = VariantLayer(name='primary', layer_id=1, specs=(spec,))
 
 	variants, reports = thumbnails.generate_variants(
 		image=tmp_image,
