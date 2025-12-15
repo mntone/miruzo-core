@@ -4,6 +4,7 @@ from typing import Iterable, Sequence
 
 from PIL import Image as PILImage
 
+from app.core.settings import settings
 from app.core.variant_config import VariantLayer
 from app.models.records import VariantRecord
 from app.services.images.variants.collect import collect_variant_directories, collect_variant_files
@@ -142,9 +143,9 @@ def _get_image_info(original: PILImage.Image) -> ImageFileInfo | None:
 def generate_variants(
 	image: PILImage.Image,
 	relative_path: Path,
-	static_root: Path,
+	media_root: Path,
 	layers: Iterable[VariantLayer],
-	public_prefix: str = '/static',
+	public_prefix: str | None = None,
 	original_size: int | None = None,
 ) -> tuple[list[list[VariantRecord]], list[VariantReport]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
@@ -159,12 +160,12 @@ def generate_variants(
 		return [[]], []
 
 	# 2. collect
-	variant_dirs = collect_variant_directories(media_root=static_root)
+	variant_dirs = collect_variant_directories(media_root=media_root)
 
 	valid_variant_dirs = [d for d in variant_dirs if validate_variant_slotkey(d)]
 
 	existing = collect_variant_files(
-		media_root=static_root,
+		media_root=media_root,
 		variant_dirs=valid_variant_dirs,
 		relative_path_noext=relpath_noext,
 	)
@@ -191,7 +192,7 @@ def generate_variants(
 
 	prepare_variant_directories(
 		normalized_plan,
-		media_root=static_root,
+		media_root=media_root,
 		relpath_noext=relpath_noext,
 	)
 
@@ -199,11 +200,12 @@ def generate_variants(
 		normalized_plan,
 		policy,
 		preprocessed_image,
-		media_root=static_root,
+		media_root=media_root,
 		relpath_noext=relpath_noext,
 	)
 
 	# 6. mapping
+	public_prefix = public_prefix or settings.public_media_root
 	records, legacy_reports = _map_records(
 		results,
 		public_prefix=public_prefix,

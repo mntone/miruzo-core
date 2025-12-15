@@ -29,11 +29,13 @@ class Settings(BaseSettings):
 	environment: Environment = Environment.PRODUCTION
 
 	database_backend: DatabaseBackend = DatabaseBackend.SQLITE
-	database_url: str = 'sqlite:///miruzo.sqlite'
+	database_url: str = 'sqlite:///var/miruzo.sqlite'
+
+	media_root: Path = './var/media'
+	public_media_root: str = '/media'
 
 	gataku_root: Path = '../gataku'
-	assets_root: Path = '../gataku/out/downloads'
-	static_root: Path = './static'
+	gataku_assets_root: Path = '../gataku/out/downloads'
 
 	variant_layers: tuple[VariantLayer, ...] = DEFAULT_VARIANT_LAYERS
 

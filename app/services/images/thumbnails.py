@@ -4,6 +4,7 @@ from typing import Iterable
 
 from PIL import Image as PILImage
 
+from app.core.settings import settings
 from app.core.variant_config import VariantLayer
 from app.models.records import VariantRecord
 from app.services.images.variants.legacy import VariantReportLegacy as VariantReport
@@ -11,13 +12,13 @@ from app.services.images.variants.legacy import VariantReportLegacy as VariantRe
 __all__ = ['VariantReport']
 
 
-def reset_variant_directories(static_root: Path, layers: Iterable[VariantLayer]) -> None:
+def reset_variant_directories(media_root: Path, layers: Iterable[VariantLayer]) -> None:
 	"""Ensure every variant output directory exists and is empty."""
 	seen: set[Path] = set()
 
 	for layer in layers:
 		for spec in layer.specs:
-			dir_path = static_root / spec.slotkey.label
+			dir_path = media_root / spec.slotkey.label
 			if dir_path in seen:
 				continue
 
@@ -34,9 +35,9 @@ def reset_variant_directories(static_root: Path, layers: Iterable[VariantLayer])
 def generate_variants(
 	image: PILImage.Image,
 	relative_path: Path,
-	static_root: Path,
+	media_root: Path,
 	layers: Iterable[VariantLayer],
-	public_prefix: str = '/static',
+	public_prefix: str | None = None,
 	original_size: int | None = None,
 ) -> tuple[list[list[VariantRecord]], list[VariantReport]]:
 	"""
@@ -47,7 +48,7 @@ def generate_variants(
 	return variant_legacy.generate_variants(
 		image=image,
 		relative_path=relative_path,
-		static_root=static_root,
+		media_root=media_root,
 		layers=tuple(layers),
 		public_prefix=public_prefix,
 		original_size=original_size,
@@ -56,19 +57,21 @@ def generate_variants(
 
 def collect_existing_variants(
 	relative_path: Path,
-	static_root: Path,
+	media_root: Path,
 	layers: Iterable[VariantLayer],
-	public_prefix: str = '/static',
+	public_prefix: str | None = None,
 ) -> list[list[VariantRecord]]:
 	"""Inspect existing files and rebuild variant metadata without re-rendering."""
-	layer_records: list[list[VariantRecord]] = []
 
+	public_prefix = public_prefix or settings.public_media_root
+
+	layer_records: list[list[VariantRecord]] = []
 	for layer in layers:
 		variant_records: list[VariantRecord] = []
 		for spec in layer.specs:
 			relative_output = relative_path.with_suffix(spec.format.file_extension)
 			output_dir = spec.slotkey.label
-			output_path = static_root / output_dir / relative_output
+			output_path = media_root / output_dir / relative_output
 			if not output_path.exists():
 				continue
 

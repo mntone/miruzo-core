@@ -10,18 +10,22 @@ def parse_args() -> argparse.Namespace:
 		default='../gataku/out/hashdb.jsonl',
 		help='Path to the gataku hashdb jsonl file.',
 	)
-	parser.add_argument('--static-dir', default='./static', help='Directory to populate with image files.')
+	parser.add_argument(
+		'--media-dir',
+		default='./var/media',
+		help='Directory to populate with image files.',
+	)
 	parser.add_argument('--limit', type=int, default=100, help='Maximum number of records to import.')
 	parser.add_argument(
 		'--mode',
 		choices=['copy', 'symlink'],
 		default='symlink',
-		help='How to place images into the static directory.',
+		help='How to place images into the media directory.',
 	)
 	parser.add_argument(
 		'--orig-dir',
 		default='gataku',
-		help='Name of the directory (under static/) that stores original assets.',
+		help='Name of the directory (under media/) that stores original assets.',
 	)
 	parser.add_argument('--force', action='store_true', help='Skip confirmation prompts during import.')
 	parser.add_argument(
@@ -41,7 +45,7 @@ def main() -> None:
 	args = parse_args()
 	import_jsonl(
 		jsonl_path=args.jsonl_path,
-		static_dir=args.static_dir,
+		media_dir=args.media_dir,
 		limit=args.limit,
 		mode=args.mode,
 		original_subdir=args.orig_dir,

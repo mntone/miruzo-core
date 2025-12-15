@@ -24,17 +24,17 @@ log = getLogger(__name__)
 ImportMode = Literal['copy', 'symlink']
 
 
-def ensure_static_root(static_root: Path) -> Path:
-	"""Ensure the static root directory exists, creating it if needed."""
-	if not static_root.exists():
-		static_root.mkdir(parents=True, exist_ok=True)
-		print(f'[importer] created static directory: {static_root}')
-		return static_root
+def ensure_media_root(media_root: Path) -> Path:
+	"""Ensure the media root directory exists, creating it if needed."""
+	if not media_root.exists():
+		media_root.mkdir(parents=True, exist_ok=True)
+		print(f'[importer] created media directory: {media_root}')
+		return media_root
 
-	if not static_root.is_dir():
-		raise RuntimeError(f'Static root must be a directory: {static_root}')
+	if not media_root.is_dir():
+		raise RuntimeError(f'Media root must be a directory: {media_root}')
 
-	return static_root
+	return media_root
 
 
 def confirm_overwrite(path: Path, *, force: bool) -> None:
@@ -48,15 +48,15 @@ def confirm_overwrite(path: Path, *, force: bool) -> None:
 
 
 def prepare_original_dir(
-	static_root: Path,
+	media_root: Path,
 	mode: ImportMode,
 	original_subdir: str,
 	assets_root: Path,
 	*,
 	force: bool,
 ) -> Path:
-	"""Set up static/orig to either symlink to the assets root or act as a real directory."""
-	original_dir = static_root / original_subdir
+	"""Set up media/orig to either symlink to the assets root or act as a real directory."""
+	original_dir = media_root / original_subdir
 
 	if original_dir.exists():
 		if original_dir.is_symlink():
@@ -74,7 +74,7 @@ def prepare_original_dir(
 						.lower()
 					)
 					if choice != 'y':
-						raise RuntimeError('Aborted due to mismatched static/orig symlink.')
+						raise RuntimeError('Aborted due to mismatched media/orig symlink.')
 				original_dir.unlink()
 			else:
 				if not force:
@@ -108,7 +108,7 @@ def prepare_original_dir(
 
 def import_jsonl(
 	jsonl_path: str,
-	static_dir: str,
+	media_dir: str,
 	limit: int = 100,
 	mode: ImportMode = 'symlink',
 	original_subdir: str = 'gataku',
@@ -117,17 +117,17 @@ def import_jsonl(
 	repair: bool = False,
 ) -> None:
 	"""Read gataku JSONL data, populate the database, and copy/symlink assets plus thumbnails."""
-	static_root = ensure_static_root(Path(static_dir))
+	media_root = ensure_media_root(Path(media_dir))
 	gataku_root = settings.gataku_root.resolve()
-	assets_root = settings.assets_root.resolve()
-	orig_dir = prepare_original_dir(static_root, mode, original_subdir, assets_root, force=force)
+	assets_root = settings.gataku_assets_root.resolve()
+	orig_dir = prepare_original_dir(media_root, mode, original_subdir, assets_root, force=force)
 
 	variant_layers = settings.variant_layers
 
 	if repair:
 		print('[importer] repair mode enabled: skipping thumbnail generation.')
 	else:
-		reset_variant_directories(static_root, variant_layers)
+		reset_variant_directories(media_root, variant_layers)
 	init_database()
 
 	session = Session(engine)
@@ -188,7 +188,9 @@ def import_jsonl(
 					height = pil_image.height
 					mime_type = PILImage.MIME.get(pil_image.format, 'application/octet-stream')
 					format_name, codecs = _map_original_variant_attrs(pil_image, mime_type)
-					public_path = f'/static/{original_subdir}/{relative_asset_path.as_posix()}'
+					public_path = (
+						f'{settings.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
+					)
 					original_variant = {
 						'filepath': public_path,
 						'format': format_name,
@@ -202,7 +204,7 @@ def import_jsonl(
 						variant_records, variant_reports = generate_variants(
 							pil_image,
 							relative_asset_path,
-							static_root,
+							media_root,
 							variant_layers,
 							original_size=original_size,
 						)
@@ -211,14 +213,14 @@ def import_jsonl(
 				if repair:
 					variant_records = collect_existing_variants(
 						relative_asset_path,
-						static_root,
+						media_root,
 						variant_layers,
 					)
 
 			if repair and not variant_records:
 				variant_records = collect_existing_variants(
 					relative_asset_path,
-					static_root,
+					media_root,
 					variant_layers,
 				)
 			if repair:
@@ -232,7 +234,9 @@ def import_jsonl(
 				continue
 
 			if original_variant is None:
-				public_path = f'/static/{original_subdir}/{relative_asset_path.as_posix()}'
+				public_path = (
+					f'{settings.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
+				)
 				original_variant = {
 					'filepath': public_path,
 					'format': 'unknown',

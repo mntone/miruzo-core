@@ -23,22 +23,22 @@ def tmp_image(tmp_path: Path) -> Iterator[PILImage.Image]:
 
 
 def test_generate_variants_skips_unrequired_upscale(tmp_image: PILImage.Image, tmp_path: Path) -> None:
-	static_root = tmp_path / 'static'
-	static_root.mkdir()
+	media_root = tmp_path / 'media'
+	media_root.mkdir()
 
 	specs = (
 		build_variant_spec(1, 200, required=True),
 		build_variant_spec(1, 600, required=False),
 	)
 	for spec in specs:
-		(static_root / spec.slotkey.label).mkdir(parents=True)
+		(media_root / spec.slotkey.label).mkdir(parents=True)
 
 	layer = VariantLayer(name='primary', layer_id=1, specs=specs)
 
 	variants, reports = thumbnails.generate_variants(
 		image=tmp_image,
 		relative_path=Path('foo/bar.png'),
-		static_root=static_root,
+		media_root=media_root,
 		layers=(layer,),
 		original_size=tmp_image.width * tmp_image.height,
 	)
@@ -50,18 +50,18 @@ def test_generate_variants_skips_unrequired_upscale(tmp_image: PILImage.Image, t
 
 
 def test_generate_variants_respects_required_flag(tmp_image: PILImage.Image, tmp_path: Path) -> None:
-	static_root = tmp_path / 'static'
-	static_root.mkdir()
+	media_root = tmp_path / 'media'
+	media_root.mkdir()
 
 	spec = build_variant_spec(1, 600, required=True)
-	(static_root / spec.slotkey.label).mkdir(parents=True)
+	(media_root / spec.slotkey.label).mkdir(parents=True)
 
 	layer = VariantLayer(name='primary', layer_id=1, specs=(spec,))
 
 	variants, reports = thumbnails.generate_variants(
 		image=tmp_image,
 		relative_path=Path('foo/bar.png'),
-		static_root=static_root,
+		media_root=media_root,
 		layers=(layer,),
 		original_size=tmp_image.width * tmp_image.height,
 	)

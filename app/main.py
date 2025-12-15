@@ -34,4 +34,8 @@ app.add_middleware(
 	allow_methods=['*'],
 	allow_headers=['*'],
 )
-app.mount('/static', StaticFiles(directory='static', follow_symlink=True), name='static')
+app.mount(
+	settings.public_media_root,
+	StaticFiles(directory=settings.media_root, follow_symlink=True),
+	name='media',
+)

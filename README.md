@@ -69,7 +69,7 @@ Run miruzo-core locally by following these steps.
 3. Use importer commands to populate the database:
 
    ```bash
-   python importers/import.py --jsonl path/to/data.jsonl --static-dir ./static
+   python importers/import.py --jsonl path/to/data.jsonl --media-dir ./media
    ```
 
 4. Hit `/api/images` or `/api/images/{id}` to verify data is available.
@@ -83,8 +83,8 @@ All configuration flows through [`.env.development`](./.env.development) using
 - `DATABASE_BACKEND`: `sqlite` (default) or `postgres`
 - `DATABASE_URL`: SQLAlchemy DSN (e.g., `sqlite:///miruzo.db`,
   `postgresql://user:pass@host/db`)
-- `GATAKU_ROOT` / `ASSETS_ROOT` / `STATIC_ROOT`: filesystem roots for importer +
-  static files
+- `GATAKU_ROOT` / `GATAKU_ASSETS_ROOT` / `MEDIA_ROOT`: filesystem roots for
+  importer + media files
 - `VARIANT_LAYERS`: loaded from `app/core/variant_config.py`
 
 

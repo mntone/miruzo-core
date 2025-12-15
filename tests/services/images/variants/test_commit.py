@@ -77,8 +77,8 @@ def test_prepare_variant_directories_accepts_relative_media_root(
 	tmp_path: Path,
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-	static_root = tmp_path / 'static'
-	variant_root = static_root / 'l1w200'
+	media_root = tmp_path / 'media'
+	variant_root = media_root / 'l1w200'
 	variant_root.mkdir(parents=True)
 	spec = VariantSpec(
 		slotkey=VariantSlotkey(layer_id=1, width=200),
@@ -91,7 +91,7 @@ def test_prepare_variant_directories_accepts_relative_media_root(
 	monkeypatch.chdir(tmp_path)
 	prepare_variant_directories(
 		diff,
-		media_root=Path('static'),
+		media_root=Path('media'),
 		relpath_noext=Path('foo/bar'),
 	)
 
