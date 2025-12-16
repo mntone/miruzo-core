@@ -7,15 +7,19 @@ from PIL import Image as PILImage
 from app.config.environments import env
 from app.config.variant import VariantLayer
 from app.models.records import VariantRecord
-from app.services.images.variants.collect import collect_variant_directories, collect_variant_files
+from app.services.images.variants.collect import (
+	collect_variant_directories,
+	collect_variant_files,
+	normalize_variant_directories,
+)
 from app.services.images.variants.commit import commit_variant_plan, prepare_variant_directories
+from app.services.images.variants.path import normalize_relative_path
 from app.services.images.variants.plan import (
 	compare_variant_specs,
 	normalize_variant_plan,
 	plan_variant_specs,
 )
 from app.services.images.variants.preprocess import preprocess_original
-from app.services.images.variants.security import validate_relative_path
 from app.services.images.variants.types import (
 	ImageFileInfo,
 	OriginalImage,
@@ -23,7 +27,7 @@ from app.services.images.variants.types import (
 	VariantPolicy,
 	VariantReport,
 )
-from app.services.images.variants.utils import get_image_format, validate_variant_slotkey
+from app.services.images.variants.utils import get_image_format
 
 _LEGACY_LAYER_NAMES = {
 	0: 'original',
@@ -150,25 +154,17 @@ def generate_variants(
 ) -> tuple[list[list[VariantRecord]], list[VariantReport]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
 
-	# 0. security
-	relpath_noext = relative_path.with_suffix('')
-	validate_relative_path(relpath_noext)
-
 	# 1. get info
 	original_info = _get_image_info(image)
 	if original_info is None:
 		return [[]], []
 
 	# 2. collect
-	variant_dirs = collect_variant_directories(media_root=media_root)
+	variant_dirnames = collect_variant_directories(media_root)
+	variant_dirpaths = normalize_variant_directories(variant_dirnames, under=media_root)
 
-	valid_variant_dirs = [d for d in variant_dirs if validate_variant_slotkey(d)]
-
-	existing = collect_variant_files(
-		media_root=media_root,
-		variant_dirs=valid_variant_dirs,
-		relative_path_noext=relpath_noext,
-	)
+	relpath_noext = normalize_relative_path(relative_path)
+	existing = collect_variant_files(variant_dirpaths, rel_to=relpath_noext)
 
 	# 3. plan
 	planned_specs = plan_variant_specs(layers, original_info)

@@ -115,6 +115,7 @@ def parse_variant_slotkey(label: str) -> VariantSlotkey:
 	"""
 	Parse slotkey and return structured representation.
 	Raises ValueError if invalid.
+	Returns structured, normalized representation.
 	"""
 
 	match = re.fullmatch(r'l(?P<layer>\d+)w(?P<width>\d+)', label)
@@ -125,15 +126,3 @@ def parse_variant_slotkey(label: str) -> VariantSlotkey:
 		layer_id=int(match['layer']),
 		width=int(match['width']),
 	)
-
-
-def validate_variant_slotkey(label: str) -> bool:
-	"""
-	Returns True if name matches the variant slotkey naming rule.
-	"""
-
-	try:
-		_ = parse_variant_slotkey(label)
-		return True
-	except ValueError:
-		return False

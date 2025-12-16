@@ -114,7 +114,7 @@ def _build_variant_file(file_path: Path) -> VariantFile:
 		width=200,
 		format=WEBP_FORMAT,
 	)
-	return VariantFile(variant_dir=spec.slotkey.label, relative_path=Path('foo/bar'), file_info=info)
+	return VariantFile(variant_dir=spec.slotkey.label, file_info=info)
 
 
 def test_delete_variant_file_succeeds_when_file_exists(tmp_path: Path) -> None:

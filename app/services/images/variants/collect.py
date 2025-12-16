@@ -1,16 +1,14 @@
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
+from app.services.images.variants.path import NormalizedRelativePath, VariantDirectoryPath
 from app.services.images.variants.types import VariantFile
-from app.services.images.variants.utils import load_image_info
+from app.services.images.variants.utils import load_image_info, parse_variant_slotkey
 
 _NON_VARIANT_SUFFIXES = ('orig',)
 
 
-def collect_variant_directories(
-	*,
-	media_root: Path,
-) -> Iterator[str]:
+def collect_variant_directories(media_root: Path) -> Iterator[str]:
 	"""
 	Collect existing variant directories under media_root.
 
@@ -45,45 +43,60 @@ def collect_variant_directories(
 		yield variant_dirname
 
 
-def _collect_variant_file(
-	file_path: Path,
-	*,
-	variant_dir: str,
-	relative_path: Path,
-) -> VariantFile | None:
-	image_info = load_image_info(file_path)
-	if image_info is None:
+def _collect_variant_file(path: Path, variant_dirname: str) -> VariantFile | None:
+	info = load_image_info(path)
+	if info is None:
 		return None
 
-	file = VariantFile(
-		variant_dir=variant_dir,
-		relative_path=relative_path,
-		file_info=image_info,
-	)
+	file = VariantFile(variant_dirname, info)
 	return file
 
 
 def collect_variant_files(
+	variant_dirpaths: Iterable[VariantDirectoryPath],
 	*,
-	media_root: Path,
-	variant_dirs: Iterable[str],
-	relative_path_noext: Path,
+	rel_to: NormalizedRelativePath,
 ) -> Iterator[VariantFile]:
 	"""Yield VariantFile objects for files under the provided variant dirs."""
 
-	for variant_dir in variant_dirs:
-		output_path = media_root / variant_dir / relative_path_noext.parent
+	# Normalize argument name for internal use
+	relative_path = rel_to
+
+	for variant_dirpath in variant_dirpaths:
+		output_path = variant_dirpath / relative_path.parent
 		if not output_path.is_dir():
 			continue
 
-		output_name = relative_path_noext.name
+		variant_dirname = variant_dirpath.name
+		output_name = relative_path.name
 
-		for file in output_path.glob(f'{output_name}.*'):
-			if (
-				variant := _collect_variant_file(
-					file,
-					variant_dir=variant_dir,
-					relative_path=relative_path_noext,
-				)
-			) is not None:
+		for file_path in output_path.glob(f'{output_name}.*'):
+			if (variant := _collect_variant_file(file_path, variant_dirname)) is not None:
 				yield variant
+
+
+def normalize_variant_directories(
+	variant_dirnames: Iterable[str],
+	*,
+	under: Path,
+) -> Iterator[VariantDirectoryPath]:
+	# Normalize argument name for internal use
+	media_root = under
+
+	for variant_dirname in variant_dirnames:
+		try:
+			_ = parse_variant_slotkey(variant_dirname)
+		except ValueError:
+			continue  # or raise, depending on policy
+
+		# NOTE:
+		# The result of `collect_variant_directories` is treated as a trust boundary.
+		# All filesystem-level validation and filtering is intentionally performed
+		# during collection, so this stage assumes the input to be structurally sound.
+		#
+		# The responsibility here is limited to interpreting the directory name as a
+		# variant slot key and materializing the corresponding path, without re-checking
+		# filesystem properties.
+		variant_dirpath = media_root / variant_dirname
+
+		yield VariantDirectoryPath(variant_dirpath)

@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Literal, Self, TypeAlias
 
 from PIL import Image as PILImage
@@ -17,7 +16,6 @@ class OriginalImage:
 @dataclass(frozen=True, slots=True)
 class VariantFile:
 	variant_dir: str
-	relative_path: Path
 	file_info: ImageFileInfo
 	_slotkey_cache: VariantSlotkey | None = field(init=False, default=None, repr=False)
 

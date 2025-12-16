@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from app.services.images.variants import collect
+from app.services.images.variants.collect import (
+	collect_variant_directories,
+	collect_variant_files,
+	normalize_variant_directories,
+)
+from app.services.images.variants.path import normalize_relative_path
 from app.services.images.variants.utils import ImageFileInfo
 
 
@@ -22,7 +27,7 @@ def test_collect_variant_directories_filters_symlinks_and_suffixes(tmp_path: Pat
 	symlink_dir = tmp_path / 'l5w800'
 	symlink_dir.symlink_to(tmp_path / 'l1w200')
 
-	collected = sorted(collect.collect_variant_directories(media_root=tmp_path))
+	collected = sorted(collect_variant_directories(tmp_path))
 
 	assert collected == ['l1w200', 'l2w400']
 
@@ -52,17 +57,22 @@ def test_collect_variant_files_yields_existing_variants(
 			lossless=False,
 		)
 
-	monkeypatch.setattr(collect, 'load_image_info', fake_load_image_info)
+	monkeypatch.setattr('app.services.images.variants.collect.load_image_info', fake_load_image_info)
 
-	result = list(
-		collect.collect_variant_files(
-			media_root=tmp_path,
-			variant_dirs=['l1w200'],
-			relative_path_noext=Path('foo/bar'),
-		),
-	)
+	variant_dirs = list(normalize_variant_directories(['l1w200'], under=tmp_path))
+	relative = normalize_relative_path(Path('foo/bar.webp'))
+
+	result = list(collect_variant_files(variant_dirs, rel_to=relative))
 
 	assert len(result) == 1
 	assert result[0].variant_dir == 'l1w200'
-	assert result[0].relative_path == Path('foo/bar')
 	assert called['path'] == target
+
+
+def test_normalize_variant_directories_filters_invalid(tmp_path: Path) -> None:
+	valid = ['l1w200', 'l2w640']
+	invalid = ['foo', 'l-1w200', 'l1wxyz']
+
+	dirs = list(normalize_variant_directories(valid + invalid, under=tmp_path))
+
+	assert [path.name for path in dirs] == valid

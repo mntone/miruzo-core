@@ -40,6 +40,5 @@ def build_variant_file(
 	)
 	return VariantFile(
 		variant_dir=spec.slotkey.label,
-		relative_path=Path('foo/bar'),
 		file_info=info,
 	)
