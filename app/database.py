@@ -3,11 +3,11 @@ from typing import Any, Generator
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
-from app.core.settings import DatabaseBackend, settings
+from app.config.environments import DatabaseBackend, env
 
-if settings.database_backend == DatabaseBackend.SQLITE:
+if env.database_backend == DatabaseBackend.SQLITE:
 	engine = create_engine(
-		settings.database_url,
+		env.database_url,
 		connect_args={'check_same_thread': False},
 		echo=False,
 		future=True,
@@ -18,9 +18,9 @@ if settings.database_backend == DatabaseBackend.SQLITE:
 		conn.exec_driver_sql('PRAGMA synchronous=NORMAL;')
 		conn.exec_driver_sql('PRAGMA wal_autocheckpoint=1000;')
 
-elif settings.database_backend == DatabaseBackend.POSTGRE_SQL:
+elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
 	engine = create_engine(
-		settings.database_url,
+		env.database_url,
 		connect_args={'options': '-c timezone=utc'},
 		echo=False,
 		future=True,
@@ -29,7 +29,7 @@ elif settings.database_backend == DatabaseBackend.POSTGRE_SQL:
 	)
 
 else:
-	raise ValueError(f'Unsupported database type: {settings.db_type}')
+	raise ValueError(f'Unsupported database type: {env.db_type}')
 
 
 def init_database() -> None:

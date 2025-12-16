@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from PIL import Image as PILImage
 
-from app.core.variant_config import VariantFormat, VariantSlotkey, VariantSpec
+from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
 from app.services.images.variants.generate import _save_variant, generate_variant
 from app.services.images.variants.types import ImageFileInfo, OriginalImage
 

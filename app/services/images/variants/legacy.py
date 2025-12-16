@@ -4,8 +4,8 @@ from typing import Iterable, Sequence
 
 from PIL import Image as PILImage
 
-from app.core.settings import settings
-from app.core.variant_config import VariantLayer
+from app.config.environments import env
+from app.config.variant import VariantLayer
 from app.models.records import VariantRecord
 from app.services.images.variants.collect import collect_variant_directories, collect_variant_files
 from app.services.images.variants.commit import commit_variant_plan, prepare_variant_directories
@@ -205,7 +205,7 @@ def generate_variants(
 	)
 
 	# 6. mapping
-	public_prefix = public_prefix or settings.public_media_root
+	public_prefix = public_prefix or env.public_media_root
 	records, legacy_reports = _map_records(
 		results,
 		public_prefix=public_prefix,

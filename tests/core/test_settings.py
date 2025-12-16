@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-import app.core.settings as settings_module
-from app.core.settings import Settings
+import app.config.environments as settings_module
+from app.config.environments import Settings
 
 
 def _app_base_dir() -> Path:

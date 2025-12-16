@@ -1,7 +1,7 @@
 import pytest
 from PIL import TiffImagePlugin
 
-from app.core.variant_config import VariantSlotkey
+from app.config.variant import VariantSlotkey
 from app.services.images.variants.utils import get_image_format, parse_variant_slotkey
 
 

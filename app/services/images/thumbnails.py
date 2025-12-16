@@ -4,8 +4,8 @@ from typing import Iterable
 
 from PIL import Image as PILImage
 
-from app.core.settings import settings
-from app.core.variant_config import VariantLayer
+from app.config.environments import env
+from app.config.variant import VariantLayer
 from app.models.records import VariantRecord
 from app.services.images.variants.legacy import VariantReportLegacy as VariantReport
 
@@ -63,7 +63,7 @@ def collect_existing_variants(
 ) -> list[list[VariantRecord]]:
 	"""Inspect existing files and rebuild variant metadata without re-rendering."""
 
-	public_prefix = public_prefix or settings.public_media_root
+	public_prefix = public_prefix or env.public_media_root
 
 	layer_records: list[list[VariantRecord]] = []
 	for layer in layers:

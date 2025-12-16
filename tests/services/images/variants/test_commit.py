@@ -4,7 +4,7 @@ import pytest
 
 from tests.services.images.utils import build_variant_spec
 
-from app.core.variant_config import WEBP_FORMAT, VariantSlotkey, VariantSpec
+from app.config.variant import WEBP_FORMAT, VariantSlotkey, VariantSpec
 from app.services.images.variants.commit import _delete_variant_file, prepare_variant_directories
 from app.services.images.variants.types import ImageFileInfo, VariantFile, VariantPlan
 

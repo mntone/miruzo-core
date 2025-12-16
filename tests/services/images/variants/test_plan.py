@@ -1,7 +1,7 @@
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_image_info, build_variant_file
 
-from app.core.variant_config import VariantLayer
+from app.config.variant import VariantLayer
 from app.services.images.variants.plan import (
 	_should_emit_variant,
 	compare_variant_specs,

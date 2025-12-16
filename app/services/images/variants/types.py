@@ -4,7 +4,7 @@ from typing import Literal, Self, TypeAlias
 
 from PIL import Image as PILImage
 
-from app.core.variant_config import VariantSlotkey, VariantSpec
+from app.config.variant import VariantSlotkey, VariantSpec
 from app.services.images.variants.utils import ImageFileInfo, parse_variant_slotkey
 
 

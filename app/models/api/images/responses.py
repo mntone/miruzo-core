@@ -3,7 +3,7 @@ from typing import Annotated, Self, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.constants import LIMIT_MAXIMUM
+from app.config.constants import LIMIT_MAXIMUM
 from app.models.api.images.context.stats import StatsModel
 from app.models.api.images.context.summary import SummaryModel
 from app.models.api.images.list import ImageListModel

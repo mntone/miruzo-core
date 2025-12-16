@@ -8,7 +8,7 @@ from typing import Literal
 from PIL import Image as PILImage
 from sqlmodel import Session
 
-from app.core.settings import settings
+from app.config.environments import env
 from app.database import engine, init_database
 from app.models.enums import ImageStatus
 from app.models.records import ImageRecord, VariantRecord
@@ -118,11 +118,11 @@ def import_jsonl(
 ) -> None:
 	"""Read gataku JSONL data, populate the database, and copy/symlink assets plus thumbnails."""
 	media_root = ensure_media_root(Path(media_dir))
-	gataku_root = settings.gataku_root.resolve()
-	assets_root = settings.gataku_assets_root.resolve()
+	gataku_root = env.gataku_root.resolve()
+	assets_root = env.gataku_assets_root.resolve()
 	orig_dir = prepare_original_dir(media_root, mode, original_subdir, assets_root, force=force)
 
-	variant_layers = settings.variant_layers
+	variant_layers = env.variant_layers
 
 	if repair:
 		print('[importer] repair mode enabled: skipping thumbnail generation.')
@@ -189,7 +189,7 @@ def import_jsonl(
 					mime_type = PILImage.MIME.get(pil_image.format, 'application/octet-stream')
 					format_name, codecs = _map_original_variant_attrs(pil_image, mime_type)
 					public_path = (
-						f'{settings.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
+						f'{env.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
 					)
 					original_variant = {
 						'filepath': public_path,
@@ -234,9 +234,7 @@ def import_jsonl(
 				continue
 
 			if original_variant is None:
-				public_path = (
-					f'{settings.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
-				)
+				public_path = f'{env.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
 				original_variant = {
 					'filepath': public_path,
 					'format': 'unknown',

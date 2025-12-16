@@ -8,7 +8,7 @@ from PIL import Image as PILImage
 from PIL import TiffImagePlugin
 from PIL import UnidentifiedImageError as PILUnidentifiedImageError
 
-from app.core.variant_config import VariantSlotkey
+from app.config.variant import VariantSlotkey
 
 log = logging.getLogger(__name__)
 

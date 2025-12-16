@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from app.core.variant_config import VariantLayer, VariantSpec
+from app.config.variant import VariantLayer, VariantSpec
 from app.services.images.variants.types import ImageFileInfo, VariantComparison, VariantFile, VariantPlan
 
 

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PIL import Image as PILImage
 
-from app.core.variant_config import VariantSpec
+from app.config.variant import VariantSpec
 from app.services.images.variants.types import ImageFileInfo, OriginalImage, VariantReport
 
 

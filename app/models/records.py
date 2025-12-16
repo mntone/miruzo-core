@@ -6,7 +6,7 @@ from sqlalchemy import JSON, Column, Integer
 from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
-from app.core.constants import DEFAULT_SCORE, SCORE_MAXIMUM, SCORE_MINIMUM
+from app.config.constants import DEFAULT_SCORE, SCORE_MAXIMUM, SCORE_MINIMUM
 from app.models.enums import ImageStatus
 
 

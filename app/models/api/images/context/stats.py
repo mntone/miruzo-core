@@ -3,7 +3,7 @@ from typing import Annotated, Self, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.constants import SCORE_MAXIMUM, SCORE_MINIMUM
+from app.config.constants import SCORE_MAXIMUM, SCORE_MINIMUM
 from app.models.records import StatsRecord
 
 

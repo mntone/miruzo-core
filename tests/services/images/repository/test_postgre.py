@@ -12,7 +12,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from tests.services.images.utils import add_image_record
 
-from app.core.constants import DEFAULT_SCORE
+from app.config.constants import DEFAULT_SCORE
 from app.models.records import StatsRecord
 from app.services.images.repository.postgre import PostgreSQLImageRepository
 

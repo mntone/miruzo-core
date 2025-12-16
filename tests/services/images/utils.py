@@ -5,7 +5,7 @@ from tempfile import gettempdir
 
 from sqlmodel import Session
 
-from app.core.variant_config import VariantFormat, VariantSlotkey, VariantSpec
+from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
 from app.models.enums import ImageStatus
 from app.models.records import ImageRecord, VariantRecord
 

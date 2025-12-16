@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.core.variant_config import DEFAULT_VARIANT_LAYERS, VariantLayer
+from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayer
 
 
 class DatabaseBackend(str, Enum):
@@ -72,4 +72,4 @@ class Settings(BaseSettings):
 		return f'sqlite:///{path}'
 
 
-settings = Settings()
+env = Settings()

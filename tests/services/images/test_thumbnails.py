@@ -6,7 +6,7 @@ from PIL import Image as PILImage
 
 from tests.services.images.utils import build_variant_spec
 
-from app.core.variant_config import VariantLayer
+from app.config.variant import VariantLayer
 from app.services.images import thumbnails
 
 

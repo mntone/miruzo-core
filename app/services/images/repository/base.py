@@ -5,7 +5,7 @@ from typing import Callable
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.core.constants import DEFAULT_SCORE
+from app.config.constants import DEFAULT_SCORE
 from app.models.api.images.patches import FavoriteResponse, ScoreResponse
 from app.models.records import ImageRecord, StatsRecord
 

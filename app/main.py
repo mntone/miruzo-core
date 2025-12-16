@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.core.settings import settings
+from app.config.environments import env
 from app.database import init_database
 from app.routers.health import router as health
 from app.routers.images import router as images
@@ -18,7 +18,7 @@ log = getLogger('uvicorn.error')
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 	init_database()
-	log.info(f'Starting miruzo API in {settings.environment.value} mode')
+	log.info(f'Starting miruzo API in {env.environment.value} mode')
 	yield
 
 
@@ -35,7 +35,7 @@ app.add_middleware(
 	allow_headers=['*'],
 )
 app.mount(
-	settings.public_media_root,
-	StaticFiles(directory=settings.media_root, follow_symlink=True),
+	env.public_media_root,
+	StaticFiles(directory=env.media_root, follow_symlink=True),
 	name='media',
 )

@@ -3,7 +3,7 @@ from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.constants import DEFAULT_LIMIT, LIMIT_MAXIMUM, LIMIT_MINIMUM
+from app.config.constants import DEFAULT_LIMIT, LIMIT_MAXIMUM, LIMIT_MINIMUM
 
 
 @final

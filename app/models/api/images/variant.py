@@ -2,7 +2,7 @@ from typing import Annotated, Self, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.settings import settings
+from app.config.environments import env
 from app.models.api.utils.units import bytes_to_manbytes
 from app.models.records import VariantRecord
 
@@ -19,7 +19,7 @@ class VariantModel(BaseModel):
 		str,
 		Field(
 			title='Variant source URL',
-			description=f'server-relative path to the asset (e.g. `{settings.public_media_root}/foo.webp`) so clients can fetch it directly',
+			description=f'server-relative path to the asset (e.g. `{env.public_media_root}/foo.webp`) so clients can fetch it directly',
 		),
 	]
 	format: Annotated[
