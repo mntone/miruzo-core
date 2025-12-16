@@ -1,14 +1,14 @@
 from collections.abc import Sequence
 
 from app.config.variant import VariantLayer, VariantSpec
-from app.services.images.variants.types import ImageFileInfo, VariantComparison, VariantFile, VariantPlan
+from app.services.images.variants.types import ImageInfo, VariantComparison, VariantFile, VariantPlan
 
 
-def _should_emit_variant(spec: VariantSpec, original: ImageFileInfo) -> bool:
+def _should_emit_variant(spec: VariantSpec, original: ImageInfo) -> bool:
 	return spec.required or spec.width < original.width
 
 
-def plan_variant_specs(layers: Sequence[VariantLayer], original: ImageFileInfo) -> list[VariantSpec]:
+def plan_variant_specs(layers: Sequence[VariantLayer], original: ImageInfo) -> list[VariantSpec]:
 	specs: list[VariantSpec] = []
 
 	for layer in layers:
@@ -24,13 +24,13 @@ def plan_variant_specs(layers: Sequence[VariantLayer], original: ImageFileInfo) 
 def _is_content_matched(cmp: VariantComparison) -> bool:
 	"""Check whether width, container, and codec attributes align."""
 
-	if cmp.spec.width != cmp.file.file_info.width:
+	if cmp.spec.width != cmp.file.info.width:
 		return False
 
-	if cmp.spec.format.container != cmp.file.file_info.container:
+	if cmp.spec.format.container != cmp.file.info.container:
 		return False
 
-	if (cmp.spec.format.codecs is not None) and (cmp.spec.format.codecs != cmp.file.file_info.codecs):
+	if (cmp.spec.format.codecs is not None) and (cmp.spec.format.codecs != cmp.file.info.codecs):
 		return False
 
 	return True
@@ -85,7 +85,7 @@ def normalize_variant_plan(diff: VariantPlan) -> VariantPlan:
 	for c in range(len(remaining_mismatched) - 1, -1, -1):
 		comparison = remaining_mismatched[c]
 		fmt = comparison.spec.format
-		info = comparison.file.file_info
+		info = comparison.file.info
 
 		if info.container != fmt.container or info.codecs != fmt.codecs:
 			del remaining_mismatched[c]

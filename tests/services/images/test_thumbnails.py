@@ -18,7 +18,6 @@ def tmp_image(tmp_path: Path) -> Iterator[PILImage.Image]:
 
 	with PILImage.open(path) as img:
 		image_copy = img.copy()
-		image_copy.filename = str(path)
 		yield image_copy
 
 

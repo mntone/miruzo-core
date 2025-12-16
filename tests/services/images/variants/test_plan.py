@@ -1,5 +1,5 @@
 from tests.services.images.utils import build_variant_spec
-from tests.services.images.variants.utils import build_image_info, build_variant_file
+from tests.services.images.variants.utils import build_png_info, build_variant_file
 
 from app.config.variant import VariantLayer
 from app.services.images.variants.plan import (
@@ -14,7 +14,7 @@ from app.services.images.variants.types import VariantComparison, VariantPlan
 def test_should_emit_variant_respects_required_flag() -> None:
 	spec_required = build_variant_spec(layer_id=1, width=1000, required=True)
 	spec_optional = build_variant_spec(layer_id=1, width=1000, required=False)
-	original = build_image_info(width=800)
+	original = build_png_info(width=800)
 
 	assert _should_emit_variant(spec_required, original) is True
 	assert _should_emit_variant(spec_optional, original) is False
@@ -30,7 +30,7 @@ def test_plan_variant_specs_keeps_order_and_filters_by_width() -> None:
 			build_variant_spec(1, 960),
 		),
 	)
-	original = build_image_info(width=700)
+	original = build_png_info(width=700)
 
 	result = plan_variant_specs([layer], original)
 

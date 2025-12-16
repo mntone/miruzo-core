@@ -21,13 +21,12 @@ from app.services.images.variants.plan import (
 )
 from app.services.images.variants.preprocess import preprocess_original
 from app.services.images.variants.types import (
-	ImageFileInfo,
 	OriginalImage,
 	VariantCommitResult,
 	VariantPolicy,
 	VariantReport,
 )
-from app.services.images.variants.utils import get_image_format
+from app.services.images.variants.utils import get_image_info
 
 _LEGACY_LAYER_NAMES = {
 	0: 'original',
@@ -72,7 +71,7 @@ def _map_records(
 			continue
 
 		spec = result.report.spec
-		info = result.report.info  # only generate / regenerate results reach here
+		file = result.report.file  # only generate / regenerate results reach here
 
 		filename = relpath_noext.with_suffix(spec.format.file_extension)
 		public_path = f'{public_prefix}/{spec.slotkey.label}/{filename}'
@@ -81,16 +80,16 @@ def _map_records(
 			filepath=public_path,
 			format=spec.format.container,
 			codecs=spec.format.codecs,
-			size=info.bytes,
-			width=info.width,
-			height=info.height,
-			lossless=info.lossless,
+			size=file.bytes,
+			width=file.info.width,
+			height=file.info.height,
+			quality=spec.quality,
 		)
 		records.append((spec.layer_id, record))
 
 		if original_size and original_size > 0:
-			ratio = (info.bytes / original_size) * 100
-			delta = info.bytes - original_size
+			ratio = (file.bytes / original_size) * 100
+			delta = file.bytes - original_size
 		else:
 			ratio = None
 			delta = None
@@ -99,9 +98,9 @@ def _map_records(
 		legacy_report = VariantReportLegacy(
 			layer_name=legacy_name,
 			label=f'w{spec.width}',
-			width=info.width,
-			height=info.height,
-			size_bytes=info.bytes,
+			width=file.info.width,
+			height=file.info.height,
+			size_bytes=file.bytes,
 			ratio_percent=ratio,
 			delta_bytes=delta,
 		)
@@ -123,27 +122,6 @@ def _group_records_by_layer(
 	return [grouped[layer.layer_id] for layer in layers if grouped[layer.layer_id]]
 
 
-def _get_image_info(original: PILImage.Image) -> ImageFileInfo | None:
-	file_path = Path(getattr(original, 'filename', None))
-	try:
-		stat = file_path.lstat()
-	except FileNotFoundError:
-		return None
-
-	container, codecs, lossless = get_image_format(original)
-
-	info = ImageFileInfo(
-		file_path=file_path,
-		container=container,
-		codecs=codecs,
-		bytes=stat.st_size,
-		width=original.width,
-		height=original.height,
-		lossless=lossless,
-	)
-	return info
-
-
 def generate_variants(
 	image: PILImage.Image,
 	relative_path: Path,
@@ -154,32 +132,28 @@ def generate_variants(
 ) -> tuple[list[list[VariantRecord]], list[VariantReport]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
 
-	# 1. get info
-	original_info = _get_image_info(image)
-	if original_info is None:
-		return [[]], []
-
-	# 2. collect
+	# collect
 	variant_dirnames = collect_variant_directories(media_root)
 	variant_dirpaths = normalize_variant_directories(variant_dirnames, under=media_root)
 
 	relpath_noext = normalize_relative_path(relative_path)
 	existing = collect_variant_files(variant_dirpaths, rel_to=relpath_noext)
 
-	# 3. plan
+	# plan
+	original_info = get_image_info(image)
 	planned_specs = plan_variant_specs(layers, original_info)
 
 	plan = compare_variant_specs(planned_specs, list(existing))
 
 	normalized_plan = normalize_variant_plan(plan)
 
-	# 4. preprocess
+	# preprocess
 	preprocessed_image = OriginalImage(
 		image=preprocess_original(image),
 		info=original_info,
 	)
 
-	# 5. commit
+	# commit
 	policy = VariantPolicy(
 		regenerate_mismatched=True,
 		generate_missing=True,
@@ -200,7 +174,7 @@ def generate_variants(
 		relpath_noext=relpath_noext,
 	)
 
-	# 6. mapping
+	# mapping
 	public_prefix = public_prefix or env.public_media_root
 	records, legacy_reports = _map_records(
 		results,

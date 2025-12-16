@@ -3,10 +3,11 @@ from pathlib import Path
 import pytest
 
 from tests.services.images.utils import build_variant_spec
+from tests.services.images.variants.utils import build_webp_info
 
 from app.config.variant import WEBP_FORMAT, VariantSlotkey, VariantSpec
 from app.services.images.variants.commit import _delete_variant_file, prepare_variant_directories
-from app.services.images.variants.types import ImageFileInfo, VariantFile, VariantPlan
+from app.services.images.variants.types import VariantFile, VariantPlan
 
 
 def test_prepare_variant_directories_creates_missing_groups(tmp_path: Path) -> None:
@@ -99,22 +100,19 @@ def test_prepare_variant_directories_accepts_relative_media_root(
 
 
 def _build_variant_file(file_path: Path) -> VariantFile:
-	info = ImageFileInfo(
-		file_path=file_path,
-		container='webp',
-		codecs='vp8',
-		bytes=0,
-		width=100,
-		height=80,
-		lossless=False,
-	)
+	info = build_webp_info(width=100, height=80)
 	spec = VariantSpec(
 		slotkey=VariantSlotkey(layer_id=1, width=200),
 		layer_id=1,
 		width=200,
 		format=WEBP_FORMAT,
 	)
-	return VariantFile(variant_dir=spec.slotkey.label, file_info=info)
+	return VariantFile(
+		bytes=0,
+		info=info,
+		path=file_path,
+		variant_dir=spec.slotkey.label,
+	)
 
 
 def test_delete_variant_file_succeeds_when_file_exists(tmp_path: Path) -> None:

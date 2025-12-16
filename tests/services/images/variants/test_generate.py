@@ -3,9 +3,11 @@ from pathlib import Path
 import pytest
 from PIL import Image as PILImage
 
+from tests.services.images.variants.utils import build_png_info
+
 from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
 from app.services.images.variants.generate import _save_variant, generate_variant
-from app.services.images.variants.types import ImageFileInfo, OriginalImage
+from app.services.images.variants.types import OriginalImage
 
 
 def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
@@ -19,14 +21,14 @@ def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
 	image = PILImage.new('RGB', (50, 40), color='green')
 	target = tmp_path / 'foo.jpg'
 
-	info = _save_variant(spec, image, target)
+	file = _save_variant(spec, image, target)
 
-	assert info is not None
+	assert file is not None
 	assert target.exists()
-	assert info.container == 'jpeg'
-	assert info.width == 50
-	assert info.height == 40
-	assert info.bytes > 0
+	assert file.bytes > 0
+	assert file.info.container == 'jpeg'
+	assert file.info.width == 50
+	assert file.info.height == 40
 
 
 def test_save_variant_raises_for_unsupported_format(tmp_path: Path) -> None:
@@ -54,15 +56,7 @@ def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
 	src_path.write_bytes(b'source')
 	original = OriginalImage(
 		image=image,
-		info=ImageFileInfo(
-			file_path=src_path,
-			container='png',
-			codecs=None,
-			bytes=src_path.stat().st_size,
-			width=80,
-			height=60,
-			lossless=True,
-		),
+		info=build_png_info(width=80, height=60),
 	)
 	variant_root = tmp_path / spec.slotkey.label / 'foo'
 	variant_root.mkdir(parents=True)
@@ -76,5 +70,5 @@ def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
 
 	assert report is not None
 	output_path = tmp_path / spec.slotkey.label / 'foo' / 'bar.jpg'
-	assert report.info.file_path == output_path
+	assert report.file.path == output_path
 	assert output_path.exists()

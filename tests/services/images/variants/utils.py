@@ -1,24 +1,48 @@
 from pathlib import Path
 
 from app.config.variant import VariantSpec
-from app.services.images.variants.types import ImageFileInfo, VariantFile
+from app.services.images.variants.types import ImageInfo, VariantFile
 
 
-def build_image_info(
+def build_jpeg_info(
 	*,
 	width: int,
-	container: str = 'png',
-	codecs: str | None = None,
-	lossless: bool = True,
-) -> ImageFileInfo:
-	return ImageFileInfo(
-		file_path=Path('/tmp/source.png'),
-		container=container,
-		codecs=codecs,
-		bytes=1024,
+	height: int | None = None,
+) -> ImageInfo:
+	return ImageInfo(
+		container='jpeg',
+		codecs=None,
 		width=width,
-		height=width,
-		lossless=lossless,
+		height=height or width,
+		lossless=False,
+	)
+
+
+def build_png_info(
+	*,
+	width: int,
+	height: int | None = None,
+) -> ImageInfo:
+	return ImageInfo(
+		container='png',
+		codecs=None,
+		width=width,
+		height=height or width,
+		lossless=True,
+	)
+
+
+def build_webp_info(
+	*,
+	width: int,
+	height: int | None = None,
+) -> ImageInfo:
+	return ImageInfo(
+		container='webp',
+		codecs='vp8',
+		width=width,
+		height=height or width,
+		lossless=False,
 	)
 
 
@@ -26,19 +50,20 @@ def build_variant_file(
 	spec: VariantSpec,
 	*,
 	width: int,
+	height: int | None = None,
 	container: str | None = None,
 ) -> VariantFile:
 	container = container or spec.format.container
-	info = ImageFileInfo(
-		file_path=Path(f'/tmp/{spec.slotkey.label}.{container}'),
+	info = ImageInfo(
 		container=container,
 		codecs=spec.format.codecs,
-		bytes=2048,
 		width=width,
-		height=width,
+		height=height or width,
 		lossless=False,
 	)
 	return VariantFile(
+		bytes=2048,
+		info=info,
+		path=Path(f'/tmp/{spec.slotkey.label}.{container}'),
 		variant_dir=spec.slotkey.label,
-		file_info=info,
 	)

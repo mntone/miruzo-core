@@ -2,13 +2,15 @@ from pathlib import Path
 
 import pytest
 
+from tests.services.images.variants.utils import build_jpeg_info
+
 from app.services.images.variants.collect import (
 	collect_variant_directories,
 	collect_variant_files,
 	normalize_variant_directories,
 )
 from app.services.images.variants.path import normalize_relative_path
-from app.services.images.variants.utils import ImageFileInfo
+from app.services.images.variants.types import VariantFile
 
 
 def test_collect_variant_directories_filters_symlinks_and_suffixes(tmp_path: Path) -> None:
@@ -45,19 +47,20 @@ def test_collect_variant_files_yields_existing_variants(
 
 	called = {}
 
-	def fake_load_image_info(file_path: Path) -> ImageFileInfo:
+	def fake_load_variant_file(file_path: Path, variant_dirname: str) -> VariantFile | None:
 		called['path'] = file_path
-		return ImageFileInfo(
-			file_path=file_path,
-			container='webp',
-			codecs='vp8',
-			bytes=target.stat().st_size,
-			width=100,
-			height=80,
-			lossless=False,
+		info = build_jpeg_info(width=100, height=80)
+		return VariantFile(
+			bytes=file_path.stat().st_size,
+			info=info,
+			path=file_path,
+			variant_dir=variant_dirname,
 		)
 
-	monkeypatch.setattr('app.services.images.variants.collect.load_image_info', fake_load_image_info)
+	monkeypatch.setattr(
+		'app.services.images.variants.collect._load_variant_file',
+		fake_load_variant_file,
+	)
 
 	variant_dirs = list(normalize_variant_directories(['l1w200'], under=tmp_path))
 	relative = normalize_relative_path(Path('foo/bar.webp'))

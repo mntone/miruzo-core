@@ -1,22 +1,25 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Literal, Self, TypeAlias
 
 from PIL import Image as PILImage
 
 from app.config.variant import VariantSlotkey, VariantSpec
-from app.services.images.variants.utils import ImageFileInfo, parse_variant_slotkey
+from app.services.images.variants.utils import ImageInfo, parse_variant_slotkey
 
 
 @dataclass(frozen=True, slots=True)
 class OriginalImage:
 	image: PILImage.Image
-	info: ImageFileInfo
+	info: ImageInfo
 
 
 @dataclass(frozen=True, slots=True)
 class VariantFile:
+	bytes: int
+	info: ImageInfo
+	path: Path
 	variant_dir: str
-	file_info: ImageFileInfo
 	_slotkey_cache: VariantSlotkey | None = field(init=False, default=None, repr=False)
 
 	@property
@@ -50,7 +53,7 @@ class VariantPolicy:
 @dataclass(frozen=True, slots=True)
 class VariantReport:
 	spec: VariantSpec
-	info: ImageFileInfo
+	file: VariantFile
 
 
 _VariantCommitAction: TypeAlias = Literal['reuse', 'generate', 'regenerate', 'delete']

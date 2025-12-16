@@ -3,10 +3,10 @@ from pathlib import Path
 from PIL import Image as PILImage
 
 from app.config.variant import VariantSpec
-from app.services.images.variants.types import ImageFileInfo, OriginalImage, VariantReport
+from app.services.images.variants.types import ImageInfo, OriginalImage, VariantFile, VariantReport
 
 
-def _select_resample_algorithm(original: ImageFileInfo, target_width: int) -> int:
+def _select_resample_algorithm(original: ImageInfo, target_width: int) -> int:
 	"""Choose a resize filter based on scale ratio and source losslessness."""
 
 	ratio = target_width / original.width
@@ -37,7 +37,7 @@ def _save_variant(
 	spec: VariantSpec,
 	output_image: PILImage.Image,
 	output_path: Path,
-) -> ImageFileInfo | None:
+) -> VariantFile | None:
 	"""Encode the resized image and return filesystem metadata."""
 
 	kwargs: dict[str, object] = {}
@@ -67,16 +67,22 @@ def _save_variant(
 	except FileNotFoundError:
 		return None
 
-	info = ImageFileInfo(
-		file_path=output_path,
+	info = ImageInfo(
 		container=spec.format.container,
 		codecs=spec.format.codecs,
-		bytes=stat.st_size,
 		width=output_image.width,
 		height=output_image.height,
 		lossless=lossless,
 	)
-	return info
+
+	file = VariantFile(
+		bytes=stat.st_size,
+		info=info,
+		path=output_path,
+		variant_dir=spec.slotkey.label,
+	)
+
+	return file
 
 
 def generate_variant(
@@ -90,13 +96,13 @@ def generate_variant(
 
 	variant_image = _transform_variant(spec, original)
 
-	filename = relpath_noext.with_suffix(spec.format.file_extension)
-	variant_root = media_root / spec.slotkey.label / filename
+	file_name = relpath_noext.with_suffix(spec.format.file_extension)
+	file_path = media_root / spec.slotkey.label / file_name
 
-	variant_info = _save_variant(spec, variant_image, variant_root)
-	if variant_info is None:
+	file = _save_variant(spec, variant_image, file_path)
+	if file is None:
 		return None
 
-	variant_report = VariantReport(spec, variant_info)
+	report = VariantReport(spec, file)
 
-	return variant_report
+	return report

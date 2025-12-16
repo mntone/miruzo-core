@@ -1,9 +1,15 @@
+import logging
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
+from PIL import Image as PILImage
+from PIL import UnidentifiedImageError as PILUnidentifiedImageError
+
 from app.services.images.variants.path import NormalizedRelativePath, VariantDirectoryPath
 from app.services.images.variants.types import VariantFile
-from app.services.images.variants.utils import load_image_info, parse_variant_slotkey
+from app.services.images.variants.utils import get_image_info, parse_variant_slotkey
+
+log = logging.getLogger(__name__)
 
 _NON_VARIANT_SUFFIXES = ('orig',)
 
@@ -43,12 +49,30 @@ def collect_variant_directories(media_root: Path) -> Iterator[str]:
 		yield variant_dirname
 
 
-def _collect_variant_file(path: Path, variant_dirname: str) -> VariantFile | None:
-	info = load_image_info(path)
-	if info is None:
+def _load_variant_file(path: Path, variant_dirname: str) -> VariantFile | None:
+	try:
+		stat = path.lstat()
+	except FileNotFoundError:
+		log.debug('image not found: %s', path)
 		return None
 
-	file = VariantFile(variant_dirname, info)
+	try:
+		with PILImage.open(path) as image:
+			info = get_image_info(image)
+	except FileNotFoundError:
+		log.debug('image not found: %s', path)
+		return None
+	except PILUnidentifiedImageError:
+		log.warning('invalid image: %s', path)
+		return None
+
+	file = VariantFile(
+		bytes=stat.st_size,
+		info=info,
+		path=path,
+		variant_dir=variant_dirname,
+	)
+
 	return file
 
 
@@ -71,8 +95,8 @@ def collect_variant_files(
 		output_name = relative_path.name
 
 		for file_path in output_path.glob(f'{output_name}.*'):
-			if (variant := _collect_variant_file(file_path, variant_dirname)) is not None:
-				yield variant
+			if (variant_file := _load_variant_file(file_path, variant_dirname)) is not None:
+				yield variant_file
 
 
 def normalize_variant_directories(
