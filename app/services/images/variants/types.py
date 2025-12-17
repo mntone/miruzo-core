@@ -34,15 +34,35 @@ class VariantFile:
 
 @dataclass(frozen=True, slots=True)
 class VariantComparison:
+	expected_spec: VariantSpec
+	actual_file: VariantFile
+
+
+@dataclass(frozen=True, slots=True)
+class VariantDiff:
+	matched: list[VariantComparison]
+	mismatched: list[VariantComparison]
+	missing: list[VariantSpec]
+	orphaned: list[VariantFile]
+
+
+@dataclass(frozen=True, slots=True)
+class VariantPlanFile:
+	path: Path
 	spec: VariantSpec
-	file: VariantFile
+
+
+@dataclass(frozen=True, slots=True)
+class VariantRegeneratePlan:
+	actual_file: VariantFile
+	planning_file: VariantPlanFile
 
 
 @dataclass(frozen=True, slots=True)
 class VariantPlan:
 	matched: list[VariantComparison]
-	mismatched: list[VariantComparison]
-	missing: list[VariantSpec]
+	mismatched: list[VariantRegeneratePlan]
+	missing: list[VariantPlanFile]
 	orphaned: list[VariantFile]
 
 

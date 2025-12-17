@@ -12,19 +12,15 @@ from app.services.images.variants.collect import (
 	collect_variant_files,
 	normalize_variant_directories,
 )
-from app.services.images.variants.commit import commit_variant_plan, prepare_variant_directories
+from app.services.images.variants.commit import commit_variant_plan
 from app.services.images.variants.path import normalize_relative_path
-from app.services.images.variants.plan import (
-	compare_variant_specs,
-	normalize_variant_plan,
-	plan_variant_specs,
-)
+from app.services.images.variants.plan import build_variant_plan, emit_variant_specs
 from app.services.images.variants.preprocess import preprocess_original
 from app.services.images.variants.types import (
 	OriginalImage,
 	VariantCommitResult,
 	VariantPolicy,
-	)
+)
 from app.services.images.variants.utils import get_image_info
 
 _LEGACY_LAYER_NAMES = {
@@ -65,7 +61,7 @@ def _map_records(
 	for result in results:
 		if result.result != 'success':
 			continue
-assert result.report is not None
+		assert result.report is not None
 
 		if result.action not in ('generate', 'regenerate'):
 			continue
@@ -132,20 +128,24 @@ def generate_variants(
 ) -> tuple[list[list[VariantRecord]], list[VariantReportLegacy]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
 
+	media_root = media_root.resolve()  # todo: add path validation
+	original_info = get_image_info(image)
+
 	# collect
 	variant_dirnames = collect_variant_directories(media_root)
 	variant_dirpaths = normalize_variant_directories(variant_dirnames, under=media_root)
 
 	relpath_noext = normalize_relative_path(relative_path)
-	existing = collect_variant_files(variant_dirpaths, rel_to=relpath_noext)
+	existing_files = collect_variant_files(variant_dirpaths, rel_to=relpath_noext)
 
 	# plan
-	original_info = get_image_info(image)
-	planned_specs = plan_variant_specs(layers, original_info)
-
-	plan = compare_variant_specs(planned_specs, list(existing))
-
-	normalized_plan = normalize_variant_plan(plan)
+	planned_specs = emit_variant_specs(layers, original_info)
+	plan = build_variant_plan(
+		planned=planned_specs,
+		existing=existing_files,
+		rel_to=relpath_noext,
+		under=media_root,
+	)
 
 	# preprocess
 	preprocessed_image = OriginalImage(
@@ -159,20 +159,7 @@ def generate_variants(
 		generate_missing=True,
 		delete_orphaned=True,
 	)
-
-	prepare_variant_directories(
-		normalized_plan,
-		media_root=media_root,
-		relpath_noext=relpath_noext,
-	)
-
-	results = commit_variant_plan(
-		normalized_plan,
-		policy,
-		preprocessed_image,
-		media_root=media_root,
-		relpath_noext=relpath_noext,
-	)
+	results = commit_variant_plan(plan, policy, preprocessed_image)
 
 	# mapping
 	public_prefix = public_prefix or env.public_media_root

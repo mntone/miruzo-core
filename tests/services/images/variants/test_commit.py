@@ -1,102 +1,10 @@
 from pathlib import Path
 
-import pytest
-
-from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_webp_info
 
 from app.config.variant import WEBP_FORMAT, VariantSlotkey, VariantSpec
-from app.services.images.variants.commit import _delete_variant_file, prepare_variant_directories
-from app.services.images.variants.types import VariantFile, VariantPlan
-
-
-def test_prepare_variant_directories_creates_missing_groups(tmp_path: Path) -> None:
-	variant_root = tmp_path / 'l1w200'
-	variant_root.mkdir()
-
-	spec = build_variant_spec(1, width=200)
-	diff = VariantPlan(matched=[], mismatched=[], missing=[spec], orphaned=[])
-
-	prepare_variant_directories(
-		diff,
-		media_root=tmp_path,
-		relpath_noext=Path('foo/bar'),
-	)
-
-	assert (variant_root / 'foo').is_dir()
-
-
-def test_prepare_variant_directories_rejects_missing_root(tmp_path: Path) -> None:
-	spec = build_variant_spec(1, width=200)
-	diff = VariantPlan(matched=[], mismatched=[], missing=[spec], orphaned=[])
-
-	with pytest.raises(RuntimeError):
-		prepare_variant_directories(
-			diff,
-			media_root=tmp_path,
-			relpath_noext=Path('foo/bar'),
-		)
-
-
-def test_prepare_variant_directories_prevents_escape(tmp_path: Path) -> None:
-	variant_root = tmp_path / 'l1w200'
-	variant_root.mkdir()
-
-	spec = build_variant_spec(1, width=200)
-	diff = VariantPlan(matched=[], mismatched=[], missing=[spec], orphaned=[])
-
-	with pytest.raises(ValueError):
-		prepare_variant_directories(
-			diff,
-			media_root=tmp_path,
-			relpath_noext=Path('../escape'),
-		)
-
-
-def test_prepare_variant_directories_skips_root_path(tmp_path: Path) -> None:
-	variant_root = tmp_path / 'l1w200'
-	variant_root.mkdir()
-
-	spec = VariantSpec(
-		slotkey=VariantSlotkey(layer_id=1, width=200),
-		layer_id=1,
-		width=200,
-		format=WEBP_FORMAT,
-	)
-	diff = VariantPlan(matched=[], mismatched=[], missing=[spec], orphaned=[])
-
-	prepare_variant_directories(
-		diff,
-		media_root=tmp_path,
-		relpath_noext=Path('image'),
-	)
-
-	assert list(variant_root.iterdir()) == []
-
-
-def test_prepare_variant_directories_accepts_relative_media_root(
-	tmp_path: Path,
-	monkeypatch: pytest.MonkeyPatch,
-) -> None:
-	media_root = tmp_path / 'media'
-	variant_root = media_root / 'l1w200'
-	variant_root.mkdir(parents=True)
-	spec = VariantSpec(
-		slotkey=VariantSlotkey(layer_id=1, width=200),
-		layer_id=1,
-		width=200,
-		format=WEBP_FORMAT,
-	)
-	diff = VariantPlan(matched=[], mismatched=[], missing=[spec], orphaned=[])
-
-	monkeypatch.chdir(tmp_path)
-	prepare_variant_directories(
-		diff,
-		media_root=Path('media'),
-		relpath_noext=Path('foo/bar'),
-	)
-
-	assert (variant_root / 'foo').is_dir()
+from app.services.images.variants.commit import _delete_variant_file
+from app.services.images.variants.types import VariantFile
 
 
 def _build_variant_file(file_path: Path) -> VariantFile:

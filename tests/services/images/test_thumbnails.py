@@ -44,7 +44,7 @@ def test_generate_variants_skips_unrequired_upscale(tmp_image: PILImage.Image, t
 
 	assert len(variants) == 1
 	assert len(variants[0]) == 1
-	assert all(record['format'] == 'webp' and record['width'] == 200 for record in variants[0])
+	assert all(record['format'] == 'jpeg' and record['width'] == 200 for record in variants[0])
 	assert all(report.label == 'w200' for report in reports)
 
 

@@ -6,12 +6,17 @@ from app.services.images.variants.utils import _get_image_format, parse_variant_
 
 
 class DummyImage:
-	def __init__(self, fmt: str, *, info: dict | None = None, compression: int | None = None) -> None:
+	def __init__(self, fmt: str, *, info: dict | None = None) -> None:
 		self.format = fmt
 		self.info = info or {}
-		self.tag_v2 = {}
-		if compression is not None:
-			self.tag_v2[TiffImagePlugin.COMPRESSION] = compression
+
+
+def _build_tiff_dummy(compression: int) -> TiffImagePlugin.TiffImageFile:
+	image = object.__new__(TiffImagePlugin.TiffImageFile)
+	image.format = 'TIFF'
+	image.info = {}
+	image.tag_v2 = {TiffImagePlugin.COMPRESSION: compression}
+	return image
 
 
 def test_get_image_format_handles_webp_lossless_flag() -> None:
@@ -35,7 +40,7 @@ def test_get_image_format_detects_jpeg_as_lossy() -> None:
 
 
 def test_get_image_format_detects_tiff_compression_lossless() -> None:
-	image = DummyImage('TIFF', compression=5)
+	image = _build_tiff_dummy(5)
 	assert _get_image_format(image) == ('tiff', None, True)
 
 

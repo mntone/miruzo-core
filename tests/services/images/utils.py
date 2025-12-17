@@ -92,16 +92,16 @@ def build_variant_spec(
 	layer_id: int,
 	width: int,
 	*,
-	container: str = 'webp',
-	codecs: str | None = 'vp8',
-	required: bool = False,
+	container: str = 'jpeg',
+	codecs: str | None = None,
 	quality: int | None = None,
+	required: bool = False,
 ) -> VariantSpec:
 	return VariantSpec(
 		slotkey=VariantSlotkey(layer_id, width),
 		layer_id=layer_id,
 		width=width,
-		format=VariantFormat(container=container, codecs=codecs, file_extension=f'.{container}'),
+		format=VariantFormat(container=container, codecs=codecs, file_extension=f'.{container}'),  # pyright: ignore[reportArgumentType]
 		quality=quality,
 		required=required,
 	)

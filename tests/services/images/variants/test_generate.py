@@ -3,21 +3,15 @@ from pathlib import Path
 import pytest
 from PIL import Image as PILImage
 
+from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_png_info
 
-from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
 from app.services.images.variants.generate import _save_variant, generate_variant
-from app.services.images.variants.types import OriginalImage
+from app.services.images.variants.types import OriginalImage, VariantPlanFile
 
 
 def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
-	spec = VariantSpec(
-		slotkey=VariantSlotkey(layer_id=1, width=200),
-		layer_id=1,
-		width=200,
-		format=VariantFormat(container='jpeg', codecs=None, file_extension='.jpg'),
-		quality=80,
-	)
+	spec = build_variant_spec(1, 200, quality=80)
 	image = PILImage.new('RGB', (50, 40), color='green')
 	target = tmp_path / 'foo.jpg'
 
@@ -32,12 +26,7 @@ def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
 
 
 def test_save_variant_raises_for_unsupported_format(tmp_path: Path) -> None:
-	spec = VariantSpec(
-		slotkey=VariantSlotkey(layer_id=1, width=200),
-		layer_id=1,
-		width=200,
-		format=VariantFormat(container='gif', codecs=None, file_extension='.gif'),
-	)
+	spec = build_variant_spec(1, 200, container='gif', codecs=None)
 	image = PILImage.new('RGB', (10, 10))
 
 	with pytest.raises(ValueError, match='Unsupported variant spec'):
@@ -45,12 +34,7 @@ def test_save_variant_raises_for_unsupported_format(tmp_path: Path) -> None:
 
 
 def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
-	spec = VariantSpec(
-		slotkey=VariantSlotkey(layer_id=3, width=480),
-		layer_id=3,
-		width=480,
-		format=VariantFormat(container='jpeg', codecs=None, file_extension='.jpg'),
-	)
+	spec = build_variant_spec(3, 480)
 	image = PILImage.new('RGB', (80, 60), color='blue')
 	src_path = tmp_path / 'source.png'
 	src_path.write_bytes(b'source')
@@ -58,17 +42,14 @@ def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
 		image=image,
 		info=build_png_info(width=80, height=60),
 	)
-	variant_root = tmp_path / spec.slotkey.label / 'foo'
-	variant_root.mkdir(parents=True)
+	group_root = tmp_path / spec.slotkey.label / 'foo'
+	group_root.mkdir(parents=True)
+	dst_path = group_root / f'bar{spec.format.file_extension}'
+	plan_file = VariantPlanFile(dst_path, spec)
 
-	report = generate_variant(
-		spec,
-		original,
-		media_root=tmp_path,
-		relpath_noext=Path('foo/bar'),
-	)
+	report = generate_variant(plan_file, original)
 
 	assert report is not None
-	output_path = tmp_path / spec.slotkey.label / 'foo' / 'bar.jpg'
+	output_path = tmp_path / spec.slotkey.label / 'foo' / f'bar{spec.format.file_extension}'
 	assert report.file.path == output_path
 	assert output_path.exists()

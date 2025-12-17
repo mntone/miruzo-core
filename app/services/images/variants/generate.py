@@ -4,7 +4,13 @@ from PIL import Image as PILImage
 from PIL.Image import Resampling as PILResampling
 
 from app.config.variant import VariantSpec
-from app.services.images.variants.types import ImageInfo, OriginalImage, VariantFile, VariantReport
+from app.services.images.variants.types import (
+	ImageInfo,
+	OriginalImage,
+	VariantFile,
+	VariantPlanFile,
+	VariantReport,
+)
 
 
 def _select_resample_algorithm(original: ImageInfo, target_width: int) -> int:
@@ -86,21 +92,14 @@ def _save_variant(
 	return file
 
 
-def generate_variant(
-	spec: VariantSpec,
-	original: OriginalImage,
-	*,
-	media_root: Path,
-	relpath_noext: Path,
-) -> VariantReport | None:
+def generate_variant(plan_file: VariantPlanFile, original: OriginalImage) -> VariantReport | None:
 	"""Render and persist a single variant, returning its report."""
+
+	spec = plan_file.spec
 
 	variant_image = _transform_variant(spec, original)
 
-	file_name = relpath_noext.with_suffix(spec.format.file_extension)
-	file_path = media_root / spec.slotkey.label / file_name
-
-	file = _save_variant(spec, variant_image, file_path)
+	file = _save_variant(spec, variant_image, plan_file.path)
 	if file is None:
 		return None
 

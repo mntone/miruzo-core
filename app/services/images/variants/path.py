@@ -2,6 +2,8 @@ import unicodedata
 from pathlib import Path
 from typing import NewType
 
+from app.config.variant import VariantSpec
+
 NormalizedRelativePath = NewType('NormalizedRelativePath', Path)
 VariantDirectoryPath = NewType('VariantDirectoryPath', Path)
 
@@ -63,5 +65,14 @@ def normalize_relative_path(relative_path: Path) -> NormalizedRelativePath:
 	return NormalizedRelativePath(validated_relpath)
 
 
-def make_variant_path(media_root: Path, variant_dirname: str) -> VariantDirectoryPath:
-	return VariantDirectoryPath(media_root / variant_dirname)
+def build_variant_dirpath(media_root: Path, variant_dirname: str) -> VariantDirectoryPath:
+	variant_dirpath = VariantDirectoryPath(media_root / variant_dirname)
+
+	if not variant_dirpath.is_dir():
+		raise RuntimeError(f'Variant directory missing: {variant_dirpath}')
+
+	return variant_dirpath
+
+
+def build_variant_filename(relpath: Path, spec: VariantSpec) -> str:
+	return relpath.with_suffix(spec.format.file_extension).name

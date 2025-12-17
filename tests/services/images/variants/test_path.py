@@ -4,7 +4,7 @@ import pytest
 
 from app.services.images.variants.path import (
 	_validate_relative_path,
-	make_variant_path,
+	build_variant_dirpath,
 	normalize_relative_path,
 )
 
@@ -54,7 +54,9 @@ def test_normalize_relative_path_raises_for_invalid(input_path: Path) -> None:
 		normalize_relative_path(input_path)
 
 
-def test_make_variant_path_combines_media_root() -> None:
-	media_root = Path('/var/media')
-	result = make_variant_path(media_root, 'l1w200')
-	assert result == Path('/var/media/l1w200')
+def test_build_variant_dirpath_combines_media_root(tmp_path: Path) -> None:
+	media_root = tmp_path / 'media'
+	(media_root / 'l1w200').mkdir(parents=True)
+
+	result = build_variant_dirpath(media_root, 'l1w200')
+	assert result == media_root / 'l1w200'
