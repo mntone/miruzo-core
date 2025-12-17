@@ -6,7 +6,7 @@ indent-width = 4
 
 
 [lint]
-select = ["A", "ANN", "B", "COM", "FAST", "I"]
+select = ["A", "ANN", "ARG", "B", "COM", "FAST", "I", "TID"]
 ignore = [
 	"ANN401", # any-type
 	"B002",   # unary-prefix-increment-decrement
@@ -16,6 +16,12 @@ ignore = [
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 
+[lint.flake8-tidy-imports.banned-api]
+"typing.Iterable".msg = "Use collections.abc.Iterable"
+"typing.Iterator".msg = "Use collections.abc.Iterator"
+"typing.Sequence".msg = "Use collections.abc.Sequence"
+"typing.Mapping".msg = "Use collections.abc.Mapping"
+"typing.MutableMapping".msg = "Use collections.abc.MutableMapping"
 
 [lint.isort]
 force-wrap-aliases = true

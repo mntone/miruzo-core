@@ -1,0 +1,14 @@
+{
+	"pythonVersion": "3.10",
+	"include": [
+		"app",
+		"importers"
+	],
+	"typeCheckingMode": "strict",
+	"executionEnvironments": [
+		{
+			"root": "./",
+			"reportPrivateUsage": "none"
+		}
+	]
+}
