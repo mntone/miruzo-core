@@ -2,8 +2,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from PIL import ExifTags, TiffImagePlugin
 from PIL import Image as PILImage
-from PIL import TiffImagePlugin
 
 from app.config.variant import VariantSlotkey
 from app.services.images.variants.path import VariantDirectoryPath
@@ -24,35 +24,45 @@ class ImageInfo:
 	height: int
 	lossless: bool
 
+	@property
+	def supports_exif(self) -> bool:
+		return self.container in ('jpeg', 'webp', 'tiff')
 
-def _get_image_format(image: PILImage.Image) -> tuple[str, str | None, bool]:
+
+def _get_image_format(image: PILImage.Image) -> tuple[str, str | None, bool, bool]:
 	container = (image.format or '').upper()
 	match container:
 		case 'GIF':
-			return 'gif', None, True
+			return 'gif', None, True, False
 		case 'PNG':
-			return 'png', None, True
+			return 'png', None, True, False
 		case 'JPEG':
-			return 'jpeg', None, False
+			return 'jpeg', None, False, True
 		case 'WEBP':
 			lossless = bool(image.info.get('lossless'))
-			return 'webp', 'vp8l' if lossless else 'vp8', lossless
+			return 'webp', 'vp8l' if lossless else 'vp8', lossless, True
 		case 'BMP':
-			return 'bmp', None, True
+			return 'bmp', None, True, False
 		case 'DIB':
-			return 'dib', None, True
+			return 'dib', None, True, False
 		case 'TIFF':
 			assert isinstance(image, TiffImagePlugin.TiffImageFile), f'TIFF format, but got {type(image)}'
 			lossless = image.tag_v2[TiffImagePlugin.COMPRESSION] in _TIFF_LOSSLESS_COMPRESSIONS
-			return 'tiff', None, lossless
+			return 'tiff', None, lossless, True
 		case _:
-			return container.lower(), None, False
+			return container.lower(), None, False, False
 
 
 def get_image_info(image: PILImage.Image) -> ImageInfo:
-	container, codecs, lossless = _get_image_format(image)
+	container, codecs, lossless, supports_exif = _get_image_format(image)
 	width = image.width
 	height = image.height
+
+	if supports_exif:
+		exif = image.getexif()
+		orientation = exif[ExifTags.Base.Orientation]
+		if orientation in (5, 6, 7, 8):
+			width, height = height, width
 
 	info = ImageInfo(
 		container=container,

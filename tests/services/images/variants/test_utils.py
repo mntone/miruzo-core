@@ -21,32 +21,32 @@ def _build_tiff_dummy(compression: int) -> TiffImagePlugin.TiffImageFile:
 
 def test_get_image_format_handles_webp_lossless_flag() -> None:
 	image = DummyImage('WEBP', info={'lossless': True})
-	assert _get_image_format(image) == ('webp', 'vp8l', True)
+	assert _get_image_format(image) == ('webp', 'vp8l', True, True)
 
 
 def test_get_image_format_handles_webp_lossy_flag() -> None:
 	image = DummyImage('WEBP', info={'lossless': False})
-	assert _get_image_format(image) == ('webp', 'vp8', False)
+	assert _get_image_format(image) == ('webp', 'vp8', False, True)
 
 
 def test_get_image_format_detects_png_as_lossless() -> None:
 	image = DummyImage('PNG')
-	assert _get_image_format(image) == ('png', None, True)
+	assert _get_image_format(image) == ('png', None, True, False)
 
 
 def test_get_image_format_detects_jpeg_as_lossy() -> None:
 	image = DummyImage('JPEG')
-	assert _get_image_format(image) == ('jpeg', None, False)
+	assert _get_image_format(image) == ('jpeg', None, False, True)
 
 
 def test_get_image_format_detects_tiff_compression_lossless() -> None:
 	image = _build_tiff_dummy(5)
-	assert _get_image_format(image) == ('tiff', None, True)
+	assert _get_image_format(image) == ('tiff', None, True, True)
 
 
 def test_get_image_format_defaults_to_lowercased_container() -> None:
 	image = DummyImage('ABC')
-	assert _get_image_format(image) == ('abc', None, False)
+	assert _get_image_format(image) == ('abc', None, False, False)
 
 
 def test_parse_variant_slotkey_parses_valid_label() -> None:

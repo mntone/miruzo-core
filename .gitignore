@@ -5,3 +5,4 @@ __pycache__/
 
 # Project Files
 var/
+*.o

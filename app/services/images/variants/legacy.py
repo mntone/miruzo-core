@@ -149,7 +149,7 @@ def generate_variants(
 
 	# preprocess
 	preprocessed_image = OriginalImage(
-		image=preprocess_original(image),
+		image=preprocess_original(image, original_info),
 		info=original_info,
 	)
 
