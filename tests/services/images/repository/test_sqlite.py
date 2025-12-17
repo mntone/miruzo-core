@@ -60,6 +60,7 @@ def test_get_detail_with_stats(session: Session) -> None:
 	assert result is not None
 	image_record, stats_record = result
 	assert image_record.id == image.id
+	assert stats_record is not None
 	assert stats_record.favorite is True
 	assert stats_record.score == 42
 

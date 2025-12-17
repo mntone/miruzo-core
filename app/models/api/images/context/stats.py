@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Self, final
+from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,7 +44,7 @@ class StatsModel(BaseModel):
 	] = None
 
 	@classmethod
-	def from_record(cls, stats: StatsRecord) -> Self:
+	def from_record(cls, stats: StatsRecord) -> 'StatsModel':
 		return cls(
 			is_favorited=stats.favorite,
 			score=stats.score,

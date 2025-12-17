@@ -5,7 +5,7 @@ _DEFAULT_BACKGROUND = (255, 255, 255, 255)
 
 def _remove_alpha(
 	image: PILImage.Image,
-	background: tuple[int] = _DEFAULT_BACKGROUND,
+	background: tuple[int, int, int, int] = _DEFAULT_BACKGROUND,
 ) -> PILImage.Image:
 	match image.mode:
 		case 'LA':

@@ -1,5 +1,6 @@
 import re
-from typing import Annotated, final
+from collections.abc import Iterable
+from typing import Annotated, cast, final
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -30,8 +31,9 @@ class ListQuery(PaginationQuery):
 		if isinstance(value, str):
 			parts = cls._split_single(value)
 		elif isinstance(value, (list, tuple, set)):
+			iterable_value = cast(Iterable[object], value)
 			parts: list[str] = []
-			for item in value:
+			for item in iterable_value:
 				parts.extend(cls._split_single(str(item)))
 		else:
 			raise TypeError('format must be supplied as a string or list of strings')

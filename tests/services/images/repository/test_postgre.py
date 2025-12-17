@@ -3,6 +3,7 @@ import socket
 import subprocess
 import time
 import uuid
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from typing import Any, Generator
 
@@ -29,7 +30,7 @@ def _find_free_port() -> int:
 
 
 @pytest.fixture(scope='session')
-def postgres_dsn() -> str:
+def postgres_dsn() -> Iterator[str]:
 	if shutil.which('docker') is None:
 		pytest.skip('docker binary not available on PATH', allow_module_level=True)
 
@@ -101,6 +102,7 @@ def test_get_detail_with_stats(session: Session) -> None:
 	assert result is not None
 	image_record, stats_record = result
 	assert image_record.id == image.id
+	assert stats_record is not None
 	assert stats_record.favorite is True
 	assert stats_record.view_count == 2
 

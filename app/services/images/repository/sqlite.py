@@ -1,4 +1,8 @@
-from sqlalchemy.dialects.sqlite import insert
+# pyright: reportUnknownMemberType=false
+
+from sqlalchemy.dialects.sqlite import Insert as SQLiteInsert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlmodel import SQLModel
 
 from app.models.records import ImageRecord, StatsRecord
 from app.services.images.repository.base import ImageRepository
@@ -8,7 +12,7 @@ class SQLiteImageRepository(ImageRepository):
 	def get_detail_with_stats(
 		self,
 		image_id: int,
-	) -> tuple[ImageRecord, StatsRecord] | None:
+	) -> tuple[ImageRecord, StatsRecord | None] | None:
 		"""
 		Fetch an image and its stats in a single request.
 
@@ -24,5 +28,5 @@ class SQLiteImageRepository(ImageRepository):
 
 		return image, stats
 
-	def upsert_stats_with_increment(self, image_id: int) -> StatsRecord:
-		return self._upsert_stats_with_increment(insert, image_id)
+	def _build_insert(self, model: type[SQLModel]) -> SQLiteInsert:
+		return sqlite_insert(model.__table__)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownArgumentType]

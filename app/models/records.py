@@ -1,3 +1,6 @@
+# pyright: reportAssignmentType=false
+# pyright: reportUnknownVariableType=false
+
 from datetime import datetime, timezone
 from typing import Annotated, Optional, TypedDict, final
 
@@ -14,18 +17,18 @@ from app.models.enums import ImageStatus
 class VariantRecord(TypedDict):
 	filepath: str
 	format: Annotated[str, Field(ge=3, le=8)]
-	codecs: str | None = None
+	codecs: Annotated[str | None, Field(default=None)]
 	size: Annotated[int, Field(ge=1)]
 	width: Annotated[int, Field(ge=1, le=10240)]
 	height: Annotated[int, Field(ge=1, le=10240)]
-	quality: Annotated[int | None, Field(ge=1, le=100)] = None
+	quality: Annotated[int | None, Field(default=None, ge=1, le=100)]
 
 
 @final
 class ImageRecord(SQLModel, table=True):
 	__tablename__ = 'images'
 
-	id: int | None = SQLField(primary_key=True, default=None)
+	id: int = SQLField(primary_key=True, default=None)
 	fingerprint: str = SQLField(min_length=64, max_length=64, unique=True)
 	captured_at: datetime | None = SQLField(default=None)
 	ingested_at: datetime = SQLField(default=datetime.now(timezone.utc))

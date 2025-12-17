@@ -1,25 +1,38 @@
-from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Callable
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportOptionalMemberAccess=false
+# pyright: reportOptionalOperand=false
+# pyright: reportUnknownArgumentType=false
+# pyright: reportUnknownMemberType=false
+# pyright: reportUnknownVariableType=false
 
-from sqlalchemy import func
-from sqlmodel import Session, select
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from datetime import datetime
+from typing import TypeVar
+
+from sqlalchemy import Insert, func
+from sqlmodel import Session, SQLModel, select
 
 from app.config.constants import DEFAULT_SCORE
 from app.models.api.images.patches import FavoriteResponse, ScoreResponse
 from app.models.records import ImageRecord, StatsRecord
+
+TModel = TypeVar('TModel', bound=SQLModel)
 
 
 class ImageRepository(ABC):
 	def __init__(self, session: Session) -> None:
 		self._session = session
 
+	@abstractmethod
+	def _build_insert(self, model: type[TModel]) -> Insert: ...
+
 	def get_list(
 		self,
 		*,
 		cursor: datetime | None,
 		limit: int,
-	) -> tuple[list[ImageRecord], datetime | None]:
+	) -> tuple[Sequence[ImageRecord], datetime | None]:
 		statement = select(ImageRecord)
 
 		if cursor is not None:
@@ -46,7 +59,7 @@ class ImageRepository(ABC):
 	def get_detail_with_stats(
 		self,
 		image_id: int,
-	) -> tuple[ImageRecord, StatsRecord] | None:
+	) -> tuple[ImageRecord, StatsRecord | None] | None:
 		"""Fetch both the image record and stats in a single operation."""
 
 	def create_stats(self, image_id: int) -> StatsRecord:
@@ -63,13 +76,14 @@ class ImageRepository(ABC):
 
 		return stats
 
-	def _upsert_stats_with_increment(
+	def upsert_stats_with_increment(
 		self,
-		insert: Callable,
 		image_id: int,
 	) -> StatsRecord:
+		"""Increment view stats (upserting as needed) and return the latest row."""
+
 		statement = (
-			insert(StatsRecord)
+			self._build_insert(StatsRecord)
 			# INSERT INTO imagestats (image_id, view_count) VALUES (:image_id, 1)
 			.values(
 				image_id=image_id,
@@ -99,10 +113,6 @@ class ImageRepository(ABC):
 		self._session.commit()
 
 		return StatsRecord(**row._asdict())
-
-	@abstractmethod
-	def upsert_stats_with_increment(self, image_id: int) -> StatsRecord:
-		"""Increment view stats (upserting as needed) and return the latest row."""
 
 	def update_favorite(
 		self,

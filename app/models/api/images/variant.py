@@ -1,4 +1,4 @@
-from typing import Annotated, Self, final
+from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -60,7 +60,7 @@ class VariantModel(BaseModel):
 	]
 
 	@classmethod
-	def from_record(cls, variant: VariantRecord) -> Self:
+	def from_record(cls, variant: VariantRecord) -> 'VariantModel':
 		return cls(
 			src=variant['filepath'],
 			format=variant['format'],

@@ -59,7 +59,7 @@ class FavoriteResponse(BaseModel):
 	]
 
 	@classmethod
-	def from_record(cls, stats: StatsRecord) -> Self:
+	def from_record(cls, stats: StatsRecord) -> 'FavoriteResponse':
 		return cls(
 			is_favorited=stats.favorite,
 		)
@@ -84,7 +84,7 @@ class ScoreResponse(BaseModel):
 	]
 
 	@classmethod
-	def from_record(cls, stats: StatsRecord) -> Self:
+	def from_record(cls, stats: StatsRecord) -> 'ScoreResponse':
 		return cls(
 			score=stats.score,
 		)

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from PIL import Image as PILImage
+from PIL.Image import Resampling as PILResampling
 
 from app.config.variant import VariantSpec
 from app.services.images.variants.types import ImageInfo, OriginalImage, VariantFile, VariantReport
@@ -11,12 +12,12 @@ def _select_resample_algorithm(original: ImageInfo, target_width: int) -> int:
 
 	ratio = target_width / original.width
 	if ratio > 1:
-		return PILImage.BICUBIC
+		return PILResampling.BICUBIC
 	if ratio >= 0.3:
-		return PILImage.LANCZOS
+		return PILResampling.LANCZOS
 	if original.lossless:
-		return PILImage.HAMMING
-	return PILImage.BOX
+		return PILResampling.HAMMING
+	return PILResampling.BOX
 
 
 def _transform_variant(

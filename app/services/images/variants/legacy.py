@@ -1,6 +1,6 @@
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Sequence
 
 from PIL import Image as PILImage
 
@@ -24,8 +24,7 @@ from app.services.images.variants.types import (
 	OriginalImage,
 	VariantCommitResult,
 	VariantPolicy,
-	VariantReport,
-)
+	)
 from app.services.images.variants.utils import get_image_info
 
 _LEGACY_LAYER_NAMES = {
@@ -66,6 +65,7 @@ def _map_records(
 	for result in results:
 		if result.result != 'success':
 			continue
+assert result.report is not None
 
 		if result.action not in ('generate', 'regenerate'):
 			continue
@@ -129,7 +129,7 @@ def generate_variants(
 	layers: Iterable[VariantLayer],
 	public_prefix: str | None = None,
 	original_size: int | None = None,
-) -> tuple[list[list[VariantRecord]], list[VariantReport]]:
+) -> tuple[list[list[VariantRecord]], list[VariantReportLegacy]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
 
 	# collect

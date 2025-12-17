@@ -162,7 +162,7 @@ def import_jsonl(
 			try:
 				original_size = src_path.stat().st_size
 			except OSError:
-				original_size = None
+				continue  # missing filesize, skip entry
 
 			try:
 				relative_asset_path = src_path.relative_to(assets_root)
@@ -186,20 +186,19 @@ def import_jsonl(
 				with PILImage.open(src_path) as pil_image:
 					width = pil_image.width
 					height = pil_image.height
-					mime_type = PILImage.MIME.get(pil_image.format, 'application/octet-stream')
-					format_name, codecs = _map_original_variant_attrs(pil_image, mime_type)
+					format_name, codecs = _map_original_variant_attrs(pil_image)
 					public_path = (
 						f'{env.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
 					)
-					original_variant = {
-						'filepath': public_path,
-						'format': format_name,
-						'codecs': codecs,
-						'size': original_size,
-						'width': width,
-						'height': height,
-						'quality': None,
-					}
+					original_variant = VariantRecord(
+						filepath=public_path,
+						format=format_name,
+						codecs=codecs,
+						size=original_size,
+						width=width,
+						height=height,
+						quality=None,
+					)
 					if not repair:
 						variant_records, variant_reports = generate_variants(
 							pil_image,
@@ -229,21 +228,21 @@ def import_jsonl(
 			if report_variants and (variant_reports or original_size):
 				print_variant_report(relative_asset_path, original_size, variant_reports)
 
-			if original_size is None or width is None or height is None:
+			if width is None or height is None:
 				log.warning('skipping %s due to missing size/width/height metadata', src_path)
 				continue
 
 			if original_variant is None:
 				public_path = f'{env.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
-				original_variant = {
-					'filepath': public_path,
-					'format': 'unknown',
-					'codecs': None,
-					'size': original_size,
-					'width': width,
-					'height': height,
-					'quality': None,
-				}
+				original_variant = VariantRecord(
+					filepath=public_path,
+					format='unknown',
+					codecs=None,
+					size=original_size,
+					width=width,
+					height=height,
+					quality=None,
+				)
 
 			captured_at = None
 			created_at_value = record.get('created_at')
@@ -279,8 +278,6 @@ def import_jsonl(
 
 def _format_bytes(size: int) -> str:
 	"""Convert a size in bytes into a human-friendly string."""
-	if size is None:
-		return 'n/a'
 
 	thresholds = [
 		(1024**3, 'GB'),
@@ -331,7 +328,7 @@ def print_variant_report(
 		)
 
 
-def _map_original_variant_attrs(pil_image: PILImage.Image, mime_type: str) -> tuple[str, str | None]:
+def _map_original_variant_attrs(pil_image: PILImage.Image) -> tuple[str, str | None]:
 	fmt = (pil_image.format or '').upper()
 	if fmt == 'BMP':
 		return 'bmp', None
@@ -347,4 +344,4 @@ def _map_original_variant_attrs(pil_image: PILImage.Image, mime_type: str) -> tu
 		if pil_image.info.get('lossless'):
 			return 'webp', 'vp8l'
 		return 'webp', 'vp8'
-	return mime_type.split('/')[-1], None
+	return fmt, None

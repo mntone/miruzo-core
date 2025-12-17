@@ -1,23 +1,21 @@
 from datetime import datetime
-from typing import Annotated, final
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.config.constants import DEFAULT_LIMIT, LIMIT_MAXIMUM, LIMIT_MINIMUM
 
 
-@final
 class PaginationQuery(BaseModel):
 	model_config = ConfigDict(title='Pagination query', strict=True)
 
 	cursor: Annotated[
 		datetime | None,
 		Field(
-			default=None,
-			title='Cursor',
+						title='Cursor',
 			description='opaque pagination cursor representing the captured_at of the last item returned; `null` for the first page',
 		),
-	]
+	] = None
 	limit: Annotated[
 		int,
 		Field(

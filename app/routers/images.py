@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
+from starlette.responses import Response
 
 from app.database import get_session
 from app.models.api.images.patches import FavoriteRequest, FavoriteResponse, ScoreRequest, ScoreResponse
@@ -24,11 +25,11 @@ def get_service(repository: Annotated[ImageRepository, Depends(get_repository)])
 router = APIRouter(prefix='/i')
 
 
-@router.get('/latest')
+@router.get('/latest', response_model=ImageListResponse)
 def get_latest(
 	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageService, Depends(get_service)],
-) -> ImageListResponse:
+) -> Response:
 	response = service.get_latest(
 		cursor=query.cursor,
 		limit=query.limit,
@@ -37,11 +38,11 @@ def get_latest(
 	return build_response(response)
 
 
-@router.get('/{image_id}')
+@router.get('/{image_id}', response_model=ContextResponse)
 def get_context(
 	image_id: int,
 	service: Annotated[ImageService, Depends(get_service)],
-) -> ContextResponse:
+) -> Response:
 	response = service.get_context(image_id)
 
 	if response is None:
@@ -50,12 +51,12 @@ def get_context(
 	return build_response(response)
 
 
-@router.patch('/{image_id}/favorite')
+@router.patch('/{image_id}/favorite', response_model=FavoriteResponse)
 def patch_favorite(
 	image_id: int,
 	payload: FavoriteRequest,
 	repo: Annotated[ImageRepository, Depends(get_repository)],
-) -> FavoriteResponse:
+) -> Response:
 	response = repo.update_favorite(image_id, payload.value)
 
 	if response is None:
@@ -64,12 +65,12 @@ def patch_favorite(
 	return build_response(response)
 
 
-@router.patch('/{image_id}/score')
+@router.patch('/{image_id}/score', response_model=ScoreResponse)
 def patch_score(
 	image_id: int,
 	payload: ScoreRequest,
 	repo: Annotated[ImageRepository, Depends(get_repository)],
-) -> ScoreResponse:
+) -> Response:
 	response = repo.update_score(image_id, payload.delta)
 
 	if response is None:

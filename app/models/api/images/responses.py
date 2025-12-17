@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Self, final
+from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -65,7 +65,7 @@ class ContextResponse(BaseModel):
 		cls,
 		image: ImageRecord,
 		stats: StatsRecord,
-	) -> Self:
+	) -> 'ContextResponse':
 		return cls(
 			image=SummaryModel.from_record(image),
 			stats=StatsModel.from_record(stats),

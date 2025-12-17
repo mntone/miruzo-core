@@ -51,7 +51,11 @@ class ImageListModel(BaseModel):
 		return self._id
 
 	@classmethod
-	def from_record(cls, image: ImageRecord, normalized_layers: list[list[VariantRecord]]) -> Self:
+	def from_record(
+cls,
+image: ImageRecord,
+normalized_layers: list[list[VariantRecord]],
+) -> 'ImageListModel':
 		# fmt: off
 		return cls(
 			id=image.id,

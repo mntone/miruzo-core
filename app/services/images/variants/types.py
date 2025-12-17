@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Self, TypeAlias
+from typing import Literal, TypeAlias
 
 from PIL import Image as PILImage
 
@@ -25,7 +25,10 @@ class VariantFile:
 	@property
 	def slotkey(self) -> VariantSlotkey:
 		if self._slotkey_cache is None:
-			object.__setattr__(self, '_slotkey_cache', parse_variant_slotkey(self.variant_dir))
+			slotkey = parse_variant_slotkey(self.variant_dir)
+			object.__setattr__(self, '_slotkey_cache', slotkey)
+			return slotkey
+
 		return self._slotkey_cache
 
 
@@ -74,9 +77,13 @@ class VariantCommitResult:
 	report: VariantReport | None
 
 	@classmethod
-	def success(cls, action: _VariantCommitAction, report: VariantReport) -> Self:
+	def success(cls, action: _VariantCommitAction, report: VariantReport | None) -> 'VariantCommitResult':
 		return cls(action, 'success', None, report)
 
 	@classmethod
-	def failure(cls, action: _VariantCommitAction, reason: _VariantCommitFailureReason) -> Self:
+	def failure(
+		cls,
+		action: _VariantCommitAction,
+		reason: _VariantCommitFailureReason,
+	) -> 'VariantCommitResult':
 		return cls(action, 'failure', reason, None)

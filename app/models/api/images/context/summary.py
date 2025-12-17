@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Self, final
+from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -40,8 +40,8 @@ class SummaryModel(BaseModel):
 	def ingested_at(self) -> datetime:
 		return self.ingested_at
 
-	@classmethod
-	def from_record(cls, image: ImageRecord) -> Self:
+		@classmethod
+	def from_record(cls, image: ImageRecord) -> 'SummaryModel':
 		return cls(
 			id=image.id,
 			status=image.status,

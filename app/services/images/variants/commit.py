@@ -9,6 +9,7 @@ from app.services.images.variants.types import (
 	VariantFile,
 	VariantPlan,
 	VariantPolicy,
+	VariantReport,
 )
 
 
@@ -69,7 +70,7 @@ def commit_variant_plan(
 
 	# 0. matched
 	for cmp in plan.matched:
-		yield VariantCommitResult.success('reuse', cmp.spec)
+		yield VariantCommitResult.success('reuse', VariantReport(cmp.spec, cmp.file))
 
 	# 1. missing
 	if policy.generate_missing:

@@ -29,7 +29,7 @@ elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
 	)
 
 else:
-	raise ValueError(f'Unsupported database type: {env.db_type}')
+	raise ValueError(f'Unsupported database type: {env.database_backend}')
 
 
 def init_database() -> None:

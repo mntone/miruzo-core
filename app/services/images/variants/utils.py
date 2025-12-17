@@ -33,13 +33,14 @@ def _get_image_format(image: PILImage.Image) -> tuple[str, str | None, bool]:
 		case 'JPEG':
 			return 'jpeg', None, False
 		case 'WEBP':
-			lossless = image.info.get('lossless')
+			lossless = bool(image.info.get('lossless'))
 			return 'webp', 'vp8l' if lossless else 'vp8', lossless
 		case 'BMP':
 			return 'bmp', None, True
 		case 'DIB':
 			return 'dib', None, True
 		case 'TIFF':
+			assert isinstance(image, TiffImagePlugin.TiffImageFile), f'TIFF format, but got {type(image)}'
 			lossless = image.tag_v2[TiffImagePlugin.COMPRESSION] in _TIFF_LOSSLESS_COMPRESSIONS
 			return 'tiff', None, lossless
 		case _:

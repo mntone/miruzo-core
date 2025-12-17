@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Set
 
 from app.models.api.images.list import ImageListModel
 from app.models.api.images.responses import ContextResponse, ImageListResponse
@@ -16,7 +15,7 @@ class ImageService:
 		*,
 		cursor: datetime | None,
 		limit: int,
-		exclude_formats: Set[str],
+		exclude_formats: tuple[str, ...],
 	) -> ImageListResponse:
 		"""
 		Return a paginated list of images (summary only).
@@ -26,7 +25,7 @@ class ImageService:
 
 		allowed_formats = compute_allowed_formats(exclude_formats)
 
-		output_images = []
+		output_images: list[ImageListModel] = []
 		for image in image_records:
 			normalized_layers = normalize_variants_for_format(image.variants, allowed_formats)
 			image_model = ImageListModel.from_record(image, normalized_layers)
