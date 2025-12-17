@@ -12,10 +12,12 @@ from app.models.records import ImageRecord, StatsRecord
 
 @final
 class ImageListResponse(BaseModel):
+	"""Envelope returned by the latest-images API."""
+
 	model_config = ConfigDict(
 		title='Image list response',
-		description='Envelope returned by the latest-images API.',
-		validate_assignment=True,
+		extra='forbid',
+		frozen=True,
 	)
 
 	items: Annotated[
@@ -26,6 +28,8 @@ class ImageListResponse(BaseModel):
 			max_length=LIMIT_MAXIMUM,
 		),
 	]
+	"""page of image summaries returned for this request"""
+
 	cursor: Annotated[
 		datetime | None,
 		Field(
@@ -34,14 +38,17 @@ class ImageListResponse(BaseModel):
 			description='pagination cursor to request the next page; `null` when no further pages exist',
 		),
 	]
+	"""pagination cursor to request the next page; `None` when no further pages exist"""
 
 
 @final
 class ContextResponse(BaseModel):
+	"""Envelope returned by the context API for a single image."""
+
 	model_config = ConfigDict(
 		title='Image context response',
-		description='Envelope returned by the context API for a single image.',
-		validate_assignment=True,
+		extra='forbid',
+		frozen=True,
 	)
 
 	image: Annotated[
@@ -51,6 +58,8 @@ class ContextResponse(BaseModel):
 			description='basic metadata for the requested image',
 		),
 	]
+	"""basic metadata for the requested image"""
+
 	stats: Annotated[
 		StatsModel | None,
 		Field(
@@ -59,6 +68,7 @@ class ContextResponse(BaseModel):
 			default=None,
 		),
 	]
+	"""latest statistics for the image; `None` when stats are missing"""
 
 	@classmethod
 	def from_record(

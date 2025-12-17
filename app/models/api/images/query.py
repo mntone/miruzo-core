@@ -21,6 +21,7 @@ class ListQuery(PaginationQuery):
 			description='list of formats to exclude from the response (e.g. `exclude_formats=webp+jxl`); empty means allow everything',
 		),
 	] = ()
+	"""list of formats to exclude from the response (e.g. `exclude_formats=webp+jxl`); empty means allow everything"""
 
 	@field_validator('exclude_formats', mode='before')
 	@classmethod

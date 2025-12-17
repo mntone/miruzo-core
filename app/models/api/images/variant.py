@@ -9,10 +9,12 @@ from app.models.records import VariantRecord
 
 @final
 class VariantModel(BaseModel):
+	"""Normalized metadata for a single rendered asset."""
+
 	model_config = ConfigDict(
 		title='Image variant',
-		description='Normalized metadata for a single rendered asset.',
-		validate_assignment=True,
+		extra='forbid',
+		frozen=True,
 	)
 
 	src: Annotated[
@@ -22,6 +24,8 @@ class VariantModel(BaseModel):
 			description=f'server-relative path to the asset (e.g. `{env.public_media_root}/foo.webp`) so clients can fetch it directly',
 		),
 	]
+	"""server-relative path to the asset, so clients can fetch it directly"""
+
 	format: Annotated[
 		str,
 		Field(
@@ -29,6 +33,8 @@ class VariantModel(BaseModel):
 			description='container format string (e.g. `webp`) that tells browsers how to decode the file',
 		),
 	]
+	"""container format string (e.g. `webp`) that tells browsers how to decode the file"""
+
 	codecs: Annotated[
 		str | None,
 		Field(
@@ -36,6 +42,8 @@ class VariantModel(BaseModel):
 			description="optional codec hint (`vp8`, `vp8l`, etc.) for cases where the format alone isn't specific enough",
 		),
 	]
+	"""optional codec hint (`vp8`, `vp8l`, etc.) for cases where the format alone isn't specific enough"""
+
 	manbytes: Annotated[
 		int,
 		Field(
@@ -44,20 +52,27 @@ class VariantModel(BaseModel):
 			ge=0,
 		),
 	]
+	"""file size expressed in manbytes (see docs/unit.md); typically ≥1 but 0 indicates an unexpected/invalid asset"""
+
 	w: Annotated[
 		int,
 		Field(
 			title='Variant width',
 			description='width of this rendition in pixels; guaranteed to be a positive integer',
+			gt=0,
 		),
 	]
+	"""width of this rendition in pixels; guaranteed to be a positive integer"""
+
 	h: Annotated[
 		int,
 		Field(
 			title='Variant height',
 			description='height of this rendition in pixels; guaranteed to be a positive integer',
+			gt=0,
 		),
 	]
+	"""height of this rendition in pixels; guaranteed to be a positive integer"""
 
 	@classmethod
 	def from_record(cls, variant: VariantRecord) -> 'VariantModel':

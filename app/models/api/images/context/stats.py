@@ -9,10 +9,12 @@ from app.models.records import StatsRecord
 
 @final
 class StatsModel(BaseModel):
+	"""Aggregate engagement data for a single image."""
+
 	model_config = ConfigDict(
 		title='Image stats model',
-		description='Aggregate engagement data for a single image.',
-		validate_assignment=True,
+		extra='forbid',
+		frozen=True,
 	)
 
 	is_favorited: Annotated[
@@ -22,6 +24,8 @@ class StatsModel(BaseModel):
 			description='flag indicating whether the current user marked the image as a favorite',
 		),
 	] = False
+	"""flag indicating whether the current user marked the image as a favorite"""
+
 	score: Annotated[
 		int,
 		Field(
@@ -31,10 +35,14 @@ class StatsModel(BaseModel):
 			le=SCORE_MAXIMUM,
 		),
 	]
+	"""user-tunable ranking value"""
+
 	view_count: Annotated[
 		int,
 		Field(title='View count', description='how many times this image has been viewed', ge=0),
 	] = 0
+	"""how many times this image has been viewed"""
+
 	last_viewed_at: Annotated[
 		datetime | None,
 		Field(
@@ -42,6 +50,7 @@ class StatsModel(BaseModel):
 			description="timestamp of the most recent view, or `null` if it hasn't been viewed yet",
 		),
 	] = None
+	"""timestamp of the most recent view, or `None` if it hasn't been viewed yet"""
 
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'StatsModel':

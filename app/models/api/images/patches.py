@@ -1,4 +1,4 @@
-from typing import Annotated, Self, final
+from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -8,9 +8,11 @@ from app.models.records import StatsRecord
 
 @final
 class FavoriteRequest(BaseModel):
+	"""Payload for toggling an image favorite flag."""
+
 	model_config = ConfigDict(
 		title='Image favorite request',
-		description='Payload for toggling an image favorite flag.',
+		extra='forbid',
 		strict=True,
 	)
 
@@ -21,13 +23,16 @@ class FavoriteRequest(BaseModel):
 			description='`true` to mark as favorite, `false` to remove the favorite flag',
 		),
 	]
+	"""`true` to mark as favorite, `false` to remove the favorite flag"""
 
 
 @final
 class ScoreRequest(BaseModel):
+	"""Payload for incrementing or decrementing an image score."""
+
 	model_config = ConfigDict(
 		title='Image score request',
-		description='Payload for incrementing or decrementing an image score.',
+		extra='forbid',
 		strict=True,
 	)
 
@@ -40,14 +45,17 @@ class ScoreRequest(BaseModel):
 			le=SCORE_MAXIMUM - SCORE_MINIMUM,
 		),
 	]
+	"""Amount to add to the existing score (positive or negative)"""
 
 
 @final
 class FavoriteResponse(BaseModel):
+	"""Indicates the new favorite state after processing a request."""
+
 	model_config = ConfigDict(
 		title='Image favorite response',
-		description='Indicates the new favorite state after processing a request.',
-		validate_assignment=True,
+		extra='forbid',
+		frozen=True,
 	)
 
 	is_favorited: Annotated[
@@ -57,6 +65,7 @@ class FavoriteResponse(BaseModel):
 			description='`true` when the image is favorited after the update',
 		),
 	]
+	"""`true` when the image is favorited after the update"""
 
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'FavoriteResponse':
@@ -67,10 +76,12 @@ class FavoriteResponse(BaseModel):
 
 @final
 class ScoreResponse(BaseModel):
+	"""Returns the updated score after applying a delta."""
+
 	model_config = ConfigDict(
 		title='Image score response',
-		description='Returns the updated score after applying a delta.',
-		validate_assignment=True,
+		extra='forbid',
+		frozen=True,
 	)
 
 	score: Annotated[
@@ -82,6 +93,7 @@ class ScoreResponse(BaseModel):
 			le=SCORE_MAXIMUM,
 		),
 	]
+	"""Resulting score clamped within the supported range"""
 
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'ScoreResponse':
