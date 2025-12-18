@@ -4,11 +4,13 @@ from PIL import Image as PILImage
 from PIL.Image import Resampling as PILResampling
 
 from app.config.variant import VariantSpec
+from app.services.images.variants.path import build_absolute_path
 from app.services.images.variants.types import (
 	ImageInfo,
 	OriginalImage,
 	VariantFile,
 	VariantPlanFile,
+	VariantRelativePath,
 	VariantReport,
 )
 
@@ -43,9 +45,13 @@ def _transform_variant(
 def _save_variant(
 	spec: VariantSpec,
 	output_image: PILImage.Image,
-	output_path: Path,
+	*,
+	media_root: Path,
+	variant_relpath: VariantRelativePath,
 ) -> VariantFile | None:
 	"""Encode the resized image and return filesystem metadata."""
+
+	absolute_path = build_absolute_path(variant_relpath, under=media_root)
 
 	kwargs: dict[str, object] = {}
 	match spec.format.container:
@@ -65,12 +71,12 @@ def _save_variant(
 
 	pil_format = spec.format.container.upper()
 	try:
-		output_image.save(output_path, pil_format, **kwargs)
+		output_image.save(absolute_path, pil_format, **kwargs)
 	except OSError:
 		return None
 
 	try:
-		stat = output_path.lstat()
+		stat = absolute_path.lstat()
 	except FileNotFoundError:
 		return None
 
@@ -83,23 +89,33 @@ def _save_variant(
 	)
 
 	file = VariantFile(
+		absolute_path=absolute_path,
+		relative_path=variant_relpath,
 		bytes=stat.st_size,
 		info=info,
-		path=output_path,
 		variant_dir=spec.slotkey.label,
 	)
 
 	return file
 
 
-def generate_variant(plan_file: VariantPlanFile, original: OriginalImage) -> VariantReport | None:
+def generate_variant(
+	media_root: Path,
+	plan_file: VariantPlanFile,
+	original: OriginalImage,
+) -> VariantReport | None:
 	"""Render and persist a single variant, returning its report."""
 
 	spec = plan_file.spec
 
 	variant_image = _transform_variant(spec, original)
 
-	file = _save_variant(spec, variant_image, plan_file.path)
+	file = _save_variant(
+		spec,
+		variant_image,
+		media_root=media_root,
+		variant_relpath=plan_file.path,
+	)
 	if file is None:
 		return None
 

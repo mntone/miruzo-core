@@ -15,7 +15,7 @@ from app.models.enums import ImageStatus
 
 @final
 class VariantRecord(TypedDict):
-	filepath: str
+	rel: str
 	format: Annotated[str, Field(ge=3, le=8)]
 	codecs: Annotated[str | None, Field(default=None)]
 	size: Annotated[int, Field(ge=1)]

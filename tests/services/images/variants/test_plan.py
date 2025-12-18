@@ -6,11 +6,10 @@ from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_png_info, build_variant_file
 
 from app.config.variant import VariantLayer
-from app.services.images.variants.path import normalize_relative_path
+from app.services.images.variants.path import build_origin_relative_path
 from app.services.images.variants.plan import (
 	_classify_variant_diff,
 	_compare_variant_specs,
-	_prepare_variant_directories,
 	_prepare_variant_plan,
 	_should_emit_variant,
 	build_variant_plan,
@@ -111,22 +110,7 @@ def test_classify_variant_diff_keeps_valid_mismatch() -> None:
 	assert classified.orphaned == []
 
 
-def test_prepare_variant_directories_creates_missing(tmp_path: Path) -> None:
-	targets = [tmp_path / 'layer0' / 'foo', tmp_path / 'layer1']
-	_prepare_variant_directories(targets)
-
-	for path in targets:
-		assert path.is_dir()
-
-
-def test_prepare_variant_directories_is_idempotent(tmp_path: Path) -> None:
-	existing = tmp_path / 'layer0'
-	existing.mkdir()
-	_prepare_variant_directories([existing])
-	assert existing.is_dir()
-
-
-def test_prepare_variant_plan_builds_plan_files(tmp_path: Path) -> None:
+def test_prepare_variant_plan_builds_plan_files() -> None:
 	spec = build_variant_spec(1, 320)
 	diff = VariantDiff(
 		matched=[],
@@ -134,48 +118,41 @@ def test_prepare_variant_plan_builds_plan_files(tmp_path: Path) -> None:
 		missing=[spec],
 		orphaned=[],
 	)
-	media_root = tmp_path
-	variant_root = media_root / spec.slotkey.label
-	variant_root.mkdir()
-	relative_path = normalize_relative_path(Path('foo/bar.webp'))
+	relative_path = build_origin_relative_path(Path('foo/bar.webp'))
 
-	plan, targets = _prepare_variant_plan(diff, media_root, relative_path)
+	plan = _prepare_variant_plan(diff, relative_path)
 
-	expected_dir = variant_root / 'foo'
-	assert {expected_dir} == targets
 	assert len(plan.missing) == 1
 	assert plan.missing[0].spec == spec
-	assert plan.missing[0].path == expected_dir / 'bar.jpeg'
+	assert plan.missing[0].path == Path('l1w320/foo/bar.jpeg')
 
 
-def test_prepare_variant_plan_raises_for_missing_variant_dir(tmp_path: Path) -> None:
+def test_prepare_variant_plan_reuses_existing_relative_paths() -> None:
 	spec = build_variant_spec(1, 320)
+	file = build_variant_file(spec, width=320)
 	diff = VariantDiff(
 		matched=[],
-		mismatched=[],
-		missing=[spec],
+		mismatched=[VariantComparison(spec, file)],
+		missing=[],
 		orphaned=[],
 	)
-	relative_path = normalize_relative_path(Path('foo/bar.webp'))
+	relative_path = build_origin_relative_path(Path('foo/bar.webp'))
 
-	with pytest.raises(RuntimeError):
-		_prepare_variant_plan(diff, tmp_path, relative_path)
+	plan = _prepare_variant_plan(diff, relative_path)
+
+	assert len(plan.mismatched) == 1
+	assert plan.mismatched[0].planning_file.path == file.relative_path
 
 
-def test_build_variant_plan_creates_directories(tmp_path: Path) -> None:
+def test_build_variant_plan_produces_relative_paths() -> None:
 	spec = build_variant_spec(1, 480)
-	variant_root = tmp_path / spec.slotkey.label
-	variant_root.mkdir()
-	relative_path = normalize_relative_path(Path('foo/example.webp'))
+	relative_path = build_origin_relative_path(Path('foo/example.webp'))
 
 	plan = build_variant_plan(
 		planned=[spec],
 		existing=[],
 		rel_to=relative_path,
-		under=tmp_path,
 	)
 
-	target_dir = variant_root / 'foo'
-	assert target_dir.is_dir()
 	assert len(plan.missing) == 1
-	assert plan.missing[0].path.parent == target_dir
+	assert plan.missing[0].path == Path('l1w480/foo/example.jpeg')

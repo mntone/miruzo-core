@@ -48,7 +48,7 @@ def test_get_latest_normalizes_variants_and_returns_cursor() -> None:
 
 	service = ImageService(repo)  # type: ignore[arg-type]
 
-	response = service.get_latest(cursor=None, limit=10, exclude_formats={'gif'})
+	response = service.get_latest(cursor=None, limit=10, exclude_formats=('gif',))
 
 	assert repo.list_called_with == {'cursor': None, 'limit': 10}
 	assert response.cursor == image.captured_at

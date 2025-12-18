@@ -1,12 +1,7 @@
 from collections.abc import Iterable, Iterator
-from pathlib import Path
 
 from app.config.variant import VariantLayer, VariantSpec
-from app.services.images.variants.path import (
-	NormalizedRelativePath,
-	build_variant_dirpath,
-	build_variant_filename,
-)
+from app.services.images.variants.path import OriginRelativePath, build_variant_relative_path
 from app.services.images.variants.types import (
 	ImageInfo,
 	VariantComparison,
@@ -16,7 +11,6 @@ from app.services.images.variants.types import (
 	VariantPlanFile,
 	VariantRegeneratePlan,
 )
-from app.services.images.variants.utils import inspect_variant_subdir
 
 
 def _should_emit_variant(spec: VariantSpec, original: ImageInfo) -> bool:
@@ -110,42 +104,30 @@ def _classify_variant_diff(diff: VariantDiff) -> VariantDiff:
 	)
 
 
-def _prepare_variant_directories(paths: Iterable[Path]) -> None:
-	for path in paths:
-		path.mkdir(parents=True, exist_ok=True)
-
-
 def _prepare_variant_plan(
 	diff: VariantDiff,
-	media_root: Path,
-	relative_path: NormalizedRelativePath,
-) -> tuple[VariantPlan, set[Path]]:
-	target_variant_dirpaths: set[Path] = set()
-
+	relative_path: OriginRelativePath,
+) -> VariantPlan:
 	mismatched_plans: list[VariantRegeneratePlan] = []
 	for cmp in diff.mismatched:
-		plan_path = cmp.actual_file.path.with_suffix(cmp.expected_spec.format.file_extension)
 		regen_plan = VariantRegeneratePlan(
 			actual_file=cmp.actual_file,
-			planning_file=VariantPlanFile(plan_path, cmp.expected_spec),
+			planning_file=VariantPlanFile(
+				path=cmp.actual_file.relative_path,
+				spec=cmp.expected_spec,
+			),
 		)
 		mismatched_plans.append(regen_plan)
 
 	missing_plan_files: list[VariantPlanFile] = []
 	for spec in diff.missing:
-		variant_root = build_variant_dirpath(media_root, spec.slotkey.label)
-
-		group_root = inspect_variant_subdir(relative_path.parent, under=variant_root)
-		if group_root is not None:
-			target_variant_dirpaths.add(group_root)
-		else:
-			# When normalized relative dir is ".", we keep files directly under the
-			# variant root (no subdir), so mkdir is unnecessary.
-			group_root = variant_root
-
-		file_name = build_variant_filename(relative_path, spec)
-		file_path = group_root / file_name
-		plan_file = VariantPlanFile(file_path, spec)
+		variant_relpath = build_variant_relative_path(relative_path, under=spec.slotkey).with_suffix(
+			spec.format.file_extension,
+		)
+		plan_file = VariantPlanFile(
+			path=variant_relpath,
+			spec=spec,
+		)
 		missing_plan_files.append(plan_file)
 
 	plan = VariantPlan(
@@ -154,27 +136,22 @@ def _prepare_variant_plan(
 		missing=missing_plan_files,
 		orphaned=diff.orphaned,
 	)
-
-	return plan, target_variant_dirpaths
+	return plan
 
 
 def build_variant_plan(
 	*,
 	planned: Iterable[VariantSpec],
 	existing: Iterable[VariantFile],
-	rel_to: NormalizedRelativePath,
-	under: Path,
+	rel_to: OriginRelativePath,
 ) -> VariantPlan:
 	# Normalize argument name for internal use
 	relative_path = rel_to
-	media_root = under
 
 	diff = _compare_variant_specs(planned, existing)
 
 	diff = _classify_variant_diff(diff)
 
-	plan, variant_dirpaths = _prepare_variant_plan(diff, media_root, relative_path)
-
-	_prepare_variant_directories(variant_dirpaths)
+	plan = _prepare_variant_plan(diff, relative_path)
 
 	return plan

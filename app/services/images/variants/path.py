@@ -2,10 +2,10 @@ import unicodedata
 from pathlib import Path
 from typing import NewType
 
-from app.config.variant import VariantSpec
+from app.config.variant import VariantSlotkey
+from app.services.images.variants.types import VariantRelativePath
 
-NormalizedRelativePath = NewType('NormalizedRelativePath', Path)
-VariantDirectoryPath = NewType('VariantDirectoryPath', Path)
+OriginRelativePath = NewType('OriginRelativePath', Path)
 
 _FORBIDDEN_CHARS = {
 	'/',  # POSIX separator
@@ -57,22 +57,31 @@ def _validate_relative_path(relpath: Path) -> Path:
 	return relpath
 
 
-def normalize_relative_path(relative_path: Path) -> NormalizedRelativePath:
+def build_origin_relative_path(relative_path: Path) -> OriginRelativePath:
 	relpath_noext = relative_path.with_suffix('')
 
 	validated_relpath = _validate_relative_path(relpath_noext)
 
-	return NormalizedRelativePath(validated_relpath)
+	return OriginRelativePath(validated_relpath)
 
 
-def build_variant_dirpath(media_root: Path, variant_dirname: str) -> VariantDirectoryPath:
-	variant_dirpath = VariantDirectoryPath(media_root / variant_dirname)
+def build_variant_relative_path(
+	origin_path: OriginRelativePath,
+	*,
+	under: str | VariantSlotkey,
+) -> VariantRelativePath:
+	if isinstance(under, VariantSlotkey):
+		variant_dirname = under.label
+	else:
+		variant_dirname = under
 
-	if not variant_dirpath.is_dir():
-		raise RuntimeError(f'Variant directory missing: {variant_dirpath}')
-
-	return variant_dirpath
+	media_relpath = Path(variant_dirname).joinpath(origin_path)
+	return VariantRelativePath(media_relpath)
 
 
-def build_variant_filename(relpath: Path, spec: VariantSpec) -> str:
-	return relpath.with_suffix(spec.format.file_extension).name
+def build_absolute_path(variant_relpath: VariantRelativePath, *, under: Path) -> Path:
+	# Normalize argument name for internal use
+	media_root = under
+
+	absolute_path = media_root.joinpath(variant_relpath)
+	return absolute_path

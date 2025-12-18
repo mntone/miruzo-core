@@ -18,7 +18,7 @@ def build_variant(fmt: str, width: int, *, label: str = 'primary') -> VariantRec
 	payload = f'{label}-{width}-{fmt}'.encode('utf-8')
 	filepath.write_bytes(payload)
 	return {
-		'filepath': filepath.as_posix(),
+		'rel': filepath.as_posix(),
 		'format': fmt,
 		'codecs': None,
 		'size': filepath.stat().st_size,

@@ -77,7 +77,7 @@ class VariantModel(BaseModel):
 	@classmethod
 	def from_record(cls, variant: VariantRecord) -> 'VariantModel':
 		return cls(
-			src=variant['filepath'],
+			src=env.public_media_root + variant['rel'],
 			format=variant['format'],
 			codecs=variant['codecs'],
 			manbytes=bytes_to_manbytes(variant['size']),

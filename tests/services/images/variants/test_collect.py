@@ -7,10 +7,10 @@ from tests.services.images.variants.utils import build_jpeg_info
 from app.services.images.variants.collect import (
 	collect_variant_directories,
 	collect_variant_files,
-	normalize_variant_directories,
+	normalize_media_relative_paths,
 )
-from app.services.images.variants.path import normalize_relative_path
-from app.services.images.variants.types import VariantFile
+from app.services.images.variants.path import build_origin_relative_path
+from app.services.images.variants.types import VariantFile, VariantRelativePath
 
 
 def test_collect_variant_directories_filters_symlinks_and_suffixes(tmp_path: Path) -> None:
@@ -38,8 +38,8 @@ def test_collect_variant_files_yields_existing_variants(
 	tmp_path: Path,
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-	variant_dir = tmp_path / 'l1w200'
-	output_dir = variant_dir / 'foo'
+	variant_root = tmp_path / 'l1w200'
+	output_dir = variant_root / 'foo'
 	output_dir.mkdir(parents=True)
 
 	target = output_dir / 'bar.webp'
@@ -47,13 +47,19 @@ def test_collect_variant_files_yields_existing_variants(
 
 	called = {}
 
-	def fake_load_variant_file(file_path: Path, variant_dirname: str) -> VariantFile | None:
-		called['path'] = file_path
+	def fake_load_variant_file(
+		absolute_path: Path,
+		relative_path: VariantRelativePath,
+		variant_dirname: str,
+	) -> VariantFile | None:
+		called['absolute'] = absolute_path
+		called['relative'] = relative_path
 		info = build_jpeg_info(width=100, height=80)
 		return VariantFile(
-			bytes=file_path.stat().st_size,
+			absolute_path=absolute_path,
+			relative_path=relative_path,
+			bytes=absolute_path.stat().st_size,
 			info=info,
-			path=file_path,
 			variant_dir=variant_dirname,
 		)
 
@@ -62,20 +68,23 @@ def test_collect_variant_files_yields_existing_variants(
 		fake_load_variant_file,
 	)
 
-	variant_dirs = list(normalize_variant_directories(['l1w200'], under=tmp_path))
-	relative = normalize_relative_path(Path('foo/bar.webp'))
+	origin = build_origin_relative_path(Path('foo/bar.webp'))
+	media_relpaths = list(normalize_media_relative_paths(origin, under=['l1w200']))
 
-	result = list(collect_variant_files(variant_dirs, rel_to=relative))
+	result = list(collect_variant_files(media_relpaths, under=tmp_path))
 
 	assert len(result) == 1
 	assert result[0].variant_dir == 'l1w200'
-	assert called['path'] == target
+	assert called['absolute'] == target
+	assert called['relative'] == Path('l1w200/foo/bar')
 
 
-def test_normalize_variant_directories_filters_invalid(tmp_path: Path) -> None:
+def test_normalize_media_relative_paths_filters_invalid() -> None:
+	origin = build_origin_relative_path(Path('foo/bar.webp'))
+
 	valid = ['l1w200', 'l2w640']
 	invalid = ['foo', 'l-1w200', 'l1wxyz']
 
-	dirs = list(normalize_variant_directories(valid + invalid, under=tmp_path))
+	paths = list(normalize_media_relative_paths(origin, under=valid + invalid))
 
-	assert [path.name for path in dirs] == valid
+	assert [str(path) for path in paths] == [f'{name}/foo/bar' for name in valid]

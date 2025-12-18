@@ -187,11 +187,9 @@ def import_jsonl(
 					width = pil_image.width
 					height = pil_image.height
 					format_name, codecs = _map_original_variant_attrs(pil_image)
-					public_path = (
-						f'{env.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
-					)
+					public_path = f'{original_subdir}/{relative_asset_path.as_posix()}'
 					original_variant = VariantRecord(
-						filepath=public_path,
+						rel=public_path,
 						format=format_name,
 						codecs=codecs,
 						size=original_size,
@@ -233,9 +231,9 @@ def import_jsonl(
 				continue
 
 			if original_variant is None:
-				public_path = f'{env.public_media_root}/{original_subdir}/{relative_asset_path.as_posix()}'
+				public_path = f'{original_subdir}/{relative_asset_path.as_posix()}'
 				original_variant = VariantRecord(
-					filepath=public_path,
+					rel=public_path,
 					format='unknown',
 					codecs=None,
 					size=original_size,

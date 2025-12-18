@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 	database_url: str = 'sqlite:///var/miruzo.sqlite'
 
 	media_root: Path = Path('./var/media')
-	public_media_root: str = '/media'
+	public_media_root: str = '/media/'
 
 	gataku_root: Path = Path('../gataku')
 	gataku_assets_root: Path = Path('../gataku/out/downloads')

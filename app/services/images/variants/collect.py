@@ -5,8 +5,12 @@ from pathlib import Path
 from PIL import Image as PILImage
 from PIL import UnidentifiedImageError as PILUnidentifiedImageError
 
-from app.services.images.variants.path import NormalizedRelativePath, VariantDirectoryPath
-from app.services.images.variants.types import VariantFile
+from app.services.images.variants.path import (
+	OriginRelativePath,
+	build_absolute_path,
+	build_variant_relative_path,
+)
+from app.services.images.variants.types import VariantFile, VariantRelativePath
 from app.services.images.variants.utils import get_image_info, parse_variant_slotkey
 
 log = logging.getLogger(__name__)
@@ -49,27 +53,32 @@ def collect_variant_directories(media_root: Path) -> Iterator[str]:
 		yield variant_dirname
 
 
-def _load_variant_file(path: Path, variant_dirname: str) -> VariantFile | None:
+def _load_variant_file(
+	absolute_path: Path,
+	relative_path: VariantRelativePath,
+	variant_dirname: str,
+) -> VariantFile | None:
 	try:
-		stat = path.lstat()
+		stat = absolute_path.lstat()
 	except FileNotFoundError:
-		log.debug('image not found: %s', path)
+		log.debug('image not found: %s', absolute_path)
 		return None
 
 	try:
-		with PILImage.open(path) as image:
+		with PILImage.open(absolute_path) as image:
 			info = get_image_info(image)
 	except FileNotFoundError:
-		log.debug('image not found: %s', path)
+		log.debug('image not found: %s', absolute_path)
 		return None
 	except PILUnidentifiedImageError:
-		log.warning('invalid image: %s', path)
+		log.warning('invalid image: %s', absolute_path)
 		return None
 
 	file = VariantFile(
+		absolute_path=absolute_path,
+		relative_path=relative_path,
 		bytes=stat.st_size,
 		info=info,
-		path=path,
 		variant_dir=variant_dirname,
 	)
 
@@ -77,50 +86,44 @@ def _load_variant_file(path: Path, variant_dirname: str) -> VariantFile | None:
 
 
 def collect_variant_files(
-	variant_dirpaths: Iterable[VariantDirectoryPath],
+	media_relpaths: Iterable[VariantRelativePath],
 	*,
-	rel_to: NormalizedRelativePath,
+	under: Path,
 ) -> Iterator[VariantFile]:
 	"""Yield VariantFile objects for files under the provided variant dirs."""
 
 	# Normalize argument name for internal use
-	relative_path = rel_to
+	media_root = under
 
-	for variant_dirpath in variant_dirpaths:
-		output_path = variant_dirpath / relative_path.parent
+	for relative_path in media_relpaths:
+		target_base = build_absolute_path(relative_path, under=media_root)
+		output_path = target_base.parent
 		if not output_path.is_dir():
 			continue
 
-		variant_dirname = variant_dirpath.name
-		output_name = relative_path.name
+		variant_dirname = relative_path.parts[0]
+		output_name = target_base.name
 
-		for file_path in output_path.glob(f'{output_name}.*'):
-			if (variant_file := _load_variant_file(file_path, variant_dirname)) is not None:
+		for absolute_path in output_path.glob(f'{output_name}.*'):
+			variant_file = _load_variant_file(absolute_path, relative_path, variant_dirname)
+			if variant_file is not None:
 				yield variant_file
 
 
-def normalize_variant_directories(
-	variant_dirnames: Iterable[str],
+def normalize_media_relative_paths(
+	relative_path: OriginRelativePath,
 	*,
-	under: Path,
-) -> Iterator[VariantDirectoryPath]:
+	under: Iterable[str],
+) -> Iterator[VariantRelativePath]:
 	# Normalize argument name for internal use
-	media_root = under
+	variant_dirnames = under
 
 	for variant_dirname in variant_dirnames:
 		try:
 			_ = parse_variant_slotkey(variant_dirname)
 		except ValueError:
-			continue  # or raise, depending on policy
+			continue
 
-		# NOTE:
-		# The result of `collect_variant_directories` is treated as a trust boundary.
-		# All filesystem-level validation and filtering is intentionally performed
-		# during collection, so this stage assumes the input to be structurally sound.
-		#
-		# The responsibility here is limited to interpreting the directory name as a
-		# variant slot key and materializing the corresponding path, without re-checking
-		# filesystem properties.
-		variant_dirpath = media_root / variant_dirname
+		variant_path = build_variant_relative_path(relative_path, under=variant_dirname)
 
-		yield VariantDirectoryPath(variant_dirpath)
+		yield variant_path

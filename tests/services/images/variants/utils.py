@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from app.config.variant import VariantSpec
-from app.services.images.variants.types import ImageInfo, VariantFile
+from app.services.images.variants.types import ImageInfo, VariantFile, VariantRelativePath
 
 
 def build_jpeg_info(
@@ -61,9 +61,14 @@ def build_variant_file(
 		height=height or width,
 		lossless=False,
 	)
+	relative_path = VariantRelativePath(
+		Path(f'{spec.slotkey.label}/foo/{spec.slotkey.label}.{container}'),
+	)
+	absolute_path = Path('/tmp').resolve() / relative_path
 	return VariantFile(
+		absolute_path=absolute_path,
+		relative_path=relative_path,
 		bytes=2048,
 		info=info,
-		path=Path(f'/tmp/{spec.slotkey.label}.{container}'),
 		variant_dir=spec.slotkey.label,
 	)

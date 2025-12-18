@@ -4,10 +4,10 @@ from tests.services.images.variants.utils import build_webp_info
 
 from app.config.variant import WEBP_FORMAT, VariantSlotkey, VariantSpec
 from app.services.images.variants.commit import _delete_variant_file
-from app.services.images.variants.types import VariantFile
+from app.services.images.variants.types import VariantFile, VariantRelativePath
 
 
-def _build_variant_file(file_path: Path) -> VariantFile:
+def _build_variant_file(file_path: Path, file_name: Path) -> VariantFile:
 	info = build_webp_info(width=100, height=80)
 	spec = VariantSpec(
 		slotkey=VariantSlotkey(layer_id=1, width=200),
@@ -16,17 +16,19 @@ def _build_variant_file(file_path: Path) -> VariantFile:
 		format=WEBP_FORMAT,
 	)
 	return VariantFile(
+		absolute_path=file_path,
+		relative_path=VariantRelativePath(file_name),
 		bytes=0,
 		info=info,
-		path=file_path,
 		variant_dir=spec.slotkey.label,
 	)
 
 
 def test_delete_variant_file_succeeds_when_file_exists(tmp_path: Path) -> None:
-	file_path = tmp_path / 'foo.webp'
+	file_name = Path('foo.webp')
+	file_path = tmp_path / file_name
 	file_path.write_bytes(b'data')
-	variant_file = _build_variant_file(file_path)
+	variant_file = _build_variant_file(file_path, file_name)
 
 	result = _delete_variant_file(variant_file)
 
@@ -36,8 +38,9 @@ def test_delete_variant_file_succeeds_when_file_exists(tmp_path: Path) -> None:
 
 
 def test_delete_variant_file_returns_missing_when_file_absent(tmp_path: Path) -> None:
-	file_path = tmp_path / 'missing.webp'
-	variant_file = _build_variant_file(file_path)
+	file_name = Path('missing.webp')
+	file_path = tmp_path / file_name
+	variant_file = _build_variant_file(file_path, file_name)
 
 	result = _delete_variant_file(variant_file)
 

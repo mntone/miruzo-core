@@ -1,12 +1,10 @@
 import re
 from dataclasses import dataclass
-from pathlib import Path
 
 from PIL import ExifTags, TiffImagePlugin
 from PIL import Image as PILImage
 
 from app.config.variant import VariantSlotkey
-from app.services.images.variants.path import VariantDirectoryPath
 
 _TIFF_LOSSLESS_COMPRESSIONS = {
 	1,  # No compression
@@ -72,37 +70,6 @@ def get_image_info(image: PILImage.Image) -> ImageInfo:
 		lossless=lossless,
 	)
 	return info
-
-
-def inspect_variant_subdir(
-	relative_dirpath: Path,
-	*,
-	under: VariantDirectoryPath,
-) -> Path | None:
-	"""
-	Inspect relative_dirpath under variant_root.
-
-	Returns:
-		Path: directory to mkdir
-		None: mkdir should be skipped
-
-	Raises:
-		ValueError: if path escapes variant_root
-	"""
-
-	# Normalize argument name for internal use
-	variant_root = under
-
-	if relative_dirpath == Path('.'):
-		return None
-
-	variant_root = variant_root
-	group_root = (variant_root / relative_dirpath).resolve()
-
-	if not group_root.is_relative_to(variant_root):
-		raise ValueError(f'Path escapes variant root: {group_root}')
-
-	return group_root
 
 
 def parse_variant_slotkey(label: str) -> VariantSlotkey:
