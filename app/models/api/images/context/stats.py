@@ -17,14 +17,14 @@ class StatsModel(BaseModel):
 		frozen=True,
 	)
 
-	is_favorited: Annotated[
-		bool,
+	hall_of_fame_at: Annotated[
+		datetime | None,
 		Field(
-			title='Favorite flag',
-			description='flag indicating whether the current user marked the image as a favorite',
+			title='Hall of fame timestamp',
+			description='timestamp when the image entered the hall of fame, or `null` if it has not',
 		),
-	] = False
-	"""flag indicating whether the current user marked the image as a favorite"""
+	] = None
+	"""timestamp when the image entered the hall of fame, or `None` if it has not"""
 
 	score: Annotated[
 		int,
@@ -55,7 +55,7 @@ class StatsModel(BaseModel):
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'StatsModel':
 		return cls(
-			is_favorited=stats.favorite,
+			hall_of_fame_at=stats.hall_of_fame_at,
 			score=stats.score,
 			view_count=stats.view_count,
 			last_viewed_at=stats.last_viewed_at,

@@ -38,12 +38,12 @@ def get_latest(
 	return build_response(response)
 
 
-@router.get('/{image_id}', response_model=ContextResponse)
+@router.get('/{ingest_id}', response_model=ContextResponse)
 def get_context(
-	image_id: int,
+	ingest_id: int,
 	service: Annotated[ImageService, Depends(get_service)],
 ) -> Response:
-	response = service.get_context(image_id)
+	response = service.get_context(ingest_id)
 
 	if response is None:
 		raise HTTPException(404)
@@ -51,13 +51,13 @@ def get_context(
 	return build_response(response)
 
 
-@router.patch('/{image_id}/favorite', response_model=FavoriteResponse)
+@router.patch('/{ingest_id}/favorite', response_model=FavoriteResponse)
 def patch_favorite(
-	image_id: int,
+	ingest_id: int,
 	payload: FavoriteRequest,
 	repo: Annotated[ImageRepository, Depends(get_repository)],
 ) -> Response:
-	response = repo.update_favorite(image_id, payload.value)
+	response = repo.update_favorite(ingest_id, payload.value)
 
 	if response is None:
 		raise HTTPException(404)
@@ -65,13 +65,13 @@ def patch_favorite(
 	return build_response(response)
 
 
-@router.patch('/{image_id}/score', response_model=ScoreResponse)
+@router.patch('/{ingest_id}/score', response_model=ScoreResponse)
 def patch_score(
-	image_id: int,
+	ingest_id: int,
 	payload: ScoreRequest,
 	repo: Annotated[ImageRepository, Depends(get_repository)],
 ) -> Response:
-	response = repo.update_score(image_id, payload.delta)
+	response = repo.update_score(ingest_id, payload.delta)
 
 	if response is None:
 		raise HTTPException(404)

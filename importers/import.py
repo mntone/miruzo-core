@@ -42,6 +42,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+	raise NotImplementedError(
+		'Importer is temporarily disabled while migrating to ingest-based pipeline',
+	)
+
 	args = parse_args()
 	import_jsonl(
 		jsonl_path=args.jsonl_path,

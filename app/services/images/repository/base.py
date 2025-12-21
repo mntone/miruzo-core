@@ -7,7 +7,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TypeVar
 
 from sqlalchemy import Insert, func
@@ -27,7 +27,7 @@ class ImageRepository(ABC):
 	@abstractmethod
 	def _build_insert(self, model: type[TModel]) -> Insert: ...
 
-	def get_list(
+	def get_latest(
 		self,
 		*,
 		cursor: datetime | None,
@@ -47,25 +47,25 @@ class ImageRepository(ABC):
 
 		return items, next_cursor
 
-	def get_detail(
+	def get_context(
 		self,
-		image_id: int,
+		ingest_id: int,
 	) -> ImageRecord | None:
-		image = self._session.get(ImageRecord, image_id)
+		image = self._session.get(ImageRecord, ingest_id)
 
 		return image
 
 	@abstractmethod
 	def get_detail_with_stats(
 		self,
-		image_id: int,
+		ingest_id: int,
 	) -> tuple[ImageRecord, StatsRecord | None] | None:
 		"""Fetch both the image record and stats in a single operation."""
 
-	def create_stats(self, image_id: int) -> StatsRecord:
+	def create_stats(self, ingest_id: int) -> StatsRecord:
 		stats = StatsRecord(
-			image_id=image_id,
-			favorite=False,
+			ingest_id=ingest_id,
+			hall_of_fame_at=None,
 			score=DEFAULT_SCORE,
 			view_count=0,
 			last_viewed_at=datetime.now(),
@@ -78,31 +78,31 @@ class ImageRepository(ABC):
 
 	def upsert_stats_with_increment(
 		self,
-		image_id: int,
+		ingest_id: int,
 	) -> StatsRecord:
 		"""Increment view stats (upserting as needed) and return the latest row."""
 
 		statement = (
 			self._build_insert(StatsRecord)
-			# INSERT INTO imagestats (image_id, view_count) VALUES (:image_id, 1)
+			# INSERT INTO imagestats (ingest_id, view_count) VALUES (:ingest_id, 1)
 			.values(
-				image_id=image_id,
+				ingest_id=ingest_id,
 				view_count=1,
 				last_viewed_at=func.current_timestamp(),
 			)
-			# ON CONFLICT(image_id)
+			# ON CONFLICT(ingest_id)
 			# DO UPDATE SET view_count = view_count + 1
 			.on_conflict_do_update(
-				index_elements=['image_id'],
+				index_elements=['ingest_id'],
 				set_={
 					'view_count': StatsRecord.view_count + 1,
 					'last_viewed_at': func.current_timestamp(),
 				},
 			)
-			# RETURNING image_id, favorite, score, view_count, last_viewed_at
+			# RETURNING ingest_id, hall_of_fame_at, score, view_count, last_viewed_at
 			.returning(
-				StatsRecord.image_id,
-				StatsRecord.favorite,
+				StatsRecord.ingest_id,
+				StatsRecord.hall_of_fame_at,
 				StatsRecord.score,
 				StatsRecord.view_count,
 				StatsRecord.last_viewed_at,
@@ -116,15 +116,18 @@ class ImageRepository(ABC):
 
 	def update_favorite(
 		self,
-		image_id: int,
+		ingest_id: int,
 		favorite: bool,
 	) -> FavoriteResponse | None:
-		stats = self._session.get(StatsRecord, image_id)
+		stats = self._session.get(StatsRecord, ingest_id)
 
 		if not stats:
 			return None
 
-		stats.favorite = favorite
+		if favorite:
+			stats.hall_of_fame_at = datetime.now(timezone.utc)
+		else:
+			stats.hall_of_fame_at = None
 		self._session.add(stats)
 		self._session.commit()
 
@@ -132,10 +135,10 @@ class ImageRepository(ABC):
 
 	def update_score(
 		self,
-		image_id: int,
+		ingest_id: int,
 		delta_score: int,
 	) -> ScoreResponse | None:
-		stats = self._session.get(StatsRecord, image_id)
+		stats = self._session.get(StatsRecord, ingest_id)
 
 		if not stats:
 			return None

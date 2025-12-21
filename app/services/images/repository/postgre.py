@@ -12,12 +12,12 @@ from app.services.images.repository.base import ImageRepository
 class PostgreSQLImageRepository(ImageRepository):
 	def get_detail_with_stats(
 		self,
-		image_id: int,
+		ingest_id: int,
 	) -> tuple[ImageRecord, StatsRecord | None] | None:
 		row = self._session.exec(
 			select(ImageRecord, StatsRecord)
-			.join(StatsRecord, StatsRecord.image_id == ImageRecord.id)
-			.where(ImageRecord.id == image_id),
+			.join(StatsRecord, StatsRecord.ingest_id == ImageRecord.ingest_id)
+			.where(ImageRecord.ingest_id == ingest_id),
 		).first()
 
 		if row is None:

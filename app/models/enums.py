@@ -1,9 +1,28 @@
 from enum import Enum
 
 
-class ImageStatus(int, Enum):
-	"""Lifecycle state for an image record."""
+class IngestMode(int, Enum):
+	COPY = 0
+	SYMLINK = 1
 
-	ACTIVE = 0  #: Image is available and can be served.
-	DELETED = 1  #: Image was removed intentionally.
-	MISSING = 2  #: Image metadata exists but the asset is missing.
+
+class ProcessStatus(int, Enum):
+	PROCESSING = 0
+	FINISHED = 1
+
+
+class VisibilityStatus(int, Enum):
+	PRIVATE = 0
+	PUBLIC = 1
+
+
+class ExecutionStatus(int, Enum):
+	SUCCESS = 0
+	UNKNOWN_ERROR = 1
+	IO_ERROR = 2
+
+
+class ImageKind(int, Enum):
+	PHOTO = 0
+	ILLUST = 1
+	GRAPHIC = 2

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -58,8 +59,8 @@ class FavoriteResponse(BaseModel):
 		frozen=True,
 	)
 
-	is_favorited: Annotated[
-		bool,
+	favorited_at: Annotated[
+		datetime | None,
 		Field(
 			title='Favorite state',
 			description='`true` when the image is favorited after the update',
@@ -70,7 +71,7 @@ class FavoriteResponse(BaseModel):
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'FavoriteResponse':
 		return cls(
-			is_favorited=stats.favorite,
+			favorited_at=stats.hall_of_fame_at,
 		)
 
 

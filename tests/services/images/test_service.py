@@ -16,25 +16,30 @@ class StubImageRepository:
 		self.detail_called_with: int | None = None
 		self.upsert_called_with: int | None = None
 
-	def get_list(self, *, cursor: datetime | None, limit: int) -> tuple[list[ImageRecord], datetime | None]:
+	def get_latest(
+		self,
+		*,
+		cursor: datetime | None,
+		limit: int,
+	) -> tuple[list[ImageRecord], datetime | None]:
 		self.list_called_with = {'cursor': cursor, 'limit': limit}
 		return self.list_response
 
-	def get_detail(self, image_id: int) -> ImageRecord | None:
-		self.detail_called_with = image_id
+	def get_context(self, ingest_id: int) -> ImageRecord | None:
+		self.detail_called_with = ingest_id
 		return self.detail_response
 
-	def upsert_stats_with_increment(self, image_id: int) -> StatsRecord:
-		self.upsert_called_with = image_id
+	def upsert_stats_with_increment(self, ingest_id: int) -> StatsRecord:
+		self.upsert_called_with = ingest_id
 		if self.stats_response is None:
 			raise RuntimeError('stats_response not configured')
 		return self.stats_response
 
 
-def _stats_record(image_id: int) -> StatsRecord:
+def _stats_record(ingest_id: int) -> StatsRecord:
 	return StatsRecord(
-		image_id=image_id,
-		favorite=False,
+		ingest_id=ingest_id,
+		hall_of_fame_at=None,
 		score=5,
 		view_count=1,
 		last_viewed_at=datetime.now(timezone.utc),
@@ -43,7 +48,7 @@ def _stats_record(image_id: int) -> StatsRecord:
 
 def test_get_latest_normalizes_variants_and_returns_cursor() -> None:
 	repo = StubImageRepository()
-	image = build_image_record(1, ['webp', 'gif'])
+	image = build_image_record(1)
 	repo.list_response = ([image], image.captured_at)
 
 	service = ImageService(repo)  # type: ignore[arg-type]
@@ -54,8 +59,8 @@ def test_get_latest_normalizes_variants_and_returns_cursor() -> None:
 	assert response.cursor == image.captured_at
 	assert len(response.items) == 1
 	item = response.items[0]
-	assert item.id == image.id
-	assert [variant.format for variant in item.variants[0]] == ['webp']
+	assert item.id == image.ingest_id
+	assert [variant.format for variant in item.variants[0]] == ['webp', 'webp', 'webp']
 
 
 def test_get_context_returns_none_when_record_missing() -> None:
@@ -71,17 +76,17 @@ def test_get_context_returns_none_when_record_missing() -> None:
 
 def test_get_context_returns_summary_and_stats() -> None:
 	repo = StubImageRepository()
-	image = build_image_record(5, ['webp', 'gif'])
+	image = build_image_record(5)
 	repo.detail_response = image
 	repo.stats_response = _stats_record(5)
 
 	service = ImageService(repo)  # type: ignore[arg-type]
 
-	result = service.get_context(image.id)
+	result = service.get_context(image.ingest_id)
 
-	assert repo.detail_called_with == image.id
-	assert repo.upsert_called_with == image.id
+	assert repo.detail_called_with == image.ingest_id
+	assert repo.upsert_called_with == image.ingest_id
 	assert result is not None
-	assert result.image.id == image.id
+	assert result.image.id == image.ingest_id
 	assert result.stats is not None
 	assert result.stats.view_count == repo.stats_response.view_count

@@ -3,7 +3,7 @@ from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import ImageStatus
+from app.models.enums import ImageKind
 from app.models.records import ImageRecord
 
 
@@ -23,12 +23,6 @@ class SummaryModel(BaseModel):
 	]
 	"""numeric primary key assigned in the database."""
 
-	status: Annotated[
-		ImageStatus,
-		Field(title='Image status', description='lifecycle state: 0=active, 1=deleted, 2=missing'),
-	] = ImageStatus.ACTIVE
-	"""lifecycle state (active, deleted, missing) defined by `ImageStatus`"""
-
 	captured_at: Annotated[
 		datetime | None,
 		Field(
@@ -38,17 +32,19 @@ class SummaryModel(BaseModel):
 	]
 	"""when the photo was originally shot; `None` if metadata is missing"""
 
-	ingested_at: Annotated[
-		datetime,
-		Field(title='Ingested timestamp', description='timestamp for when this record entered the system'),
+	kind: Annotated[
+		ImageKind,
+		Field(
+			title='Image kind',
+			description='categorization of the image content (photo, illustration, or graphic)',
+		),
 	]
-	"""timestamp for when this record entered the system"""
+	"""categorization of the image content"""
 
 	@classmethod
 	def from_record(cls, image: ImageRecord) -> 'SummaryModel':
 		return cls(
-			id=image.id,
-			status=image.status,
+			id=image.ingest_id,
 			captured_at=image.captured_at,
-			ingested_at=image.ingested_at,
+			kind=image.kind,
 		)

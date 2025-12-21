@@ -21,7 +21,7 @@ class ImageService:
 		Return a paginated list of images (summary only).
 		Includes variant normalization using allowed_formats.
 		"""
-		image_records, next_cursor = self._repository.get_list(cursor=cursor, limit=limit)
+		image_records, next_cursor = self._repository.get_latest(cursor=cursor, limit=limit)
 
 		allowed_formats = compute_allowed_formats(exclude_formats)
 
@@ -40,7 +40,7 @@ class ImageService:
 
 	def get_context(
 		self,
-		image_id: int,
+		ingest_id: int,
 	) -> ContextResponse | None:
 		"""
 		Return a single image detail payload.
@@ -48,12 +48,12 @@ class ImageService:
 		Fetches the image record, increments view stats, and normalizes
 		variant layers based on allowed formats.
 		"""
-		image = self._repository.get_detail(image_id)
+		image = self._repository.get_context(ingest_id)
 
 		if image is None:
 			return None
 
-		stats = self._repository.upsert_stats_with_increment(image_id)
+		stats = self._repository.upsert_stats_with_increment(ingest_id)
 
 		response = ContextResponse.from_record(image, stats)
 

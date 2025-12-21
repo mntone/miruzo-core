@@ -5,6 +5,7 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayer
+from app.utils.file import ensure_directory_access
 
 
 class DatabaseBackend(str, Enum):
@@ -35,6 +36,7 @@ class Settings(BaseSettings):
 	public_media_root: str = '/media/'
 
 	gataku_root: Path = Path('../gataku')
+	gataku_symlink_dirname: str = 'gataku'
 	gataku_assets_root: Path = Path('../gataku/out/downloads')
 
 	variant_layers: tuple[VariantLayer, ...] = DEFAULT_VARIANT_LAYERS
@@ -70,6 +72,13 @@ class Settings(BaseSettings):
 		path.parent.mkdir(parents=True, exist_ok=True)
 
 		return f'sqlite:///{path}'
+
+	@classmethod
+	@field_validator('gataku_assets_root')
+	def _validate_gataku_assets_root(cls, value: Path) -> Path:
+		resolved = value.resolve()
+		ensure_directory_access(resolved)
+		return resolved
 
 
 env = Settings()

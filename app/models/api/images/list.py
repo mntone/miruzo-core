@@ -3,7 +3,6 @@ from typing import Annotated, final
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.api.images.variant import VariantModel
-from app.models.enums import ImageStatus
 from app.models.records import ImageRecord, VariantRecord
 
 
@@ -22,12 +21,6 @@ class ImageListModel(BaseModel):
 		Field(title='Image identifier', description='numeric primary key assigned in the database.'),
 	]
 	"""numeric primary key assigned in the database."""
-
-	status: Annotated[
-		ImageStatus,
-		Field(title='Image status', description='lifecycle state: 0=active, 1=deleted, 2=missing'),
-	] = ImageStatus.ACTIVE
-	"""lifecycle state (active, deleted, missing) defined by `ImageStatus`"""
 
 	original: Annotated[
 		VariantModel,
@@ -64,8 +57,7 @@ class ImageListModel(BaseModel):
 	) -> 'ImageListModel':
 		# fmt: off
 		return cls(
-			id=image.id,
-			status=image.status,
+			id=image.ingest_id,
 
 			original=VariantModel.from_record(image.original),
 

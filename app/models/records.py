@@ -1,16 +1,57 @@
 # pyright: reportAssignmentType=false
 # pyright: reportUnknownVariableType=false
 
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from typing import Annotated, Optional, TypedDict, final
 
 from pydantic import Field
-from sqlalchemy import JSON, Column, Integer
+from sqlalchemy import JSON, Column, Integer, SmallInteger
 from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
-from app.config.constants import DEFAULT_SCORE, SCORE_MAXIMUM, SCORE_MINIMUM
-from app.models.enums import ImageStatus
+from app.config.constants import DEFAULT_SCORE, EXECUTION_MAXIMUM, SCORE_MAXIMUM, SCORE_MINIMUM
+from app.models.enums import ImageKind, ProcessStatus, VisibilityStatus
+from app.models.types import ExecutionEntry, ExecutionsJSON
+
+
+@final
+class IngestRecord(SQLModel, table=True):
+	__tablename__ = 'ingests'
+
+	id: int = SQLField(default=None, primary_key=True, nullable=False)
+	process: ProcessStatus = SQLField(
+		default=ProcessStatus.PROCESSING,
+		sa_column=Column(
+			SmallInteger,
+			autoincrement=False,
+			default=ProcessStatus.PROCESSING,
+			nullable=False,
+		),
+	)
+	visibility: VisibilityStatus = SQLField(
+		default=VisibilityStatus.PRIVATE,
+		sa_column=Column(
+			SmallInteger,
+			autoincrement=False,
+			default=VisibilityStatus.PRIVATE,
+			nullable=False,
+		),
+	)
+	relative_path: str
+	fingerprint: str = SQLField(min_length=64, max_length=64, unique=True)
+	ingested_at: datetime = SQLField(default=datetime.now(timezone.utc), nullable=False)
+	captured_at: datetime | None = SQLField(default=None)
+	updated_at: datetime = SQLField(default=datetime.now(timezone.utc), nullable=False)
+	executions: Sequence[ExecutionEntry] | None = SQLField(
+		default=None,
+		min_length=1,
+		max_length=EXECUTION_MAXIMUM,
+		sa_column=Column(ExecutionsJSON),
+	)
+
+	image: Optional['ImageRecord'] = Relationship(back_populates='ingest')
+	stats: Optional['StatsRecord'] = Relationship(back_populates='ingest')
 
 
 @final
@@ -28,27 +69,35 @@ class VariantRecord(TypedDict):
 class ImageRecord(SQLModel, table=True):
 	__tablename__ = 'images'
 
-	id: int = SQLField(primary_key=True, default=None)
-	fingerprint: str = SQLField(min_length=64, max_length=64, unique=True)
+	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
 	captured_at: datetime | None = SQLField(default=None)
-	ingested_at: datetime = SQLField(default=datetime.now(timezone.utc))
-	status: ImageStatus = SQLField(default=ImageStatus.ACTIVE, sa_column=Column(Integer))
+	kind: ImageKind = SQLField(default=ImageKind.PHOTO, sa_column=Column(Integer))
 
 	original: VariantRecord = SQLField(sa_column=Column(JSON))
 	fallback: VariantRecord | None = SQLField(default=None, sa_column=Column(JSON))
 	variants: list[list[VariantRecord]] = SQLField(sa_column=Column(JSON))
 
-	stats: Optional['StatsRecord'] = Relationship(back_populates='image')
+	ingest: IngestRecord = Relationship(back_populates='image')
 
 
 @final
 class StatsRecord(SQLModel, table=True):
 	__tablename__ = 'stats'
 
-	image_id: int = SQLField(primary_key=True, foreign_key='images.id', nullable=False)
-	favorite: bool = SQLField(default=False)
-	score: int = SQLField(default=DEFAULT_SCORE, ge=SCORE_MINIMUM, le=SCORE_MAXIMUM, index=True)
-	view_count: int = SQLField(default=0, ge=0)
+	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
+	hall_of_fame_at: datetime | None = SQLField(default=None, index=True)
+	score: int = SQLField(
+		ge=SCORE_MINIMUM,
+		le=SCORE_MAXIMUM,
+		sa_column=Column(
+			SmallInteger,
+			autoincrement=False,
+			default=DEFAULT_SCORE,
+			index=True,
+			nullable=False,
+		),
+	)
+	view_count: int = SQLField(default=0, ge=0, nullable=False)
 	last_viewed_at: datetime | None = SQLField(default=None, index=True)
 
-	image: ImageRecord | None = Relationship(back_populates='stats')
+	ingest: IngestRecord = Relationship(back_populates='stats')

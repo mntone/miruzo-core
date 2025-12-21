@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import gettempdir
@@ -6,8 +6,8 @@ from tempfile import gettempdir
 from sqlmodel import Session
 
 from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
-from app.models.enums import ImageStatus
-from app.models.records import ImageRecord, VariantRecord
+from app.models.enums import ProcessStatus, VisibilityStatus
+from app.models.records import ImageRecord, IngestRecord, VariantRecord
 
 TEST_VARIANT_ROOT = Path(gettempdir()) / 'miruzo-test-variants'
 
@@ -28,64 +28,100 @@ def build_variant(fmt: str, width: int, *, label: str = 'primary') -> VariantRec
 	}
 
 
-def _make_image_record(
-	image_id: int,
-	formats: Sequence[str],
+def _make_ingest_record(
+	ingest_id: int,
 	*,
-	captured_at: datetime | None,
-	width_offset: int,
+	relative_path: str = '/foo/bar.webp',
+	process: ProcessStatus = ProcessStatus.PROCESSING,
+	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
+	captured_at: datetime | None = None,
+) -> IngestRecord:
+	timestamp = captured_at or datetime.now(timezone.utc)
+	return IngestRecord(
+		id=ingest_id,
+		process=process,
+		visibility=visibility,
+		relative_path=relative_path,
+		fingerprint=f'{ingest_id:064d}',
+		ingested_at=timestamp,
+		captured_at=timestamp,
+	)
+
+
+def _make_image_record(
+	ingest_id: int,
+	*,
+	captured_at: datetime | None = None,
+	widths: Iterable[int] = [320, 480, 640],
 ) -> ImageRecord:
-	now = captured_at or datetime.now(timezone.utc)
-	base_width = 320 + width_offset
-	fallback_variant = build_variant('jpeg', base_width)
+	timestamp = captured_at or datetime.now(timezone.utc)
 	return ImageRecord(
-		id=image_id,
-		fingerprint=f'{image_id:064d}',
-		captured_at=now,
-		ingested_at=now,
-		status=ImageStatus.ACTIVE,
-		original=build_variant(formats[0], base_width),
-		fallback=fallback_variant,
+		ingest_id=ingest_id,
+		captured_at=timestamp,
+		original=build_variant('webp', 960),
+		fallback=None,
 		variants=[
-			[build_variant(fmt, base_width) for fmt in formats],
-			[fallback_variant],
+			[build_variant('webp', width) for width in widths],
+			[build_variant('jpeg', 320)],
 		],
 	)
 
 
-def build_image_record(
-	image_id: int,
-	formats: Sequence[str],
-	*,
-	captured_at: datetime | None = None,
-) -> ImageRecord:
+def build_image_record(ingest_id: int) -> ImageRecord:
 	return _make_image_record(
-		image_id=image_id,
-		formats=formats,
-		captured_at=captured_at,
-		width_offset=0,
+		ingest_id=ingest_id,
 	)
+
+
+def add_ingest_record(
+	session: Session,
+	idx: int,
+	*,
+	relative_path: str = '/foo/bar.webp',
+	process: ProcessStatus = ProcessStatus.PROCESSING,
+	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
+	captured_at: datetime | None = None,
+) -> IngestRecord:
+	record = _make_ingest_record(
+		ingest_id=idx,
+		relative_path=relative_path,
+		process=process,
+		visibility=visibility,
+		captured_at=captured_at,
+	)
+	session.add(record)
+	session.commit()
+	session.refresh(record)
+	return record
 
 
 def add_image_record(
 	session: Session,
 	idx: int,
 	*,
+	relative_path: str = '/foo/bar.webp',
+	process: ProcessStatus = ProcessStatus.PROCESSING,
+	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
 	captured_at: datetime | None = None,
-	formats: Iterable[str] | None = None,
 ) -> ImageRecord:
-	timestamp = captured_at or datetime.now(timezone.utc)
-	format_list = list(formats or ['webp'])
-	record = _make_image_record(
-		image_id=idx,
-		formats=format_list,
-		captured_at=timestamp,
-		width_offset=idx,
+	ingest = _make_ingest_record(
+		ingest_id=idx,
+		relative_path=relative_path,
+		process=process,
+		visibility=visibility,
+		captured_at=captured_at,
 	)
-	session.add(record)
+	session.add(ingest)
+
+	image = _make_image_record(
+		ingest_id=idx,
+		captured_at=captured_at,
+	)
+	session.add(image)
+
 	session.commit()
-	session.refresh(record)
-	return record
+	session.refresh(image)
+	return image
 
 
 def build_variant_spec(
