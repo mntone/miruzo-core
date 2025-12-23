@@ -62,18 +62,25 @@ def _convert_to_srgb(image: Image.Image) -> Image.Image:
 	if not icc:
 		return image
 
-	src_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc))
-	dst_profile = ImageCms.createProfile('sRGB')  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
-	ImageCms.profileToProfile(
-		image,
-		src_profile,
-		dst_profile,  # pyright: ignore[reportUnknownArgumentType]
-		ImageCms.Intent.PERCEPTUAL,
-		'RGB',
-		True,
-	)
+	# profileToProfile mutates the image in place, so we return the same object.
+	try:
+		src_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc))
+		dst_profile = ImageCms.createProfile('sRGB')  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+		ImageCms.profileToProfile(
+			image,
+			src_profile,
+			dst_profile,  # pyright: ignore[reportUnknownArgumentType]
+			ImageCms.Intent.PERCEPTUAL,
+			'RGB',
+			True,
+		)
+	except (ImageCms.PyCMSError, OSError):
+		# Keep the original pixels if color conversion fails.
+		return image
+	else:
+		# Drop embedded profiles after successful conversion.
+		image.info.pop('icc_profile', None)
 
-	image.info.pop('icc_profile', None)
 	return image
 
 

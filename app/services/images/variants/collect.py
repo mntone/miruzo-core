@@ -59,7 +59,7 @@ def _load_variant_file(
 	variant_dirname: str,
 ) -> VariantFile | None:
 	try:
-		stat = absolute_path.lstat()
+		stat = absolute_path.stat()
 	except FileNotFoundError:
 		log.debug('image not found: %s', absolute_path)
 		return None

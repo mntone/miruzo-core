@@ -77,7 +77,7 @@ def _save_variant(
 		return None
 
 	try:
-		stat = absolute_path.lstat()
+		stat = absolute_path.stat()
 	except FileNotFoundError:
 		return None
 

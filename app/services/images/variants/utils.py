@@ -58,7 +58,7 @@ def get_image_info(image: PILImage.Image) -> ImageInfo:
 
 	if supports_exif:
 		exif = image.getexif()
-		orientation = exif[ExifTags.Base.Orientation]
+		orientation = exif.get(ExifTags.Base.Orientation)
 		if orientation in (5, 6, 7, 8):
 			width, height = height, width
 
