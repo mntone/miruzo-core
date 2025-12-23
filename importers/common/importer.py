@@ -1,4 +1,5 @@
 import json
+from collections.abc import Sequence
 from datetime import datetime
 from logging import getLogger
 from pathlib import Path
@@ -180,7 +181,7 @@ def import_jsonl(
 			width = None
 			height = None
 			original_variant = None
-			variant_records: list[list[VariantRecord]] = []
+			variant_records: Sequence[Sequence[VariantRecord]] = []
 			variant_reports: list[VariantReport] = []
 			try:
 				with PILImage.open(src_path) as pil_image:

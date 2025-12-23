@@ -75,7 +75,7 @@ class ImageRecord(SQLModel, table=True):
 
 	original: VariantRecord = SQLField(sa_column=Column(JSON))
 	fallback: VariantRecord | None = SQLField(default=None, sa_column=Column(JSON))
-	variants: list[list[VariantRecord]] = SQLField(sa_column=Column(JSON))
+	variants: Sequence[Sequence[VariantRecord]] = SQLField(sa_column=Column(JSON))
 
 	ingest: IngestRecord = Relationship(back_populates='image')
 

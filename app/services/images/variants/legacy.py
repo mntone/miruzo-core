@@ -12,6 +12,7 @@ from app.services.images.variants.collect import (
 	normalize_media_relative_paths,
 )
 from app.services.images.variants.commit import commit_variant_plan
+from app.services.images.variants.mapper import map_commit_results_to_variant_layers
 from app.services.images.variants.path import build_origin_relative_path
 from app.services.images.variants.plan import build_variant_plan, emit_variant_specs
 from app.services.images.variants.preprocess import preprocess_original
@@ -47,12 +48,11 @@ class VariantReportLegacy:
 	delta_bytes: int | None
 
 
-def _map_records(
+def _map_commit_results_to_legacy_reports(
 	results: Iterable[VariantCommitResult],
 	*,
 	original_size: int | None,
-) -> tuple[list[tuple[int, VariantRecord]], list[VariantReportLegacy]]:
-	records: list[tuple[int, VariantRecord]] = []
+) -> list[VariantReportLegacy]:
 	legacy_reports: list[VariantReportLegacy] = []
 
 	for result in results:
@@ -66,17 +66,6 @@ def _map_records(
 		spec = result.report.spec
 		file = result.report.file.file_info  # only generate / regenerate results reach here
 		image = result.report.file.image_info
-
-		record = VariantRecord(
-			rel=file.relative_path.__str__(),
-			format=spec.format.container,
-			codecs=spec.format.codecs,
-			size=file.bytes,
-			width=image.width,
-			height=image.height,
-			quality=spec.quality,
-		)
-		records.append((spec.layer_id, record))
 
 		if original_size and original_size > 0:
 			ratio = (file.bytes / original_size) * 100
@@ -97,20 +86,7 @@ def _map_records(
 		)
 		legacy_reports.append(legacy_report)
 
-	return records, legacy_reports
-
-
-def _group_records_by_layer(
-	records: Sequence[tuple[int, VariantRecord]],
-	layers: Iterable[VariantLayer],
-) -> list[list[VariantRecord]]:
-	grouped: dict[int, list[VariantRecord]] = {layer.layer_id: [] for layer in layers}
-
-	for layer_id, record in records:
-		if layer_id in grouped:
-			grouped[layer_id].append(record)
-
-	return [grouped[layer.layer_id] for layer in layers if grouped[layer.layer_id]]
+	return legacy_reports
 
 
 def generate_variants(
@@ -119,7 +95,7 @@ def generate_variants(
 	media_root: Path,
 	layers: Iterable[VariantLayerSpec],
 	original_size: int | None = None,
-) -> tuple[list[list[VariantRecord]], list[VariantReportLegacy]]:
+) -> tuple[Sequence[Sequence[VariantRecord]], list[VariantReportLegacy]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
 
 	media_root = media_root.resolve()  # todo: add path validation
@@ -159,10 +135,11 @@ def generate_variants(
 	)
 
 	# mapping
-	records, legacy_reports = _map_records(
+	results = list(results)
+	variants = map_commit_results_to_variant_layers(results, layers)
+	legacy_reports = _map_commit_results_to_legacy_reports(
 		results,
 		original_size=original_size,
 	)
-	by_layers = _group_records_by_layer(records, layers)
 
-	return by_layers, legacy_reports
+	return variants, legacy_reports
