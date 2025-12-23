@@ -6,7 +6,7 @@ from app.services.images.repository.base import ImageRepository
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 
 
-class ImageService:
+class ImageQueryService:
 	def __init__(self, repository: ImageRepository) -> None:
 		self._repository = repository
 

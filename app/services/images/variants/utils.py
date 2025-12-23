@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 from PIL import ExifTags, TiffImagePlugin
 from PIL import Image as PILImage
@@ -70,6 +71,12 @@ def get_image_info(image: PILImage.Image) -> ImageInfo:
 		lossless=lossless,
 	)
 	return info
+
+
+def get_image_info_from_file(path: Path) -> ImageInfo:
+	with PILImage.open(path) as image:
+		info = get_image_info(image)
+		return info
 
 
 def parse_variant_slotkey(label: str) -> VariantSlotkey:

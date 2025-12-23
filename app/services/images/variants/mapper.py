@@ -2,7 +2,22 @@ from collections.abc import Iterable, Sequence
 
 from app.config.variant import VariantLayerSpec
 from app.models.records import VariantRecord
-from app.services.images.variants.types import VariantCommitResult, VariantReport
+from app.services.images.variants.types import OriginalFile, VariantCommitResult, VariantReport
+
+
+def map_original_info_to_variant_record(file: OriginalFile) -> VariantRecord:
+	"""Build the original image's record from a collected file."""
+	record = VariantRecord(
+		rel=file.file_info.relative_path.__str__(),
+		format=file.image_info.container,
+		codecs=file.image_info.codecs,
+		size=file.file_info.bytes,
+		width=file.image_info.width,
+		height=file.image_info.height,
+		quality=None,
+	)
+
+	return record
 
 
 def map_commit_result_to_variant_record(report: VariantReport) -> VariantRecord:

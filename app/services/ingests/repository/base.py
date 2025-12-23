@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlmodel import Session
 
 from app.config.constants import EXECUTION_MAXIMUM
-from app.models.enums import ExecutionStatus, VisibilityStatus
+from app.models.enums import ExecutionStatus, ProcessStatus, VisibilityStatus
 from app.models.records import ExecutionEntry, IngestRecord
 
 
@@ -52,8 +52,10 @@ class IngestRepository:
 			executions = [e for e in ingest.executions if e['status'] != ExecutionStatus.SUCCESS]
 		else:
 			executions = list(ingest.executions)
-
 		executions.append(execution)
+
+		if execution['status'] == ExecutionStatus.SUCCESS:
+			ingest.process = ProcessStatus.FINISHED
 
 		ingest.executions = executions[-EXECUTION_MAXIMUM:]
 		ingest.updated_at = datetime.now(timezone.utc)

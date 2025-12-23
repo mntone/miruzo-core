@@ -1,12 +1,20 @@
+from pathlib import Path
+from typing import Any
+
 import pytest
+from PIL import Image as PILImage
 from PIL import TiffImagePlugin
 
 from app.config.variant import VariantSlotkey
-from app.services.images.variants.utils import _get_image_format, parse_variant_slotkey
+from app.services.images.variants.utils import (
+	_get_image_format,
+	get_image_info_from_file,
+	parse_variant_slotkey,
+)
 
 
 class DummyImage:
-	def __init__(self, fmt: str, *, info: dict | None = None) -> None:
+	def __init__(self, fmt: str, *, info: dict[str, Any] | None = None) -> None:
 		self.format = fmt
 		self.info = info or {}
 
@@ -58,3 +66,16 @@ def test_parse_variant_slotkey_parses_valid_label() -> None:
 def test_parse_variant_slotkey_raises_for_invalid_labels(label: str) -> None:
 	with pytest.raises(ValueError):
 		parse_variant_slotkey(label)
+
+
+def test_get_image_info_from_file_reads_png(tmp_path: Path) -> None:
+	path = tmp_path / 'sample.png'
+	image = PILImage.new('RGB', (12, 8), color='red')
+	image.save(path)
+
+	info = get_image_info_from_file(path)
+
+	assert info.container == 'png'
+	assert info.width == 12
+	assert info.height == 8
+	assert info.lossless is True

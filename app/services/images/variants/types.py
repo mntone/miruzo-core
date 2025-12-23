@@ -40,6 +40,12 @@ class OriginalImage:
 
 
 @dataclass(frozen=True, slots=True)
+class OriginalFile:
+	file_info: FileInfo
+	image_info: ImageInfo
+
+
+@dataclass(frozen=True, slots=True)
 class VariantFile:
 	file_info: FileInfo
 	image_info: ImageInfo

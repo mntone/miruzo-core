@@ -8,9 +8,9 @@ from app.database import get_session
 from app.models.api.images.patches import FavoriteRequest, FavoriteResponse, ScoreRequest, ScoreResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ContextResponse, ImageListResponse
+from app.services.images.query import ImageQueryService
 from app.services.images.repository.base import ImageRepository
 from app.services.images.repository.factory import create_image_repository
-from app.services.images.service import ImageService
 from app.utils.http.reponse_builder import build_response
 
 
@@ -18,8 +18,8 @@ def get_repository(session: Annotated[Session, Depends(get_session)]) -> ImageRe
 	return create_image_repository(session)
 
 
-def get_service(repository: Annotated[ImageRepository, Depends(get_repository)]) -> ImageService:
-	return ImageService(repository)
+def get_service(repository: Annotated[ImageRepository, Depends(get_repository)]) -> ImageQueryService:
+	return ImageQueryService(repository)
 
 
 router = APIRouter(prefix='/i')
@@ -28,7 +28,7 @@ router = APIRouter(prefix='/i')
 @router.get('/latest', response_model=ImageListResponse)
 def get_latest(
 	query: Annotated[ListQuery, Depends()],
-	service: Annotated[ImageService, Depends(get_service)],
+	service: Annotated[ImageQueryService, Depends(get_service)],
 ) -> Response:
 	response = service.get_latest(
 		cursor=query.cursor,
@@ -41,7 +41,7 @@ def get_latest(
 @router.get('/{ingest_id}', response_model=ContextResponse)
 def get_context(
 	ingest_id: int,
-	service: Annotated[ImageService, Depends(get_service)],
+	service: Annotated[ImageQueryService, Depends(get_service)],
 ) -> Response:
 	response = service.get_context(ingest_id)
 

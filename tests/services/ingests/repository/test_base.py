@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app.config.constants import EXECUTION_MAXIMUM
 from app.models.enums import ExecutionStatus
-from app.models.types import CommitEntry, ExecutionEntry
+from app.models.types import ExecutionEntry
 from app.services.ingests.repository.base import IngestRepository
 
 
@@ -25,12 +25,18 @@ def _build_execution(status: ExecutionStatus, *, offset: int = 0) -> ExecutionEn
 	now = datetime(2026, 1, 1, tzinfo=timezone.utc)
 	return {
 		'status': status,
+		'error_type': None,
+		'error_message': None,
 		'executed_at': now,
+		'inspect': timedelta(seconds=offset + 5),
 		'collect': timedelta(seconds=offset + 10),
-		'plan': timedelta(seconds=offset + 20),
+		'plan': timedelta(seconds=offset + 15),
 		'preprocess': timedelta(seconds=offset + 30),
-		'commit': [CommitEntry(slot='l1w320', duration=timedelta(seconds=offset + 50))],
+		'commit': timedelta(seconds=offset + 50),
+		#'commits': [CommitEntry(slot='l1w320', duration=timedelta(seconds=offset + 50))],
+		'postprocess': timedelta(seconds=offset + 80),
 		'store': timedelta(seconds=offset + 100),
+		'overall': timedelta(seconds=offset + 120),
 	}
 
 
@@ -85,11 +91,20 @@ def test_append_execution_trims_to_maximum(session: Session) -> None:
 	assert ingest is not None
 	assert ingest.executions is not None
 	assert len(ingest.executions) == EXECUTION_MAXIMUM
+	assert ingest.executions[-1]['inspect'] is not None
+	assert ingest.executions[-1]['inspect'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 5
+	assert ingest.executions[-1]['collect'] is not None
 	assert ingest.executions[-1]['collect'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 10
-	assert ingest.executions[-1]['plan'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 20
+	assert ingest.executions[-1]['plan'] is not None
+	assert ingest.executions[-1]['plan'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 15
+	assert ingest.executions[-1]['preprocess'] is not None
 	assert ingest.executions[-1]['preprocess'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 30
+	assert ingest.executions[-1]['postprocess'] is not None
+	assert ingest.executions[-1]['postprocess'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 80
 	assert ingest.executions[-1]['store'] is not None
 	assert ingest.executions[-1]['store'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 100
+	assert ingest.executions[-1]['overall'] is not None
+	assert ingest.executions[-1]['overall'].total_seconds() == (EXECUTION_MAXIMUM + 2) + 120
 
 
 def test_append_execution_returns_none_for_missing_ingest(session: Session) -> None:

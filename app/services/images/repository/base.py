@@ -76,6 +76,11 @@ class ImageRepository(ABC):
 
 		return stats
 
+	def insert(self, image: ImageRecord) -> None:
+		self._session.add(image)
+		self._session.commit()
+		self._session.refresh(image)
+
 	def upsert_stats_with_increment(
 		self,
 		ingest_id: int,

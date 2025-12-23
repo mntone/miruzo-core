@@ -3,7 +3,10 @@ from pathlib import Path
 from tests.services.images.utils import build_variant_spec
 
 from app.config.variant import VariantLayerSpec, VariantSpec
-from app.services.images.variants.mapper import map_commit_results_to_variant_layers
+from app.services.images.variants.mapper import (
+	map_commit_results_to_variant_layers,
+	map_original_info_to_variant_record,
+)
 from app.services.images.variants.path import VariantRelativePath
 from app.services.images.variants.types import (
 	FileInfo,
@@ -46,6 +49,39 @@ def _build_variant_file(
 		image_info=image_info,
 		variant_dir=spec.slotkey.label,
 	)
+
+
+def test_map_original_info_to_variant_record(tmp_path: Path) -> None:
+	relative_path = VariantRelativePath(Path('l0orig/foo.webp'))
+	absolute_path = tmp_path / relative_path
+	file_info = FileInfo(
+		absolute_path=absolute_path,
+		relative_path=relative_path,
+		bytes=123,
+	)
+	image_info = ImageInfo(
+		container='webp',
+		codecs='vp8',
+		width=100,
+		height=80,
+		lossless=False,
+	)
+	original = OriginalFile(
+		file_info=file_info,
+		image_info=image_info,
+	)
+
+	record = map_original_info_to_variant_record(original)
+
+	assert record == {
+		'rel': str(relative_path),
+		'format': 'webp',
+		'codecs': 'vp8',
+		'size': 123,
+		'width': 100,
+		'height': 80,
+		'quality': None,
+	}
 
 
 def test_map_commit_results_to_variant_layers_filters_actions(tmp_path: Path) -> None:

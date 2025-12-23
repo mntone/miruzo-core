@@ -29,11 +29,7 @@ def collect_variant_directories(media_root: Path) -> Iterator[str]:
 	This function does NOT validate naming rules strictly.
 	"""
 
-	try:
-		entries = media_root.iterdir()
-	except FileNotFoundError:
-		return
-
+	entries = media_root.iterdir()
 	for entry in entries:
 		# skip non-directories
 		if not entry.is_dir():
@@ -70,7 +66,13 @@ def _load_variant_file(
 	except FileNotFoundError:
 		log.debug('image not found: %s', absolute_path)
 		return None
+	except PermissionError:
+		log.warning('permission denied: %s', absolute_path)
+		return None
 	except PILUnidentifiedImageError:
+		log.warning('unknown image format: %s', absolute_path)
+		return None
+	except OSError:
 		log.warning('invalid image: %s', absolute_path)
 		return None
 

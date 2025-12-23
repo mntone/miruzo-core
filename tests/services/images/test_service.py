@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from tests.services.images.utils import build_image_record
 
 from app.models.records import ImageRecord, StatsRecord
-from app.services.images.service import ImageService
+from app.services.images.query import ImageQueryService
 
 
 class StubImageRepository:
@@ -51,7 +51,7 @@ def test_get_latest_normalizes_variants_and_returns_cursor() -> None:
 	image = build_image_record(1)
 	repo.list_response = ([image], image.captured_at)
 
-	service = ImageService(repo)  # type: ignore[arg-type]
+	service = ImageQueryService(repo)  # type: ignore[arg-type]
 
 	response = service.get_latest(cursor=None, limit=10, exclude_formats=('gif',))
 
@@ -65,7 +65,7 @@ def test_get_latest_normalizes_variants_and_returns_cursor() -> None:
 
 def test_get_context_returns_none_when_record_missing() -> None:
 	repo = StubImageRepository()
-	service = ImageService(repo)  # type: ignore[arg-type]
+	service = ImageQueryService(repo)  # type: ignore[arg-type]
 
 	result = service.get_context(123)
 
@@ -80,7 +80,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 	repo.detail_response = image
 	repo.stats_response = _stats_record(5)
 
-	service = ImageService(repo)  # type: ignore[arg-type]
+	service = ImageQueryService(repo)  # type: ignore[arg-type]
 
 	result = service.get_context(image.ingest_id)
 

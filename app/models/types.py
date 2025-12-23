@@ -7,23 +7,28 @@ from sqlalchemy.types import JSON, TypeDecorator
 
 from app.models.enums import ExecutionStatus
 
-
-@final
-class _CommitPlainJson(TypedDict):
-	slot: str
-	duration: float
+# @final
+# class _CommitPlainJson(TypedDict):
+# 	slot: str
+# 	duration: float
 
 
 @final
 class _ExecutionPlainJson(TypedDict):
 	status: ExecutionStatus
+	error_type: str | None
+	error_message: str | None
 	executed_at: float
 	"""unix epoch seconds (UTC)"""
-	collect: float
-	plan: float
-	preprocess: float
-	commit: Sequence[_CommitPlainJson] | None
+	inspect: float | None
+	collect: float | None
+	plan: float | None
+	preprocess: float | None
+	commit: float | None
+	# commits: Sequence[_CommitPlainJson] | None
+	postprocess: float | None
 	store: float | None
+	overall: float | None
 
 
 @final
@@ -35,12 +40,18 @@ class CommitEntry(TypedDict):
 @final
 class ExecutionEntry(TypedDict):
 	status: ExecutionStatus
+	error_type: str | None
+	error_message: str | None
 	executed_at: datetime
-	collect: Annotated[timedelta, Field(ge=0)]
-	plan: Annotated[timedelta, Field(ge=0)]
-	preprocess: Annotated[timedelta, Field(ge=0)]
-	commit: Annotated[Sequence[CommitEntry] | None, Field(min_length=1)]
+	inspect: Annotated[timedelta | None, Field(ge=0)]
+	collect: Annotated[timedelta | None, Field(ge=0)]
+	plan: Annotated[timedelta | None, Field(ge=0)]
+	preprocess: Annotated[timedelta | None, Field(ge=0)]
+	commit: Annotated[timedelta | None, Field(ge=0)]
+	# commits: Annotated[Sequence[CommitEntry] | None, Field(min_length=1)]
+	postprocess: Annotated[timedelta | None, Field(ge=0)]
 	store: Annotated[timedelta | None, Field(ge=0)]
+	overall: Annotated[timedelta | None, Field(ge=0)]
 
 
 class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
@@ -57,23 +68,29 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 		return [
 			_ExecutionPlainJson(
 				status=v['status'],
+				error_type=v['error_type'],
+				error_message=v['error_message'],
 				executed_at=(
 					v['executed_at'].replace(tzinfo=timezone.utc)
 					if v['executed_at'].tzinfo is None
 					else v['executed_at'].astimezone(timezone.utc)
 				).timestamp(),
-				collect=v['collect'].total_seconds(),
-				plan=v['plan'].total_seconds(),
-				preprocess=v['preprocess'].total_seconds(),
-				commit=(
-					[
-						_CommitPlainJson(slot=c['slot'], duration=c['duration'].total_seconds())
-						for c in v['commit']
-					]
-					if v['commit']
-					else None
-				),
-				store=v['store'].total_seconds() if v['store'] is not None else None,
+				inspect=ExecutionsJSON.to_seconds(v['inspect']),
+				collect=ExecutionsJSON.to_seconds(v['collect']),
+				plan=ExecutionsJSON.to_seconds(v['plan']),
+				preprocess=ExecutionsJSON.to_seconds(v['preprocess']),
+				commit=ExecutionsJSON.to_seconds(v['commit']),
+				# commits=(
+				# 	[
+				# 		_CommitPlainJson(slot=c['slot'], duration=c['duration'].total_seconds())
+				# 		for c in v['commits']
+				# 	]
+				# 	if v['commits']
+				# 	else None
+				# ),
+				postprocess=ExecutionsJSON.to_seconds(v['postprocess']),
+				store=ExecutionsJSON.to_seconds(v['store']),
+				overall=ExecutionsJSON.to_seconds(v.get('overall')),
 			)
 			for v in value
 		]
@@ -88,19 +105,39 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 		return [
 			ExecutionEntry(
 				status=ExecutionStatus(v['status']),
+				error_type=v['error_type'],
+				error_message=v['error_message'],
 				executed_at=datetime.fromtimestamp(v['executed_at'], tz=timezone.utc),
-				collect=timedelta(seconds=v['collect']),
-				plan=timedelta(seconds=v['plan']),
-				preprocess=timedelta(seconds=v['preprocess']),
-				commit=(
-					[
-						CommitEntry(slot=c['slot'], duration=timedelta(seconds=c['duration']))
-						for c in v['commit']
-					]
-					if v['commit']
-					else None
-				),
-				store=timedelta(seconds=v['store']) if v['store'] is not None else None,
+				inspect=ExecutionsJSON.to_timedelta(v['inspect']),
+				collect=ExecutionsJSON.to_timedelta(v['collect']),
+				plan=ExecutionsJSON.to_timedelta(v['plan']),
+				preprocess=ExecutionsJSON.to_timedelta(v['preprocess']),
+				commit=ExecutionsJSON.to_timedelta(v['commit']),
+				# commits=(
+				# 	[
+				# 		CommitEntry(slot=c['slot'], duration=timedelta(seconds=c['duration']))
+				# 		for c in v['commits']
+				# 	]
+				# 	if v['commits']
+				# 	else None
+				# ),
+				postprocess=ExecutionsJSON.to_timedelta(v['postprocess']),
+				store=ExecutionsJSON.to_timedelta(v['store']),
+				overall=ExecutionsJSON.to_timedelta(v.get('overall')),
 			)
 			for v in value
 		]
+
+	@staticmethod
+	def to_seconds(delta: timedelta | None) -> float | None:
+		if delta is None:
+			return None
+		else:
+			return delta.total_seconds()
+
+	@staticmethod
+	def to_timedelta(seconds: float | None) -> timedelta | None:
+		if seconds is None:
+			return None
+		else:
+			return timedelta(seconds=seconds)

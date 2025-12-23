@@ -78,7 +78,7 @@ def _save_variant(
 
 	try:
 		stat = absolute_path.stat()
-	except FileNotFoundError:
+	except (FileNotFoundError, PermissionError):
 		return None
 
 	image_info = ImageInfo(

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class IngestMode(int, Enum):
@@ -17,9 +17,11 @@ class VisibilityStatus(int, Enum):
 
 
 class ExecutionStatus(int, Enum):
-	SUCCESS = 0
-	UNKNOWN_ERROR = 1
-	IO_ERROR = 2
+	SUCCESS = auto()
+	UNKNOWN_ERROR = auto()
+	DB_ERROR = auto()
+	IO_ERROR = auto()
+	IMAGE_ERROR = auto()
 
 
 class ImageKind(int, Enum):
