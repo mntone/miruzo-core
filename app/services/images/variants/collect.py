@@ -10,7 +10,7 @@ from app.services.images.variants.path import (
 	build_absolute_path,
 	build_variant_relative_path,
 )
-from app.services.images.variants.types import VariantFile, VariantRelativePath
+from app.services.images.variants.types import FileInfo, VariantFile, VariantRelativePath
 from app.services.images.variants.utils import get_image_info, parse_variant_slotkey
 
 log = logging.getLogger(__name__)
@@ -74,11 +74,15 @@ def _load_variant_file(
 		log.warning('invalid image: %s', absolute_path)
 		return None
 
-	file = VariantFile(
+	file_info = FileInfo(
 		absolute_path=absolute_path,
 		relative_path=relative_path,
 		bytes=stat.st_size,
-		info=info,
+	)
+
+	file = VariantFile(
+		file_info=file_info,
+		image_info=info,
 		variant_dir=variant_dirname,
 	)
 

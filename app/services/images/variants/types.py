@@ -1,13 +1,36 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, NewType, TypeAlias
+from typing import Literal, TypeAlias
 
 from PIL import Image as PILImage
 
 from app.config.variant import VariantSlotkey, VariantSpec
+from app.services.images.variants.path import VariantRelativePath, build_absolute_path
 from app.services.images.variants.utils import ImageInfo, parse_variant_slotkey
 
-VariantRelativePath = NewType('VariantRelativePath', Path)
+
+@dataclass(frozen=True, slots=True)
+class FileInfo:
+	absolute_path: Path
+	relative_path: VariantRelativePath
+	bytes: int
+
+	@classmethod
+	def from_relative_path(cls, relative_path: VariantRelativePath, under: Path) -> 'FileInfo':
+		# Normalize argument name for internal use
+		media_root = under
+
+		absolute_path = build_absolute_path(relative_path, under=media_root)
+
+		stat = absolute_path.stat()
+
+		info = cls(
+			absolute_path=absolute_path,
+			relative_path=relative_path,
+			bytes=stat.st_size,
+		)
+
+		return info
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,11 +41,8 @@ class OriginalImage:
 
 @dataclass(frozen=True, slots=True)
 class VariantFile:
-	absolute_path: Path
-	relative_path: VariantRelativePath
-
-	bytes: int
-	info: ImageInfo
+	file_info: FileInfo
+	image_info: ImageInfo
 	variant_dir: str
 	_slotkey_cache: VariantSlotkey | None = field(init=False, default=None, repr=False)
 

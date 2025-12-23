@@ -1,11 +1,9 @@
 from pathlib import Path
 
-import pytest
-
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_png_info, build_variant_file
 
-from app.config.variant import VariantLayer
+from app.config.variant import VariantLayerSpec
 from app.services.images.variants.path import build_origin_relative_path
 from app.services.images.variants.plan import (
 	_classify_variant_diff,
@@ -28,7 +26,7 @@ def test_should_emit_variant_respects_required_flag() -> None:
 
 
 def test_emit_variant_specs_keeps_order_and_filters_by_width() -> None:
-	layer = VariantLayer(
+	layer = VariantLayerSpec(
 		name='primary',
 		layer_id=1,
 		specs=(
@@ -141,7 +139,7 @@ def test_prepare_variant_plan_reuses_existing_relative_paths() -> None:
 	plan = _prepare_variant_plan(diff, relative_path)
 
 	assert len(plan.mismatched) == 1
-	assert plan.mismatched[0].planning_file.path == file.relative_path
+	assert plan.mismatched[0].planning_file.path == file.file_info.relative_path
 
 
 def test_build_variant_plan_produces_relative_paths() -> None:

@@ -6,7 +6,7 @@ from PIL import Image as PILImage
 
 from tests.services.images.utils import build_variant_spec
 
-from app.config.variant import VariantLayer
+from app.config.variant import VariantLayerSpec
 from app.services.images import thumbnails
 
 
@@ -32,7 +32,7 @@ def test_generate_variants_skips_unrequired_upscale(tmp_image: PILImage.Image, t
 	for spec in specs:
 		(media_root / spec.slotkey.label).mkdir(parents=True)
 
-	layer = VariantLayer(name='primary', layer_id=1, specs=specs)
+	layer = VariantLayerSpec(name='primary', layer_id=1, specs=specs)
 
 	variants, reports = thumbnails.generate_variants(
 		image=tmp_image,
@@ -55,7 +55,7 @@ def test_generate_variants_respects_required_flag(tmp_image: PILImage.Image, tmp
 	spec = build_variant_spec(1, 600, required=True)
 	(media_root / spec.slotkey.label).mkdir(parents=True)
 
-	layer = VariantLayer(name='primary', layer_id=1, specs=(spec,))
+	layer = VariantLayerSpec(name='primary', layer_id=1, specs=(spec,))
 
 	variants, reports = thumbnails.generate_variants(
 		image=tmp_image,

@@ -9,8 +9,8 @@ from app.services.images.variants.collect import (
 	collect_variant_files,
 	normalize_media_relative_paths,
 )
-from app.services.images.variants.path import build_origin_relative_path
-from app.services.images.variants.types import VariantFile, VariantRelativePath
+from app.services.images.variants.path import VariantRelativePath, build_origin_relative_path
+from app.services.images.variants.types import FileInfo, VariantFile
 
 
 def test_collect_variant_directories_filters_symlinks_and_suffixes(tmp_path: Path) -> None:
@@ -55,11 +55,14 @@ def test_collect_variant_files_yields_existing_variants(
 		called['absolute'] = absolute_path
 		called['relative'] = relative_path
 		info = build_jpeg_info(width=100, height=80)
-		return VariantFile(
+		file_info = FileInfo(
 			absolute_path=absolute_path,
 			relative_path=relative_path,
 			bytes=absolute_path.stat().st_size,
-			info=info,
+		)
+		return VariantFile(
+			file_info=file_info,
+			image_info=info,
 			variant_dir=variant_dirname,
 		)
 

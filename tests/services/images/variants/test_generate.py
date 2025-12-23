@@ -7,7 +7,8 @@ from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_png_info
 
 from app.services.images.variants.generate import _save_variant, generate_variant
-from app.services.images.variants.types import OriginalImage, VariantPlanFile, VariantRelativePath
+from app.services.images.variants.path import VariantRelativePath
+from app.services.images.variants.types import OriginalImage, VariantPlanFile
 
 
 def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
@@ -20,10 +21,10 @@ def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
 
 	assert file is not None
 	assert target.exists()
-	assert file.bytes > 0
-	assert file.info.container == 'jpeg'
-	assert file.info.width == 50
-	assert file.info.height == 40
+	assert file.file_info.bytes > 0
+	assert file.image_info.container == 'jpeg'
+	assert file.image_info.width == 50
+	assert file.image_info.height == 40
 
 
 def test_save_variant_raises_for_unsupported_format(tmp_path: Path) -> None:
@@ -57,5 +58,5 @@ def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
 
 	assert report is not None
 	output_path = tmp_path / group_path
-	assert report.file.absolute_path == output_path
+	assert report.file.file_info.absolute_path == output_path
 	assert output_path.exists()

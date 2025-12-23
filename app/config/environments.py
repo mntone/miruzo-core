@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayer
+from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
 from app.utils.file import ensure_directory_access
 
 
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 	gataku_symlink_dirname: str = 'gataku'
 	gataku_assets_root: Path = Path('../gataku/out/downloads')
 
-	variant_layers: tuple[VariantLayer, ...] = DEFAULT_VARIANT_LAYERS
+	variant_layers: tuple[VariantLayerSpec, ...] = DEFAULT_VARIANT_LAYERS
 
 	@property
 	def debug(self) -> bool:

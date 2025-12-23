@@ -35,7 +35,7 @@ class VariantSpec:
 
 
 @dataclass(frozen=True, slots=True)
-class VariantLayer:
+class VariantLayerSpec:
 	"""Logical layer (e.g. primary, fallback) composed of several specs."""
 
 	name: str
@@ -83,8 +83,8 @@ def _spec(
 	)
 
 
-DEFAULT_VARIANT_LAYERS: tuple[VariantLayer, ...] = (
-	VariantLayer(
+DEFAULT_VARIANT_LAYERS: tuple[VariantLayerSpec, ...] = (
+	VariantLayerSpec(
 		name='primary',
 		layer_id=1,
 		specs=(
@@ -95,7 +95,7 @@ DEFAULT_VARIANT_LAYERS: tuple[VariantLayer, ...] = (
 			_spec(WEBP_FORMAT, layer_id=1, width=1120, quality=40),
 		),
 	),
-	VariantLayer(
+	VariantLayerSpec(
 		name='fallback',
 		layer_id=9,
 		specs=(_spec(JPEG_FORMAT, layer_id=9, width=320, quality=85, required=True),),

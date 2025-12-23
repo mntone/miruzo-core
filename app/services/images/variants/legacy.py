@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PIL import Image as PILImage
 
-from app.config.variant import VariantLayer
+from app.config.variant import VariantLayerSpec
 from app.models.records import VariantRecord
 from app.services.images.variants.collect import (
 	collect_variant_directories,
@@ -64,15 +64,16 @@ def _map_records(
 			continue
 
 		spec = result.report.spec
-		file = result.report.file  # only generate / regenerate results reach here
+		file = result.report.file.file_info  # only generate / regenerate results reach here
+		image = result.report.file.image_info
 
 		record = VariantRecord(
 			rel=file.relative_path.__str__(),
 			format=spec.format.container,
 			codecs=spec.format.codecs,
 			size=file.bytes,
-			width=file.info.width,
-			height=file.info.height,
+			width=image.width,
+			height=image.height,
 			quality=spec.quality,
 		)
 		records.append((spec.layer_id, record))
@@ -88,8 +89,8 @@ def _map_records(
 		legacy_report = VariantReportLegacy(
 			layer_name=legacy_name,
 			label=f'w{spec.width}',
-			width=file.info.width,
-			height=file.info.height,
+			width=image.width,
+			height=image.height,
 			size_bytes=file.bytes,
 			ratio_percent=ratio,
 			delta_bytes=delta,
@@ -116,7 +117,7 @@ def generate_variants(
 	image: PILImage.Image,
 	relative_path: Path,
 	media_root: Path,
-	layers: Iterable[VariantLayer],
+	layers: Iterable[VariantLayerSpec],
 	original_size: int | None = None,
 ) -> tuple[list[list[VariantRecord]], list[VariantReportLegacy]]:
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""

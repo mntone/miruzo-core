@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import NewType
 
 from app.config.variant import VariantSlotkey
-from app.services.images.variants.types import VariantRelativePath
 
 OriginRelativePath = NewType('OriginRelativePath', Path)
+VariantRelativePath = NewType('VariantRelativePath', Path)
 
 _FORBIDDEN_CHARS = {
 	'/',  # POSIX separator

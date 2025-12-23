@@ -19,7 +19,7 @@ def _delete_variant_file(
 	file: VariantFile,
 ) -> VariantCommitResult:
 	try:
-		os.remove(file.absolute_path)
+		os.remove(file.file_info.absolute_path)
 
 	except FileNotFoundError:
 		return VariantCommitResult.failure('delete', 'file_already_missing')

@@ -6,6 +6,7 @@ from PIL.Image import Resampling as PILResampling
 from app.config.variant import VariantSpec
 from app.services.images.variants.path import build_absolute_path
 from app.services.images.variants.types import (
+	FileInfo,
 	ImageInfo,
 	OriginalImage,
 	VariantFile,
@@ -80,7 +81,7 @@ def _save_variant(
 	except FileNotFoundError:
 		return None
 
-	info = ImageInfo(
+	image_info = ImageInfo(
 		container=spec.format.container,
 		codecs=spec.format.codecs,
 		width=output_image.width,
@@ -88,11 +89,15 @@ def _save_variant(
 		lossless=lossless,
 	)
 
-	file = VariantFile(
+	file_info = FileInfo(
 		absolute_path=absolute_path,
 		relative_path=variant_relpath,
 		bytes=stat.st_size,
-		info=info,
+	)
+
+	file = VariantFile(
+		file_info=file_info,
+		image_info=image_info,
 		variant_dir=spec.slotkey.label,
 	)
 

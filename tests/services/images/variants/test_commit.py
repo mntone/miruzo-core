@@ -4,7 +4,8 @@ from tests.services.images.variants.utils import build_webp_info
 
 from app.config.variant import WEBP_FORMAT, VariantSlotkey, VariantSpec
 from app.services.images.variants.commit import _delete_variant_file
-from app.services.images.variants.types import VariantFile, VariantRelativePath
+from app.services.images.variants.path import VariantRelativePath
+from app.services.images.variants.types import FileInfo, VariantFile
 
 
 def _build_variant_file(file_path: Path, file_name: Path) -> VariantFile:
@@ -15,11 +16,14 @@ def _build_variant_file(file_path: Path, file_name: Path) -> VariantFile:
 		width=200,
 		format=WEBP_FORMAT,
 	)
-	return VariantFile(
+	file_info = FileInfo(
 		absolute_path=file_path,
 		relative_path=VariantRelativePath(file_name),
 		bytes=0,
-		info=info,
+	)
+	return VariantFile(
+		file_info=file_info,
+		image_info=info,
 		variant_dir=spec.slotkey.label,
 	)
 

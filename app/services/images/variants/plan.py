@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Iterator
 
-from app.config.variant import VariantLayer, VariantSpec
+from app.config.variant import VariantLayerSpec, VariantSpec
 from app.services.images.variants.path import OriginRelativePath, build_variant_relative_path
 from app.services.images.variants.types import (
 	ImageInfo,
@@ -17,7 +17,7 @@ def _should_emit_variant(spec: VariantSpec, original: ImageInfo) -> bool:
 	return spec.required or spec.width < original.width
 
 
-def emit_variant_specs(layers: Iterable[VariantLayer], original: ImageInfo) -> Iterator[VariantSpec]:
+def emit_variant_specs(layers: Iterable[VariantLayerSpec], original: ImageInfo) -> Iterator[VariantSpec]:
 	for layer in layers:
 		for spec in layer.specs:
 			if _should_emit_variant(spec, original):
@@ -27,14 +27,14 @@ def emit_variant_specs(layers: Iterable[VariantLayer], original: ImageInfo) -> I
 def _is_content_matched(cmp: VariantComparison) -> bool:
 	"""Check whether width, container, and codec attributes align."""
 
-	if cmp.expected_spec.width != cmp.actual_file.info.width:
+	if cmp.expected_spec.width != cmp.actual_file.image_info.width:
 		return False
 
-	if cmp.expected_spec.format.container != cmp.actual_file.info.container:
+	if cmp.expected_spec.format.container != cmp.actual_file.image_info.container:
 		return False
 
 	if (cmp.expected_spec.format.codecs is not None) and (
-		cmp.expected_spec.format.codecs != cmp.actual_file.info.codecs
+		cmp.expected_spec.format.codecs != cmp.actual_file.image_info.codecs
 	):
 		return False
 
@@ -90,7 +90,7 @@ def _classify_variant_diff(diff: VariantDiff) -> VariantDiff:
 	for c in range(len(remaining_mismatched) - 1, -1, -1):
 		comparison = remaining_mismatched[c]
 		fmt = comparison.expected_spec.format
-		info = comparison.actual_file.info
+		info = comparison.actual_file.image_info
 
 		if info.container != fmt.container or info.codecs != fmt.codecs:
 			del remaining_mismatched[c]
@@ -113,7 +113,7 @@ def _prepare_variant_plan(
 		regen_plan = VariantRegeneratePlan(
 			actual_file=cmp.actual_file,
 			planning_file=VariantPlanFile(
-				path=cmp.actual_file.relative_path,
+				path=cmp.actual_file.file_info.relative_path,
 				spec=cmp.expected_spec,
 			),
 		)

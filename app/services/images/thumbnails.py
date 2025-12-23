@@ -4,7 +4,7 @@ from shutil import rmtree
 
 from PIL import Image as PILImage
 
-from app.config.variant import VariantLayer
+from app.config.variant import VariantLayerSpec
 from app.models.records import VariantRecord
 from app.services.images.variants.legacy import VariantReportLegacy as VariantReport
 from app.services.images.variants.legacy import generate_variants
@@ -12,7 +12,7 @@ from app.services.images.variants.legacy import generate_variants
 __all__ = ['generate_variants', 'VariantReport']
 
 
-def reset_variant_directories(media_root: Path, layers: Iterable[VariantLayer]) -> None:
+def reset_variant_directories(media_root: Path, layers: Iterable[VariantLayerSpec]) -> None:
 	"""Ensure every variant output directory exists and is empty."""
 	seen: set[Path] = set()
 
@@ -35,7 +35,7 @@ def reset_variant_directories(media_root: Path, layers: Iterable[VariantLayer]) 
 def collect_existing_variants(
 	relative_path: Path,
 	media_root: Path,
-	layers: Iterable[VariantLayer],
+	layers: Iterable[VariantLayerSpec],
 ) -> list[list[VariantRecord]]:
 	"""Inspect existing files and rebuild variant metadata without re-rendering."""
 
