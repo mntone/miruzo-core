@@ -4,7 +4,7 @@ from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_png_info, build_variant_file
 
 from app.config.variant import VariantLayerSpec
-from app.services.images.variants.path import build_origin_relative_path
+from app.services.images.variants.path import map_origin_to_variant_basepath
 from app.services.images.variants.plan import (
 	_classify_variant_diff,
 	_compare_variant_specs,
@@ -116,9 +116,9 @@ def test_prepare_variant_plan_builds_plan_files() -> None:
 		missing=[spec],
 		orphaned=[],
 	)
-	relative_path = build_origin_relative_path(Path('foo/bar.webp'))
+	variant_basepath = map_origin_to_variant_basepath(Path('l0orig/foo/bar.webp'))
 
-	plan = _prepare_variant_plan(diff, relative_path)
+	plan = _prepare_variant_plan(diff, variant_basepath)
 
 	assert len(plan.missing) == 1
 	assert plan.missing[0].spec == spec
@@ -134,9 +134,9 @@ def test_prepare_variant_plan_reuses_existing_relative_paths() -> None:
 		missing=[],
 		orphaned=[],
 	)
-	relative_path = build_origin_relative_path(Path('foo/bar.webp'))
+	variant_basepath = map_origin_to_variant_basepath(Path('l0orig/foo/bar.webp'))
 
-	plan = _prepare_variant_plan(diff, relative_path)
+	plan = _prepare_variant_plan(diff, variant_basepath)
 
 	assert len(plan.mismatched) == 1
 	assert plan.mismatched[0].planning_file.path == file.file_info.relative_path
@@ -144,12 +144,12 @@ def test_prepare_variant_plan_reuses_existing_relative_paths() -> None:
 
 def test_build_variant_plan_produces_relative_paths() -> None:
 	spec = build_variant_spec(1, 480)
-	relative_path = build_origin_relative_path(Path('foo/example.webp'))
+	variant_basepath = map_origin_to_variant_basepath(Path('l0orig/foo/example.webp'))
 
 	plan = build_variant_plan(
 		planned=[spec],
 		existing=[],
-		rel_to=relative_path,
+		rel_to=variant_basepath,
 	)
 
 	assert len(plan.missing) == 1

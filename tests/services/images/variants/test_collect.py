@@ -9,7 +9,7 @@ from app.services.images.variants.collect import (
 	collect_variant_files,
 	normalize_media_relative_paths,
 )
-from app.services.images.variants.path import VariantRelativePath, build_origin_relative_path
+from app.services.images.variants.path import VariantRelativePath, map_origin_to_variant_basepath
 from app.services.images.variants.types import FileInfo, VariantFile
 
 
@@ -71,8 +71,8 @@ def test_collect_variant_files_yields_existing_variants(
 		fake_load_variant_file,
 	)
 
-	origin = build_origin_relative_path(Path('foo/bar.webp'))
-	media_relpaths = list(normalize_media_relative_paths(origin, under=['l1w200']))
+	basepath = map_origin_to_variant_basepath(Path('l0orig/foo/bar.webp'))
+	media_relpaths = list(normalize_media_relative_paths(basepath, under=['l1w200']))
 
 	result = list(collect_variant_files(media_relpaths, under=tmp_path))
 
@@ -83,11 +83,11 @@ def test_collect_variant_files_yields_existing_variants(
 
 
 def test_normalize_media_relative_paths_filters_invalid() -> None:
-	origin = build_origin_relative_path(Path('foo/bar.webp'))
+	basepath = map_origin_to_variant_basepath(Path('l0orig/foo/bar.webp'))
 
 	valid = ['l1w200', 'l2w640']
 	invalid = ['foo', 'l-1w200', 'l1wxyz']
 
-	paths = list(normalize_media_relative_paths(origin, under=valid + invalid))
+	paths = list(normalize_media_relative_paths(basepath, under=valid + invalid))
 
 	assert [str(path) for path in paths] == [f'{name}/foo/bar' for name in valid]

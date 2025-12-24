@@ -55,7 +55,8 @@ def test_create_ingest_copy_creates_file(
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	assets_root = _setup_roots(tmp_path, monkeypatch)
-	origin = assets_root / 'foo' / 'bar.webp'
+	origin_relative = Path('foo') / 'bar.webp'
+	origin = assets_root / origin_relative
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
@@ -63,7 +64,7 @@ def test_create_ingest_copy_creates_file(
 	service = IngestService(repo)  # type: ignore[arg-type]
 
 	ingest = service.create_ingest(
-		origin_path=origin,
+		origin_path=origin_relative,
 		fingerprint=None,
 		captured_at=None,
 		ingest_mode=IngestMode.COPY,
@@ -79,7 +80,8 @@ def test_create_ingest_symlink_does_not_copy(
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	assets_root = _setup_roots(tmp_path, monkeypatch)
-	origin = assets_root / 'foo' / 'bar.webp'
+	origin_relative = Path('foo') / 'bar.webp'
+	origin = assets_root / origin_relative
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
@@ -87,7 +89,7 @@ def test_create_ingest_symlink_does_not_copy(
 	service = IngestService(repo)  # type: ignore[arg-type]
 
 	ingest = service.create_ingest(
-		origin_path=origin,
+		origin_path=origin_relative,
 		fingerprint=None,
 		captured_at=None,
 		ingest_mode=IngestMode.SYMLINK,
@@ -102,7 +104,8 @@ def test_create_ingest_raises_for_unknown_mode(
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	assets_root = _setup_roots(tmp_path, monkeypatch)
-	origin = assets_root / 'foo' / 'bar.webp'
+	origin_relative = Path('foo') / 'bar.webp'
+	origin = assets_root / origin_relative
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
@@ -110,7 +113,7 @@ def test_create_ingest_raises_for_unknown_mode(
 
 	with pytest.raises(ValueError, match='Unsupported ingest mode'):
 		service.create_ingest(
-			origin_path=origin,
+			origin_path=origin_relative,
 			fingerprint=None,
 			captured_at=None,
 			ingest_mode=cast(IngestMode, 999),
@@ -122,7 +125,8 @@ def test_create_ingest_copy_cleans_up_on_failure(
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	assets_root = _setup_roots(tmp_path, monkeypatch)
-	origin = assets_root / 'foo' / 'bar.webp'
+	origin_relative = Path('foo') / 'bar.webp'
+	origin = assets_root / origin_relative
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
@@ -131,7 +135,7 @@ def test_create_ingest_copy_cleans_up_on_failure(
 
 	with pytest.raises(RuntimeError, match='boom'):
 		service.create_ingest(
-			origin_path=origin,
+			origin_path=origin_relative,
 			fingerprint=None,
 			captured_at=None,
 			ingest_mode=IngestMode.COPY,

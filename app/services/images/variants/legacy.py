@@ -13,7 +13,7 @@ from app.services.images.variants.collect import (
 )
 from app.services.images.variants.commit import commit_variant_plan
 from app.services.images.variants.mapper import map_commit_results_to_variant_layers
-from app.services.images.variants.path import build_origin_relative_path
+from app.services.images.variants.path import map_origin_to_variant_basepath
 from app.services.images.variants.plan import build_variant_plan, emit_variant_specs
 from app.services.images.variants.preprocess import preprocess_original
 from app.services.images.variants.types import (
@@ -99,7 +99,7 @@ def generate_variants(
 	"""Render thumbnails for all layers/specs and return DB-ready metadata."""
 
 	media_root = media_root.resolve()  # todo: add path validation
-	origin_relpath = build_origin_relative_path(relative_path)
+	origin_relpath = map_origin_to_variant_basepath(relative_path)
 	original_info = get_image_info(image)
 
 	# collect

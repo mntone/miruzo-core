@@ -1,72 +1,25 @@
-import unicodedata
 from pathlib import Path
 from typing import NewType
 
 from app.config.variant import VariantSlotkey
 
-OriginRelativePath = NewType('OriginRelativePath', Path)
+VariantBasePath = NewType('VariantBasePath', Path)
 VariantRelativePath = NewType('VariantRelativePath', Path)
 
-_FORBIDDEN_CHARS = {
-	'/',  # POSIX separator
-	'\\',  # Windows separator
-	':',  # Windows / legacy Mac
-	'?',  # glob / Win32
-	'<',
-	'>',
-	'*',
-	'|',
-	'"',
-}
 
+def map_origin_to_variant_basepath(relative_path: Path) -> VariantBasePath:
+	"""Drop the origin prefix and suffix to build the variant base path."""
+	parts = relative_path.parts
+	if len(parts) < 2:
+		raise ValueError(f'Origin path must include a prefix: {relative_path}')
 
-def _validate_relative_path(relpath: Path) -> Path:
-	# absolute path
-	if relpath.is_absolute():
-		raise ValueError(f'Absolute path is not allowed: {relpath}')
+	relpath_noext = Path(*parts[1:]).with_suffix('')
 
-	# empty
-	if not relpath.parts:
-		raise ValueError(f'Empty is not allowed: {relpath}')
-
-	# dot path
-	if relpath == Path('.'):
-		raise ValueError(f'Dot path is not allowed: {relpath}')
-
-	# path traversal
-	if '..' in relpath.parts:
-		raise ValueError(f'Path traversal is not allowed: {relpath}')
-
-	for part in relpath.parts:
-		# control chars (Unicode Cc)
-		if any(unicodedata.category(ch) == 'Cc' for ch in part):
-			raise ValueError(f'Control chars are not allowed: {relpath}')
-
-		# forbidden symbols
-		if any(ch in part for ch in _FORBIDDEN_CHARS):
-			raise ValueError(f'Forbidden character in path: {relpath}')
-
-		# trailing whitespace (Unicode)
-		if part and part[-1].isspace():
-			raise ValueError(f'Trailing whitespace is not allowed: {relpath}')
-
-		# trailing dot (.)
-		if part.endswith('.'):
-			raise ValueError(f'Trailing dot is not allowed: {relpath}')
-
-	return relpath
-
-
-def build_origin_relative_path(relative_path: Path) -> OriginRelativePath:
-	relpath_noext = relative_path.with_suffix('')
-
-	validated_relpath = _validate_relative_path(relpath_noext)
-
-	return OriginRelativePath(validated_relpath)
+	return VariantBasePath(relpath_noext)
 
 
 def build_variant_relative_path(
-	origin_path: OriginRelativePath,
+	variant_basepath: VariantBasePath,
 	*,
 	under: str | VariantSlotkey,
 ) -> VariantRelativePath:
@@ -75,7 +28,7 @@ def build_variant_relative_path(
 	else:
 		variant_dirname = under
 
-	media_relpath = Path(variant_dirname).joinpath(origin_path)
+	media_relpath = Path(variant_dirname).joinpath(variant_basepath)
 	return VariantRelativePath(media_relpath)
 
 

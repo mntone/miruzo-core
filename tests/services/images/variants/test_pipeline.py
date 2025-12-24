@@ -8,9 +8,9 @@ from tests.services.images.utils import build_variant_spec
 
 from app.config.variant import VariantLayerSpec, VariantSpec
 from app.services.images.variants.path import (
-	OriginRelativePath,
+	VariantBasePath,
 	VariantRelativePath,
-	build_origin_relative_path,
+	map_origin_to_variant_basepath,
 )
 from app.services.images.variants.pipeline import VariantPipeline
 from app.services.images.variants.types import (
@@ -64,8 +64,8 @@ def test_pipeline_run_builds_plan_and_executes(
 	)
 	pipeline = VariantPipeline(media_root=tmp_path, policy=policy, spec=layers)
 
-	origin_relative_path = Path('foo/bar.webp')
-	origin_relpath = build_origin_relative_path(origin_relative_path)
+	origin_relative_path = Path('l0orig/foo/bar.webp')
+	variant_basepath = map_origin_to_variant_basepath(origin_relative_path)
 	relative_path = VariantRelativePath(Path('l0orig/foo/bar.webp'))
 	absolute_path = tmp_path / relative_path
 	file_info = FileInfo(
@@ -94,7 +94,7 @@ def test_pipeline_run_builds_plan_and_executes(
 		*,
 		under: list[str],
 	) -> list[VariantRelativePath]:
-		assert relative_path == origin_relpath
+		assert relative_path == variant_basepath
 		assert under == ['l1w320']
 		return expected_media_relpaths
 
@@ -119,11 +119,11 @@ def test_pipeline_run_builds_plan_and_executes(
 		*,
 		planned: list[VariantSpec],
 		existing: list[VariantFile],
-		rel_to: OriginRelativePath,
+		rel_to: VariantBasePath,
 	) -> VariantPlan:
 		assert list(planned) == [spec]
 		assert list(existing) == []
-		assert rel_to == origin_relpath
+		assert rel_to == variant_basepath
 		return expected_plan
 
 	monkeypatch.setattr(

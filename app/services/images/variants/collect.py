@@ -6,7 +6,7 @@ from PIL import Image as PILImage
 from PIL import UnidentifiedImageError as PILUnidentifiedImageError
 
 from app.services.images.variants.path import (
-	OriginRelativePath,
+	VariantBasePath,
 	build_absolute_path,
 	build_variant_relative_path,
 )
@@ -117,7 +117,7 @@ def collect_variant_files(
 
 
 def normalize_media_relative_paths(
-	relative_path: OriginRelativePath,
+	relative_path: VariantBasePath,
 	*,
 	under: Iterable[str],
 ) -> Iterator[VariantRelativePath]:

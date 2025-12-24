@@ -131,7 +131,7 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	service._pipeline = DummyPipeline(tmp_path, [layer], results)  # pyright: ignore[reportAttributeAccessIssue]
 
 	ingest = service.ingest(
-		origin_path=origin_path,
+		origin_path=origin_relpath,
 		fingerprint=None,
 		captured_at=None,
 		ingest_mode=IngestMode.COPY,
@@ -188,7 +188,7 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 
 	with pytest.raises(ValueError, match='boom'):
 		service.ingest(
-			origin_path=origin_path,
+			origin_path=origin_relpath,
 			fingerprint=None,
 			captured_at=None,
 			ingest_mode=IngestMode.COPY,

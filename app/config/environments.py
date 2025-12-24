@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
@@ -36,8 +36,8 @@ class Settings(BaseSettings):
 	public_media_root: str = '/media/'
 
 	gataku_root: Path = Path('../gataku')
-	gataku_symlink_dirname: str = 'gataku'
 	gataku_assets_root: Path = Path('../gataku/out/downloads')
+	gataku_symlink_dirname: str = 'gataku'
 
 	variant_layers: tuple[VariantLayerSpec, ...] = DEFAULT_VARIANT_LAYERS
 
@@ -74,11 +74,27 @@ class Settings(BaseSettings):
 		return f'sqlite:///{path}'
 
 	@classmethod
-	@field_validator('gataku_assets_root')
-	def _validate_gataku_assets_root(cls, value: Path) -> Path:
-		resolved = value.resolve()
-		ensure_directory_access(resolved)
-		return resolved
+	@field_validator('media_root', 'gataku_root', 'gataku_assets_root')
+	def _validate_path(cls, value: object, info: ValidationInfo) -> Path:
+		if isinstance(value, Path):
+			path = value
+		elif isinstance(value, str):
+			path = Path(value)
+		else:
+			raise ValueError(info.field_name.__str__() + ' must be a path')
+
+		return path
+
+	@model_validator(mode='after')
+	def _normalize(self) -> 'Settings':
+		self.media_root = self.media_root.resolve()
+		self.gataku_root = self.gataku_root.resolve()
+
+		resolved_gataku_assets_root = self.gataku_assets_root.resolve()
+		ensure_directory_access(resolved_gataku_assets_root)
+		self.gataku_assets_root = resolved_gataku_assets_root
+
+		return self
 
 
 env = Settings()

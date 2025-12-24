@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Iterator
 
 from app.config.variant import VariantLayerSpec, VariantSpec
-from app.services.images.variants.path import OriginRelativePath, build_variant_relative_path
+from app.services.images.variants.path import VariantBasePath, build_variant_relative_path
 from app.services.images.variants.types import (
 	ImageInfo,
 	VariantComparison,
@@ -106,7 +106,7 @@ def _classify_variant_diff(diff: VariantDiff) -> VariantDiff:
 
 def _prepare_variant_plan(
 	diff: VariantDiff,
-	relative_path: OriginRelativePath,
+	relative_path: VariantBasePath,
 ) -> VariantPlan:
 	mismatched_plans: list[VariantRegeneratePlan] = []
 	for cmp in diff.mismatched:
@@ -143,7 +143,7 @@ def build_variant_plan(
 	*,
 	planned: Iterable[VariantSpec],
 	existing: Iterable[VariantFile],
-	rel_to: OriginRelativePath,
+	rel_to: VariantBasePath,
 ) -> VariantPlan:
 	# Normalize argument name for internal use
 	relative_path = rel_to

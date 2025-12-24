@@ -8,9 +8,10 @@ from app.services.ingests.repository.base import IngestRepository
 from app.services.ingests.utils.file import copy_origin_file, delete_origin_file
 from app.services.ingests.utils.fingerprint import compute_fingerprint
 from app.services.ingests.utils.path import (
-	map_origin_to_paths,
-	map_origin_to_symlink_paths,
-	validate_origin_path,
+	map_relative_to_output_path,
+	map_relative_to_pathstr,
+	map_relative_to_symlink_pathstr,
+	resolve_origin_absolute_path,
 )
 
 
@@ -28,19 +29,22 @@ class IngestService:
 		ingest_mode: IngestMode,
 	) -> IngestRecord:
 		"""Create an ingest record and optionally persist the original asset."""
-		origin_path = validate_origin_path(origin_path)
+
+		origin_absolute_path = resolve_origin_absolute_path(origin_path)
 
 		match ingest_mode:
 			case IngestMode.SYMLINK:
-				relative_path, output_path = map_origin_to_symlink_paths(origin_path)
+				output_path = origin_absolute_path
+				relative_path = map_relative_to_symlink_pathstr(origin_path)
 			case IngestMode.COPY:
-				relative_path, output_path = map_origin_to_paths(origin_path)
-				copy_origin_file(origin_path, output_path)
+				output_path = map_relative_to_output_path(origin_path)
+				copy_origin_file(origin_absolute_path, output_path)
+				relative_path = map_relative_to_pathstr(origin_path)
 			case _:
 				raise ValueError(f'Unsupported ingest mode: {ingest_mode}')
 
 		if fingerprint is None:
-			fingerprint = compute_fingerprint(origin_path)
+			fingerprint = compute_fingerprint(output_path)
 
 		try:
 			ingest = self._repository.create_ingest(

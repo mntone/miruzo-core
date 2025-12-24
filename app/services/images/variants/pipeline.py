@@ -7,7 +7,7 @@ from app.services.images.variants.collect import (
 	collect_variant_files,
 	normalize_media_relative_paths,
 )
-from app.services.images.variants.path import build_origin_relative_path
+from app.services.images.variants.path import map_origin_to_variant_basepath
 from app.services.images.variants.pipeline_execution import VariantPipelineExecutionSession
 from app.services.images.variants.plan import build_variant_plan, emit_variant_specs
 from app.services.images.variants.types import OriginalFile, VariantCommitResult, VariantPolicy
@@ -43,12 +43,12 @@ class VariantPipeline:
 		file: OriginalFile,
 		session: VariantPipelineExecutionSession,
 	) -> Iterator[VariantCommitResult]:
-		origin_relpath = build_origin_relative_path(origin_relative_path)
+		variant_basepath = map_origin_to_variant_basepath(origin_relative_path)
 
 		# collect
 		with session.phase('collect'):
 			variant_dirnames = collect_variant_directories(self._media_root)
-			media_relpaths = normalize_media_relative_paths(origin_relpath, under=variant_dirnames)
+			media_relpaths = normalize_media_relative_paths(variant_basepath, under=variant_dirnames)
 			existing_files = collect_variant_files(media_relpaths, under=self._media_root)
 
 		# plan
@@ -57,7 +57,7 @@ class VariantPipeline:
 			plan = build_variant_plan(
 				planned=planned_specs,
 				existing=existing_files,
-				rel_to=origin_relpath,
+				rel_to=variant_basepath,
 			)
 
 		# dispatch
