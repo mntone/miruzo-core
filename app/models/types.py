@@ -23,10 +23,8 @@ class _ExecutionPlainJson(TypedDict):
 	inspect: float | None
 	collect: float | None
 	plan: float | None
-	preprocess: float | None
-	commit: float | None
+	execute: float | None
 	# commits: Sequence[_CommitPlainJson] | None
-	postprocess: float | None
 	store: float | None
 	overall: float | None
 
@@ -46,10 +44,8 @@ class ExecutionEntry(TypedDict):
 	inspect: Annotated[timedelta | None, Field(ge=0)]
 	collect: Annotated[timedelta | None, Field(ge=0)]
 	plan: Annotated[timedelta | None, Field(ge=0)]
-	preprocess: Annotated[timedelta | None, Field(ge=0)]
-	commit: Annotated[timedelta | None, Field(ge=0)]
+	execute: Annotated[timedelta | None, Field(ge=0)]
 	# commits: Annotated[Sequence[CommitEntry] | None, Field(min_length=1)]
-	postprocess: Annotated[timedelta | None, Field(ge=0)]
 	store: Annotated[timedelta | None, Field(ge=0)]
 	overall: Annotated[timedelta | None, Field(ge=0)]
 
@@ -78,8 +74,7 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 				inspect=ExecutionsJSON.to_seconds(v['inspect']),
 				collect=ExecutionsJSON.to_seconds(v['collect']),
 				plan=ExecutionsJSON.to_seconds(v['plan']),
-				preprocess=ExecutionsJSON.to_seconds(v['preprocess']),
-				commit=ExecutionsJSON.to_seconds(v['commit']),
+				execute=ExecutionsJSON.to_seconds(v.get('execute')),
 				# commits=(
 				# 	[
 				# 		_CommitPlainJson(slot=c['slot'], duration=c['duration'].total_seconds())
@@ -88,7 +83,6 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 				# 	if v['commits']
 				# 	else None
 				# ),
-				postprocess=ExecutionsJSON.to_seconds(v['postprocess']),
 				store=ExecutionsJSON.to_seconds(v['store']),
 				overall=ExecutionsJSON.to_seconds(v.get('overall')),
 			)
@@ -111,8 +105,7 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 				inspect=ExecutionsJSON.to_timedelta(v['inspect']),
 				collect=ExecutionsJSON.to_timedelta(v['collect']),
 				plan=ExecutionsJSON.to_timedelta(v['plan']),
-				preprocess=ExecutionsJSON.to_timedelta(v['preprocess']),
-				commit=ExecutionsJSON.to_timedelta(v['commit']),
+				execute=ExecutionsJSON.to_timedelta(v.get('execute')),
 				# commits=(
 				# 	[
 				# 		CommitEntry(slot=c['slot'], duration=timedelta(seconds=c['duration']))
@@ -121,7 +114,6 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 				# 	if v['commits']
 				# 	else None
 				# ),
-				postprocess=ExecutionsJSON.to_timedelta(v['postprocess']),
 				store=ExecutionsJSON.to_timedelta(v['store']),
 				overall=ExecutionsJSON.to_timedelta(v.get('overall')),
 			)

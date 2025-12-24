@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -41,14 +41,14 @@ class DummySession:
 		file: OriginalFile,
 		plan: VariantPlan,
 		policy: VariantPolicy,
-	) -> Iterator[VariantCommitResult]:
+	) -> Sequence[VariantCommitResult]:
 		self.execute_args = {
 			'media_root': media_root,
 			'file': file,
 			'plan': plan,
 			'policy': policy,
 		}
-		return iter([])
+		return []
 
 
 def test_pipeline_run_builds_plan_and_executes(
@@ -152,7 +152,7 @@ def test_pipeline_run_builds_plan_and_executes(
 	results = list(pipeline.run(origin_relative_path, original, session))  # pyright: ignore[reportArgumentType]
 
 	assert results == []
-	assert session.phases == ['collect', 'plan']
+	assert session.phases == ['collect', 'plan', 'execute']
 	assert session.execute_args['media_root'] == tmp_path
 	assert session.execute_args['file'] == original
 	assert session.execute_args['plan'] == expected_plan

@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -9,7 +9,6 @@ from app.models.enums import ExecutionStatus
 from app.services.images.variants.pipeline_execution import VariantPipelineExecutionSession
 from app.services.images.variants.types import (
 	OriginalFile,
-	OriginalImage,
 	VariantCommitResult,
 	VariantPlan,
 	VariantPolicy,
@@ -17,21 +16,15 @@ from app.services.images.variants.types import (
 
 
 class DummyExecutor:
-	def preprocess(self, file: OriginalFile) -> OriginalImage:  # noqa: ARG002
-		raise AssertionError('preprocess should not be called')
-
-	def commit(  # pragma: no cover - not executed
+	def execute(
 		self,
-		image: OriginalImage,  # noqa: ARG002
 		*,
 		media_root: Path,  # noqa: ARG002
+		file: OriginalFile,  # noqa: ARG002
 		plan: VariantPlan,  # noqa: ARG002
 		policy: VariantPolicy,  # noqa: ARG002
-	) -> Iterator[VariantCommitResult]:
-		raise AssertionError('commit should not be called')
-
-	def postprocess(self, image: OriginalImage) -> None:  # noqa: ARG002
-		raise AssertionError('postprocess should not be called')
+	) -> Sequence[VariantCommitResult]:
+		raise AssertionError('execute should not be called')
 
 
 def test_execution_session_to_entry_records_success() -> None:

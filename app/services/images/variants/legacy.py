@@ -135,7 +135,6 @@ def generate_variants(
 	)
 
 	# mapping
-	results = list(results)
 	variants = map_commit_results_to_variant_layers(results, layers)
 	legacy_reports = _map_commit_results_to_legacy_reports(
 		results,

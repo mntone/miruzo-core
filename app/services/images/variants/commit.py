@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 from app.services.images.variants.generate import generate_variant
@@ -38,15 +38,13 @@ def _prepare_variant(media_root: Path, plan_file: VariantPlanFile) -> None:
 	absolute_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def commit_variant_plan(
+def _build_commit_variant_plan_iterator(
 	*,
 	plan: VariantPlan,
 	policy: VariantPolicy,
 	original: OriginalImage,
 	media_root: Path,
 ) -> Iterator[VariantCommitResult]:
-	"""A result of applying a policy patch to a VariantDiff"""
-
 	if not media_root.is_dir():
 		raise RuntimeError(f'media_root does not exist or is not a directory: {media_root}')
 
@@ -84,3 +82,22 @@ def commit_variant_plan(
 		for file in plan.orphaned:
 			report = _delete_variant_file(file)
 			yield report
+
+
+def commit_variant_plan(
+	*,
+	plan: VariantPlan,
+	policy: VariantPolicy,
+	original: OriginalImage,
+	media_root: Path,
+) -> Sequence[VariantCommitResult]:
+	"""A result of applying a policy patch to a VariantDiff"""
+
+	return list(
+		_build_commit_variant_plan_iterator(
+			plan=plan,
+			policy=policy,
+			original=original,
+			media_root=media_root,
+		),
+	)

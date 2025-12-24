@@ -1,4 +1,4 @@
-from collections.abc import Iterator, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 
 from app.config.variant import VariantLayerSpec
@@ -42,7 +42,7 @@ class VariantPipeline:
 		origin_relative_path: Path,
 		file: OriginalFile,
 		session: VariantPipelineExecutionSession,
-	) -> Iterator[VariantCommitResult]:
+	) -> Sequence[VariantCommitResult]:
 		variant_basepath = map_origin_to_variant_basepath(origin_relative_path)
 
 		# collect
@@ -60,12 +60,13 @@ class VariantPipeline:
 				rel_to=variant_basepath,
 			)
 
-		# dispatch
-		results = session.execute(
-			media_root=self._media_root,
-			file=file,
-			plan=plan,
-			policy=self._policy,
-		)
+		# execute
+		with session.phase('execute'):
+			results = session.execute(
+				media_root=self._media_root,
+				file=file,
+				plan=plan,
+				policy=self._policy,
+			)
 
 		return results

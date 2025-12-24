@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -20,7 +20,7 @@ from app.services.images.variants.types import (
 	VariantPolicy,
 )
 
-_ExecutionPhase = Literal['inspect', 'collect', 'plan', 'preprocess', 'commit', 'postprocess', 'store']
+_ExecutionPhase = Literal['inspect', 'collect', 'plan', 'execute', 'store']
 
 
 class VariantPipelineExecutionSession:
@@ -38,10 +38,8 @@ class VariantPipelineExecutionSession:
 		self._inspect: timedelta | None = None
 		self._collect: timedelta | None = None
 		self._plan: timedelta | None = None
-		self._preprocess: timedelta | None = None
+		self._execute: timedelta | None = None
 		# self._commits: list[CommitEntry] = []
-		self._commit: timedelta | None = None
-		self._postprocess: timedelta | None = None
 		self._store: timedelta | None = None
 		self._overall: timedelta | None = None
 
@@ -98,12 +96,8 @@ class VariantPipelineExecutionSession:
 				self._collect = duration
 			case 'plan':
 				self._plan = duration
-			case 'preprocess':
-				self._preprocess = duration
-			case 'commit':
-				self._commit = duration
-			case 'postprocess':
-				self._postprocess = duration
+			case 'execute':
+				self._execute = duration
 			case 'store':
 				self._store = duration
 			case _:
@@ -124,20 +118,13 @@ class VariantPipelineExecutionSession:
 		file: OriginalFile,
 		plan: VariantPlan,
 		policy: VariantPolicy,
-	) -> Iterator[VariantCommitResult]:
-		with self.phase('preprocess'):
-			image = self._executor.preprocess(file)
-
-		with self.phase('commit'):
-			results = self._executor.commit(
-				image,
-				media_root=media_root,
-				plan=plan,
-				policy=policy,
-			)
-
-		with self.phase('postprocess'):
-			self._executor.postprocess(image)
+	) -> Sequence[VariantCommitResult]:
+		results = self._executor.execute(
+			media_root=media_root,
+			file=file,
+			plan=plan,
+			policy=policy,
+		)
 
 		return results
 
@@ -153,10 +140,8 @@ class VariantPipelineExecutionSession:
 			inspect=self._inspect,
 			collect=self._collect,
 			plan=self._plan,
-			preprocess=self._preprocess,
-			commit=self._commit,
+			execute=self._execute,
 			# commits=self._commits if len(self._commits) > 0 else None,
-			postprocess=self._postprocess,
 			store=self._store,
 			overall=self._overall,
 		)
