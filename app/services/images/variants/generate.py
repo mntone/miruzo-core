@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import IO, Callable
 
 from PIL import Image as PILImage
 from PIL.Image import Resampling as PILResampling
@@ -14,6 +15,7 @@ from app.services.images.variants.types import (
 	VariantRelativePath,
 	VariantReport,
 )
+from app.utils.files.atomic import ensure_durable_write
 
 
 def _select_resample_algorithm(original: ImageInfo, target_width: int) -> int:
@@ -49,6 +51,7 @@ def _save_variant(
 	*,
 	media_root: Path,
 	variant_relpath: VariantRelativePath,
+	durable_write: bool,
 ) -> VariantFile | None:
 	"""Encode the resized image and return filesystem metadata."""
 
@@ -71,8 +74,14 @@ def _save_variant(
 		kwargs['quality'] = spec.quality
 
 	pil_format = spec.format.container.upper()
+
+	write_fn: Callable[[IO[bytes]], None] = lambda file: output_image.save(file, pil_format, **kwargs)
 	try:
-		output_image.save(absolute_path, pil_format, **kwargs)
+		if durable_write:
+			ensure_durable_write(absolute_path, write_fn)
+		else:
+			with absolute_path.open('wb') as file:
+				write_fn(file)
 	except OSError:
 		return None
 
@@ -108,6 +117,8 @@ def generate_variant(
 	media_root: Path,
 	plan_file: VariantPlanFile,
 	original: OriginalImage,
+	*,
+	durable_write: bool,
 ) -> VariantReport | None:
 	"""Render and persist a single variant, returning its report."""
 
@@ -120,6 +131,7 @@ def generate_variant(
 		variant_image,
 		media_root=media_root,
 		variant_relpath=plan_file.path,
+		durable_write=durable_write,
 	)
 	if file is None:
 		return None

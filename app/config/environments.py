@@ -5,7 +5,7 @@ from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
-from app.utils.file import ensure_directory_access
+from app.utils.files.permissions import ensure_directory_access
 
 
 class DatabaseBackend(str, Enum):

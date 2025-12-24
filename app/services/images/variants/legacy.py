@@ -17,9 +17,9 @@ from app.services.images.variants.path import map_origin_to_variant_basepath
 from app.services.images.variants.plan import build_variant_plan, emit_variant_specs
 from app.services.images.variants.preprocess import preprocess_original
 from app.services.images.variants.types import (
+	DEFAULT_VARIANT_POLICY,
 	OriginalImage,
 	VariantCommitResult,
-	VariantPolicy,
 )
 from app.services.images.variants.utils import get_image_info
 
@@ -122,14 +122,9 @@ def generate_variants(
 	)
 
 	# commit
-	policy = VariantPolicy(
-		regenerate_mismatched=True,
-		generate_missing=True,
-		delete_orphaned=True,
-	)
 	results = commit_variant_plan(
 		plan=plan,
-		policy=policy,
+		policy=DEFAULT_VARIANT_POLICY,
 		original=preprocessed_image,
 		media_root=media_root,
 	)

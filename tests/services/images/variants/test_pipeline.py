@@ -58,6 +58,7 @@ def test_pipeline_run_builds_plan_and_executes(
 	spec = build_variant_spec(1, 320, container='webp', codecs='vp8')
 	layers = [VariantLayerSpec(name='primary', layer_id=1, specs=(spec,))]
 	policy = VariantPolicy(
+		durable_write=False,
 		regenerate_mismatched=False,
 		generate_missing=True,
 		delete_orphaned=False,

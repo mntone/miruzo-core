@@ -98,9 +98,18 @@ class VariantPlan:
 
 @dataclass(frozen=True, slots=True)
 class VariantPolicy:
+	durable_write: bool
 	regenerate_mismatched: bool
 	generate_missing: bool
 	delete_orphaned: bool
+
+
+DEFAULT_VARIANT_POLICY = VariantPolicy(
+	durable_write=False,
+	regenerate_mismatched=True,
+	generate_missing=True,
+	delete_orphaned=True,
+)
 
 
 @dataclass(frozen=True, slots=True)

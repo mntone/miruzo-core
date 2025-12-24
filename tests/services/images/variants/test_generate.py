@@ -17,7 +17,13 @@ def test_save_variant_writes_jpeg(tmp_path: Path) -> None:
 	file = Path('foo.jpg')
 	target = tmp_path / file
 
-	file = _save_variant(spec, image, media_root=tmp_path, variant_relpath=VariantRelativePath(file))
+	file = _save_variant(
+		spec,
+		image,
+		media_root=tmp_path,
+		variant_relpath=VariantRelativePath(file),
+		durable_write=False,
+	)
 
 	assert file is not None
 	assert target.exists()
@@ -37,6 +43,7 @@ def test_save_variant_raises_for_unsupported_format(tmp_path: Path) -> None:
 			image,
 			media_root=tmp_path,
 			variant_relpath=VariantRelativePath(Path('foo.gif')),
+			durable_write=False,
 		)
 
 
@@ -54,7 +61,7 @@ def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
 	(tmp_path / group_path.parent).mkdir(parents=True)
 	plan_file = VariantPlanFile(VariantRelativePath(group_path), spec)
 
-	report = generate_variant(tmp_path, plan_file, original)
+	report = generate_variant(tmp_path, plan_file, original, durable_write=False)
 
 	assert report is not None
 	output_path = tmp_path / group_path

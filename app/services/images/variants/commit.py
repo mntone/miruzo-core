@@ -57,7 +57,12 @@ def _build_commit_variant_plan_iterator(
 	if policy.generate_missing:
 		for plan_file in plan.missing:
 			_prepare_variant(media_root, plan_file)
-			report = generate_variant(media_root, plan_file, original)
+			report = generate_variant(
+				media_root,
+				plan_file,
+				original,
+				durable_write=policy.durable_write,
+			)
 			if report is None:
 				yield VariantCommitResult.failure('generate', 'save_failed')
 			else:
@@ -71,7 +76,12 @@ def _build_commit_variant_plan_iterator(
 				yield report
 			else:
 				_prepare_variant(media_root, cmp.planning_file)
-				report = generate_variant(media_root, cmp.planning_file, original)
+				report = generate_variant(
+					media_root,
+					cmp.planning_file,
+					original,
+					durable_write=policy.durable_write,
+				)
 				if report is None:
 					yield VariantCommitResult.failure('regenerate', 'save_failed')
 				else:

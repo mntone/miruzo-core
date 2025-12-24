@@ -116,6 +116,7 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	results = [VariantCommitResult.success('generate', VariantReport(spec, variant_file))]
 
 	policy = VariantPolicy(
+		durable_write=False,
 		regenerate_mismatched=False,
 		generate_missing=True,
 		delete_orphaned=False,
@@ -172,6 +173,7 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 	)
 
 	policy = VariantPolicy(
+		durable_write=False,
 		regenerate_mismatched=False,
 		generate_missing=True,
 		delete_orphaned=False,
