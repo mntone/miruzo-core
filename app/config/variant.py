@@ -83,6 +83,9 @@ def _spec(
 	)
 
 
+_FALLBACK_LAYER_ID = 9
+
+
 DEFAULT_VARIANT_LAYERS: tuple[VariantLayerSpec, ...] = (
 	VariantLayerSpec(
 		name='primary',
@@ -97,7 +100,11 @@ DEFAULT_VARIANT_LAYERS: tuple[VariantLayerSpec, ...] = (
 	),
 	VariantLayerSpec(
 		name='fallback',
-		layer_id=9,
-		specs=(_spec(JPEG_FORMAT, layer_id=9, width=320, quality=85, required=True),),
+		layer_id=_FALLBACK_LAYER_ID,
+		specs=(_spec(JPEG_FORMAT, layer_id=_FALLBACK_LAYER_ID, width=320, quality=85, required=True),),
 	),
 )
+
+
+def is_variant_fallback_id(layer_id: int) -> bool:
+	return layer_id == _FALLBACK_LAYER_ID

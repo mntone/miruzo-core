@@ -4,7 +4,8 @@ from typing import Annotated, final
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.api.images.variant import VariantModel
-from app.models.records import ImageRecord, VariantRecord
+from app.models.records import ImageRecord
+from app.models.types import VariantEntry
 
 
 @final
@@ -54,7 +55,7 @@ class ImageListModel(BaseModel):
 	def from_record(
 		cls,
 		image: ImageRecord,
-		normalized_layers: Sequence[Sequence[VariantRecord]],
+		normalized_layers: Sequence[Sequence[VariantEntry]],
 	) -> 'ImageListModel':
 		# fmt: off
 		return cls(

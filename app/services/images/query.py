@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from app.config.environments import env
 from app.models.api.images.list import ImageListModel
 from app.models.api.images.responses import ContextResponse, ImageListResponse
 from app.services.images.repository.base import ImageRepository
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
+from app.services.images.variants.mapper import map_variants_to_layers
 
 
 class ImageQueryService:
@@ -27,7 +29,8 @@ class ImageQueryService:
 
 		output_images: list[ImageListModel] = []
 		for image in image_records:
-			normalized_layers = normalize_variants_for_format(image.variants, allowed_formats)
+			layers = map_variants_to_layers(image.variants, spec=env.variant_layers)
+			normalized_layers = normalize_variants_for_format(layers, allowed_formats)
 			image_model = ImageListModel.from_record(image, normalized_layers)
 			output_images.append(image_model)
 

@@ -2,26 +2,32 @@ from collections.abc import Sequence
 
 from tests.services.images.utils import build_variant
 
-from app.models.records import VariantRecord
+from app.config.variant import _FALLBACK_LAYER_ID, is_variant_fallback_id
+from app.models.types import VariantEntry
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 
 
-def _flatten_non_fallback(layers: Sequence[Sequence[VariantRecord]]) -> Sequence[VariantRecord]:
-	return [variant for layer in layers[:-1] for variant in layer]
+def _flatten_non_fallback(layers: Sequence[Sequence[VariantEntry]]) -> Sequence[VariantEntry]:
+	return [
+		variant
+		for layer in layers
+		if layer and not is_variant_fallback_id(layer[0]['layer_id'])
+		for variant in layer
+	]
 
 
 def test_normalizebuild_variants_filters_and_preserves_fallback() -> None:
 	primary = [
-		build_variant('webp', 320, label='primary'),
-		build_variant('webp', 480, label='primary'),
-		build_variant('jxl', 640, label='primary'),
-		build_variant('jxl', 960, label='primary'),
+		build_variant('webp', 320, layer_id=1, label='primary'),
+		build_variant('webp', 480, layer_id=1, label='primary'),
+		build_variant('jxl', 640, layer_id=1, label='primary'),
+		build_variant('jxl', 960, layer_id=1, label='primary'),
 	]
 	secondary = [
-		build_variant('webp', 640, label='secondary'),
-		build_variant('webp', 960, label='secondary'),
+		build_variant('webp', 640, layer_id=2, label='secondary'),
+		build_variant('webp', 960, layer_id=2, label='secondary'),
 	]
-	fallback = [build_variant('jpeg', 320, label='fallback')]
+	fallback = [build_variant('jpeg', 320, layer_id=_FALLBACK_LAYER_ID, label='fallback')]
 
 	result = normalize_variants_for_format(
 		[primary, secondary, fallback],
@@ -41,8 +47,8 @@ def test_normalizebuild_variants_filters_and_preserves_fallback() -> None:
 
 def test_keep_fallback_false_removes_last_layer_when_filtered() -> None:
 	layers = [
-		[build_variant('webp', 320, label='primary')],
-		[build_variant('jpeg', 320, label='fallback')],
+		[build_variant('webp', 320, layer_id=1, label='primary')],
+		[build_variant('jpeg', 320, layer_id=_FALLBACK_LAYER_ID, label='fallback')],
 	]
 
 	result = normalize_variants_for_format(layers, {'webp'}, keep_fallback=False)
@@ -52,8 +58,8 @@ def test_keep_fallback_false_removes_last_layer_when_filtered() -> None:
 
 def test_empty_layers_are_removed_after_filtering() -> None:
 	layers = [
-		[build_variant('avif', 320, label='primary')],
-		[build_variant('jpeg', 320, label='fallback')],
+		[build_variant('avif', 320, layer_id=1, label='primary')],
+		[build_variant('jpeg', 320, layer_id=_FALLBACK_LAYER_ID, label='fallback')],
 	]
 
 	result = normalize_variants_for_format(layers, {'webp'}, keep_fallback=True)
@@ -63,7 +69,7 @@ def test_empty_layers_are_removed_after_filtering() -> None:
 
 def test_compute_allowed_formats_always_keeps_fallback_formats() -> None:
 	assert {'jpeg', 'png'}.issubset(compute_allowed_formats(None))
-	assert {'jpeg', 'png'}.issubset(compute_allowed_formats([]))
+	assert {'jpeg', 'png'}.issubset(compute_allowed_formats(()))
 
 
 def test_compute_allowed_formats_drops_excluded_items() -> None:

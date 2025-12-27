@@ -3,16 +3,15 @@
 
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Annotated, Optional, TypedDict, final
+from typing import Optional, final
 
-from pydantic import Field
 from sqlalchemy import JSON, Column, Integer, SmallInteger
 from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
 from app.config.constants import DEFAULT_SCORE, EXECUTION_MAXIMUM, SCORE_MAXIMUM, SCORE_MINIMUM
 from app.models.enums import ImageKind, ProcessStatus, VisibilityStatus
-from app.models.types import ExecutionEntry, ExecutionsJSON
+from app.models.types import ExecutionEntry, ExecutionsJSON, VariantEntry
 
 
 @final
@@ -55,17 +54,6 @@ class IngestRecord(SQLModel, table=True):
 
 
 @final
-class VariantRecord(TypedDict):
-	rel: str
-	format: Annotated[str, Field(ge=3, le=8)]
-	codecs: Annotated[str | None, Field(default=None)]
-	size: Annotated[int, Field(ge=1)]
-	width: Annotated[int, Field(ge=1, le=10240)]
-	height: Annotated[int, Field(ge=1, le=10240)]
-	quality: Annotated[int | None, Field(default=None, ge=1, le=100)]
-
-
-@final
 class ImageRecord(SQLModel, table=True):
 	__tablename__ = 'images'
 
@@ -73,9 +61,9 @@ class ImageRecord(SQLModel, table=True):
 	captured_at: datetime | None = SQLField(default=None)
 	kind: ImageKind = SQLField(default=ImageKind.PHOTO, sa_column=Column(Integer))
 
-	original: VariantRecord = SQLField(sa_column=Column(JSON))
-	fallback: VariantRecord | None = SQLField(default=None, sa_column=Column(JSON))
-	variants: Sequence[Sequence[VariantRecord]] = SQLField(sa_column=Column(JSON))
+	original: VariantEntry = SQLField(sa_column=Column(JSON))
+	fallback: VariantEntry | None = SQLField(default=None, sa_column=Column(JSON))
+	variants: Sequence[VariantEntry] = SQLField(sa_column=Column(JSON))
 
 	ingest: IngestRecord = Relationship(back_populates='image')
 

@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 from typing import Set
 
-from app.models.records import VariantRecord
+from app.config.variant import is_variant_fallback_id
+from app.models.types import VariantEntry
 
 _DEFAULT_FALLBACK_FORMATS = {'jpeg', 'png'}
 _SUPPORTED_FORMATS = {'gif', 'jpeg', 'png', 'webp'}
@@ -19,18 +20,18 @@ def compute_allowed_formats(excluded: tuple[str, ...] | None) -> set[str]:
 
 
 def normalize_variants_for_format(
-	layers: Sequence[Sequence[VariantRecord]],
+	layers: Sequence[Sequence[VariantEntry]],
 	allowed_formats: Set[str],
 	*,
 	keep_fallback: bool = True,
-) -> Sequence[Sequence[VariantRecord]]:
+) -> Sequence[Sequence[VariantEntry]]:
 	"""
 	Filter and normalize variant layers based on allowed formats.
 
 	Rules:
 	- keep variants whose ``format`` value is present in ``allowed_formats``
-	- the last layer is treated as a fallback layer (typically JPEG/PNG);
-	  it is preserved entirely when ``keep_fallback`` is True
+	- layers whose ``layer_id`` is identified as fallback (typically JPEG/PNG)
+	  are preserved entirely when ``keep_fallback`` is True
 	- layers that become empty after filtering are removed (except fallback)
 	- layer ordering is preserved
 	"""
@@ -38,11 +39,12 @@ def normalize_variants_for_format(
 	if not layers:
 		return layers
 
-	last_layer_index = len(layers) - 1
-	normalized_layers: list[Sequence[VariantRecord]] = []
+	normalized_layers: list[Sequence[VariantEntry]] = []
+	for layer in layers:
+		if len(layer) == 0:
+			continue
 
-	for index, layer in enumerate(layers):
-		is_fallback_layer = index == last_layer_index
+		is_fallback_layer = is_variant_fallback_id(layer[0]['layer_id'])
 
 		# Fallback layers bypass filtering so legacy clients still work.
 		if is_fallback_layer and keep_fallback:
@@ -50,7 +52,7 @@ def normalize_variants_for_format(
 			continue
 
 		# Filter non-fallback layers.
-		kept: list[VariantRecord] = []
+		kept: list[VariantEntry] = []
 
 		for spec in layer:
 			if spec['format'] in allowed_formats:

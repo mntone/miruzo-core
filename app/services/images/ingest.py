@@ -8,7 +8,7 @@ from app.services.images.persist import ImagePersistService
 from app.services.images.repository.base import ImageRepository
 from app.services.images.variants.executors.local import LocalVariantExecutor
 from app.services.images.variants.mapper import (
-	map_commit_results_to_variant_layers,
+	map_commit_results_to_variants,
 	map_original_info_to_variant_record,
 )
 from app.services.images.variants.path import VariantRelativePath
@@ -69,14 +69,14 @@ class ImageIngestService:
 
 				with session.phase('store'):
 					original = map_original_info_to_variant_record(original_file)
-					variants = map_commit_results_to_variant_layers(results, self._pipeline.spec)
+					variants = map_commit_results_to_variants(results)
 
 					image = ImageRecord(
 						ingest_id=ingest.id,
 						captured_at=captured_at,
 						original=original,
 						fallback=None,
-						variants=variants,
+						variants=list(variants),
 					)
 
 					self._persist.record(image)

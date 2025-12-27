@@ -7,21 +7,23 @@ from sqlmodel import Session
 
 from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
 from app.models.enums import ProcessStatus, VisibilityStatus
-from app.models.records import ImageRecord, IngestRecord, VariantRecord
+from app.models.records import ImageRecord, IngestRecord
+from app.models.types import VariantEntry
 
 TEST_VARIANT_ROOT = Path(gettempdir()) / 'miruzo-test-variants'
 
 
-def build_variant(fmt: str, width: int, *, label: str = 'primary') -> VariantRecord:
+def build_variant(fmt: str, width: int, *, layer_id: int = 1, label: str = 'primary') -> VariantEntry:
 	filepath = TEST_VARIANT_ROOT / f'{label}-{width}.{fmt}'
 	filepath.parent.mkdir(parents=True, exist_ok=True)
 	payload = f'{label}-{width}-{fmt}'.encode('utf-8')
 	filepath.write_bytes(payload)
 	return {
 		'rel': filepath.as_posix(),
+		'layer_id': layer_id,
 		'format': fmt,
 		'codecs': None,
-		'size': filepath.stat().st_size,
+		'bytes': filepath.stat().st_size,
 		'width': width,
 		'height': round(width * 0.75),
 		'quality': None,
@@ -61,8 +63,11 @@ def _make_image_record(
 		original=build_variant('webp', 960),
 		fallback=None,
 		variants=[
-			[build_variant('webp', width) for width in widths],
-			[build_variant('jpeg', 320)],
+			*[
+				build_variant('webp', width, layer_id=1)
+				for width in widths
+			],
+			build_variant('jpeg', 320, layer_id=9, label='fallback'),
 		],
 	)
 

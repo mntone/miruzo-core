@@ -148,9 +148,9 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	assert image.original['format'] == 'png'
 	assert image.original['width'] == 10
 	assert image.original['height'] == 8
-	assert image.original['size'] == origin_path.stat().st_size
+	assert image.original['bytes'] == origin_path.stat().st_size
 	assert len(image.variants) == 1
-	assert image.variants[0][0]['format'] == 'webp'
+	assert image.variants[0]['format'] == 'webp'
 
 	appended = cast(tuple[int, ExecutionEntry] | None, service._ingest_core.appended)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
 	assert appended is not None

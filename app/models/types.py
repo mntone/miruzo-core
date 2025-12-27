@@ -133,3 +133,15 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 			return None
 		else:
 			return timedelta(seconds=seconds)
+
+
+@final
+class VariantEntry(TypedDict):
+	rel: str
+	layer_id: Annotated[int, Field(ge=0, le=9)]
+	format: Annotated[str, Field(ge=3, le=8)]
+	codecs: Annotated[str | None, Field(default=None)]
+	bytes: Annotated[int, Field(ge=1)]
+	width: Annotated[int, Field(ge=1, le=10240)]
+	height: Annotated[int, Field(ge=1, le=10240)]
+	quality: Annotated[int | None, Field(default=None, ge=1, le=100)]

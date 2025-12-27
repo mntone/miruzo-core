@@ -204,31 +204,25 @@ def print_variant_report(record: IngestRecord) -> None:
 	original_width = original['width']
 	original_height = original['height']
 	original_resolution = f'{original_width}x{original_height}'
-	original_size = original['size']
+	original_size = original['bytes']
 	print(
 		f'{"l0orig":<10} {original_resolution:<12} {_format_bytes(original_size):>10} {"n/a":<12}',
 	)
 
-	variant_layers = image.variants
-	for layer_id, variant_layer in enumerate(variant_layers):
-		layer_id += 1
-		if layer_id == len(variant_layers):
-			layer_id = 9
+	for variant in image.variants:
+		label = 'l' + variant['layer_id'].__str__() + 'w' + variant['width'].__str__()
+		width = variant['width']
+		height = variant['height']
 
-		for variant in variant_layer:
-			label = 'l' + layer_id.__str__() + 'w' + variant['width'].__str__()
-			width = variant['width']
-			height = variant['height']
+		size = variant['bytes']
+		size_str = _format_bytes(size or 0)
 
-			size = variant['size']
-			size_str = _format_bytes(size or 0)
+		delta = size - original_size
+		delta_str = _format_bytes(abs(delta))
 
-			delta = size - original_size
-			delta_str = _format_bytes(abs(delta))
+		ratio = (size / original_size) * 100
+		ratio_sign = '+' if delta >= 0 else '-'
+		ratio_str = f'{ratio:.1f}% ({ratio_sign}{delta_str})'
 
-			ratio = (size / original_size) * 100
-			ratio_sign = '+' if delta >= 0 else '-'
-			ratio_str = f'{ratio:.1f}% ({ratio_sign}{delta_str})'
-
-			resolution = f'{width}x{height}'
-			print(f'{label:<10} {resolution:<12} {size_str:>10} {ratio_str:<12}')
+		resolution = f'{width}x{height}'
+		print(f'{label:<10} {resolution:<12} {size_str:>10} {ratio_str:<12}')

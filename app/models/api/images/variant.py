@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.config.environments import env
 from app.models.api.utils.units import bytes_to_manbytes
-from app.models.records import VariantRecord
+from app.models.types import VariantEntry
 
 
 @final
@@ -75,12 +75,12 @@ class VariantModel(BaseModel):
 	"""height of this rendition in pixels; guaranteed to be a positive integer"""
 
 	@classmethod
-	def from_record(cls, variant: VariantRecord) -> 'VariantModel':
+	def from_record(cls, variant: VariantEntry) -> 'VariantModel':
 		return cls(
 			src=env.public_media_root + variant['rel'],
 			format=variant['format'],
 			codecs=variant['codecs'],
-			manbytes=bytes_to_manbytes(variant['size']),
+			manbytes=bytes_to_manbytes(variant['bytes']),
 			w=variant['width'],
 			h=variant['height'],
 		)
