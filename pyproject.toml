@@ -1,0 +1,26 @@
+[project]
+name = "miruzo-core"
+dynamic = ["version"]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+classifiers = [
+	"Development Status :: 3 - Alpha",
+	"Framework :: FastAPI",
+	"Framework :: Pydantic :: 2",
+	"Framework :: Pytest",
+	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.10"
+
+[project.urls]
+Repository = "https://github.com/mntone/miruzo-core"
+Issues = "https://github.com/mntone/miruzo-core/issues"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

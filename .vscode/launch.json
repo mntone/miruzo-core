@@ -18,6 +18,19 @@
 				"--reload"
 			],
 			"jinja": true
+		},
+		{
+			"name": "gataku-import debug",
+			"type": "debugpy",
+			"cwd": "${workspaceFolder}",
+			"request": "launch",
+			"module": "importers.import",
+			"args": [
+				"--limit",
+				"50",
+				"--report-variants"
+			],
+			"jinja": true
 		}
 	]
 }
