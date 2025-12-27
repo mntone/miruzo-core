@@ -18,7 +18,7 @@ who is executing them.
   all config via `pydantic-settings`.
 - Start the API locally: `uvicorn app.main:app --reload`
 - Rebuild the SQLite database or run importers via
-  `python importers/import.py --help`
+  `python importers/gataku_import.py --help`
 - Run format/lint (if configured): `ruff check app tests` and `ruff format`
 - Execute tests: `pytest` (see Testing section for Docker-backed suites)
 

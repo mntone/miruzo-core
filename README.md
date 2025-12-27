@@ -52,7 +52,7 @@ Run miruzo-core locally by following these steps.
 3. Start the API  
    `uvicorn app.main:app --reload`
 4. (Optional) Run importer help to confirm configuration  
-   `python importers/import.py --help`
+   `python importers/gataku_import.py --help`
 
 ### Common commands
 - `pytest`: Run the default test suite (SQLite, service, variants, etc.)
@@ -69,7 +69,7 @@ Run miruzo-core locally by following these steps.
 3. Use importer commands to populate the database:
 
    ```bash
-   python importers/import.py --jsonl path/to/data.jsonl --media-dir ./media
+   python importers/gataku_import.py --jsonl path/to/data.jsonl
    ```
 
 4. Hit `/api/images` or `/api/images/{id}` to verify data is available.

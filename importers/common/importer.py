@@ -1,41 +1,23 @@
 import json
-from collections.abc import Sequence
 from datetime import datetime
 from logging import getLogger
 from pathlib import Path
-from shutil import copy2, rmtree
-from typing import Literal
+from shutil import rmtree
 
-from PIL import Image as PILImage
 from sqlmodel import Session
 
-from app.config.environments import env
+from app.config.environments import Settings
+from app.config.environments import env as global_env
 from app.database import engine, init_database
-from app.models.enums import ImageStatus
-from app.models.records import ImageRecord, VariantRecord
-from app.services.images.thumbnails import (
-	VariantReport,
-	collect_existing_variants,
-	generate_variants,
-	reset_variant_directories,
-)
+from app.models.enums import IngestMode
+from app.models.records import IngestRecord
+from app.services.images.ingest import ImageIngestService
+from app.services.images.repository.factory import create_image_repository
+from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
+from app.services.ingests.bootstrap import ensure_ingest_layout
+from app.services.ingests.repository.base import IngestRepository
 
 log = getLogger(__name__)
-
-ImportMode = Literal['copy', 'symlink']
-
-
-def ensure_media_root(media_root: Path) -> Path:
-	"""Ensure the media root directory exists, creating it if needed."""
-	if not media_root.exists():
-		media_root.mkdir(parents=True, exist_ok=True)
-		print(f'[importer] created media directory: {media_root}')
-		return media_root
-
-	if not media_root.is_dir():
-		raise RuntimeError(f'Media root must be a directory: {media_root}')
-
-	return media_root
 
 
 def confirm_overwrite(path: Path, *, force: bool) -> None:
@@ -48,48 +30,41 @@ def confirm_overwrite(path: Path, *, force: bool) -> None:
 		raise RuntimeError('Aborted by user.')
 
 
-def prepare_original_dir(
-	media_root: Path,
-	mode: ImportMode,
-	original_subdir: str,
-	assets_root: Path,
+def prepare_original_directory(
 	*,
+	media_root: Path,
+	gataku_assets_root: Path,
+	gataku_symlink_dirname: str,
+	mode: IngestMode,
 	force: bool,
-) -> Path:
+) -> None:
 	"""Set up media/orig to either symlink to the assets root or act as a real directory."""
-	original_dir = media_root / original_subdir
 
-	if original_dir.exists():
-		if original_dir.is_symlink():
-			current_target = original_dir.resolve(strict=False)
-			print(f'[importer] {original_dir} symlink detected -> {current_target}')
-			if mode == 'symlink':
-				if current_target == assets_root:
-					return original_dir
-				if not force:
-					choice = (
-						input(
-							f'[importer] {original_dir} points to {current_target}, expected {assets_root}. Recreate? [y/N]: ',
-						)
-						.strip()
-						.lower()
-					)
-					if choice != 'y':
-						raise RuntimeError('Aborted due to mismatched media/orig symlink.')
-				original_dir.unlink()
-			else:
-				if not force:
-					choice = (
-						input(
-							f'[importer] {original_dir} is a symlink but copy mode was requested. Recreate directory? [y/N]: ',
-						)
-						.strip()
-						.lower()
-					)
-					if choice != 'y':
-						raise RuntimeError('Aborted due to symlink/copy mode mismatch.')
-				original_dir.unlink()
-		elif original_dir.is_dir():
+	if mode != IngestMode.SYMLINK:
+		return
+
+	original_dir = media_root / gataku_symlink_dirname
+	if original_dir.is_symlink() and not original_dir.exists():
+		raise RuntimeError(f'Dangling symlink detected: {original_dir}')
+	elif original_dir.is_symlink():
+		current_target = original_dir.resolve()
+		print(f'[importer] {original_dir} symlink detected -> {current_target}')
+		if current_target == gataku_assets_root:
+			return
+
+		if not force:
+			choice = (
+				input(
+					f'[importer] {original_dir} points to {current_target}, expected {gataku_assets_root}. Recreate? [y/N]: ',
+				)
+				.strip()
+				.lower()
+			)
+			if choice != 'y':
+				raise RuntimeError('Aborted due to mismatched media/orig symlink.')
+		original_dir.unlink()
+	elif original_dir.exists():
+		if original_dir.is_dir():
 			if any(original_dir.iterdir()):
 				confirm_overwrite(original_dir, force=force)
 			rmtree(original_dir)
@@ -97,181 +72,103 @@ def prepare_original_dir(
 			confirm_overwrite(original_dir, force=force)
 			original_dir.unlink()
 
-	if mode == 'symlink':
-		original_dir.symlink_to(assets_root, target_is_directory=True)
-		print(f'[importer] linked {original_dir} -> {assets_root}')
-	else:
-		original_dir.mkdir(parents=True, exist_ok=True)
-		print(f'[importer] prepared copy directory: {original_dir}')
-
-	return original_dir
+	original_dir.symlink_to(gataku_assets_root, target_is_directory=True)
+	print(f'[importer] linked {original_dir} -> {gataku_assets_root}')
 
 
 def import_jsonl(
 	jsonl_path: str,
-	media_dir: str,
-	limit: int = 100,
-	mode: ImportMode = 'symlink',
-	original_subdir: str = 'gataku',
-	force: bool = False,
+	limit: int,
+	mode: IngestMode,
+	force: bool,
 	report_variants: bool = False,
-	repair: bool = False,
+	env: Settings = global_env,
 ) -> None:
 	"""Read gataku JSONL data, populate the database, and copy/symlink assets plus thumbnails."""
-	media_root = ensure_media_root(Path(media_dir))
-	gataku_root = env.gataku_root.resolve()
-	assets_root = env.gataku_assets_root.resolve()
-	orig_dir = prepare_original_dir(media_root, mode, original_subdir, assets_root, force=force)
 
-	variant_layers = env.variant_layers
+	gataku_root = env.gataku_root
+	gataku_assets_root = env.gataku_assets_root
 
-	if repair:
-		print('[importer] repair mode enabled: skipping thumbnail generation.')
-	else:
-		reset_variant_directories(media_root, variant_layers)
+	ensure_ingest_layout(env)
+	prepare_original_directory(
+		media_root=env.media_root,
+		gataku_assets_root=gataku_assets_root,
+		gataku_symlink_dirname=env.gataku_symlink_dirname,
+		mode=mode,
+		force=force,
+	)
 	init_database()
 
 	session = Session(engine)
+	image_repo = create_image_repository(session)
+	ingest_repo = IngestRepository(session)
+	ingest = ImageIngestService(
+		image_repo=image_repo,
+		ingest_repo=ingest_repo,
+		policy=DEFAULT_VARIANT_POLICY,
+	)
 
 	stats = {
 		'read': 0,
-		'imported': 0,
+		'ingested': 0,
 		'invalid': 0,
 		'missing': 0,
 	}
 
-	with open(jsonl_path, 'r') as f:
-		for i, line in enumerate(f):
-			if i >= limit:
-				break
+	with session:
+		with open(jsonl_path, 'r') as f:
+			for i, line in enumerate(f):
+				if i >= limit:
+					break
 
-			stats['read'] += 1
+				stats['read'] += 1
 
-			try:
-				record = json.loads(line)
-			except Exception:
-				stats['invalid'] += 1
-				continue  # skip invalid JSON
-
-			raw_path = Path(record['filepath'])
-			src_path = raw_path if raw_path.is_absolute() else gataku_root / raw_path
-			if not src_path.exists():
-				log.warning(f'missing file: {src_path}')
-				stats['missing'] += 1
-				continue  # image not found, skip entry
-
-			try:
-				original_size = src_path.stat().st_size
-			except OSError:
-				continue  # missing filesize, skip entry
-
-			try:
-				relative_asset_path = src_path.relative_to(assets_root)
-			except ValueError:
-				log.warning(f'file outside assets root: {src_path}')
-				stats['missing'] += 1
-				continue
-
-			if mode == 'copy':
-				dst = orig_dir / relative_asset_path
-				if not dst.exists():
-					dst.parent.mkdir(parents=True, exist_ok=True)
-					copy2(src_path, dst)
-
-			width = None
-			height = None
-			original_variant = None
-			variant_records: Sequence[Sequence[VariantRecord]] = []
-			variant_reports: list[VariantReport] = []
-			try:
-				with PILImage.open(src_path) as pil_image:
-					width = pil_image.width
-					height = pil_image.height
-					format_name, codecs = _map_original_variant_attrs(pil_image)
-					public_path = f'{original_subdir}/{relative_asset_path.as_posix()}'
-					original_variant = VariantRecord(
-						rel=public_path,
-						format=format_name,
-						codecs=codecs,
-						size=original_size,
-						width=width,
-						height=height,
-						quality=None,
-					)
-					if not repair:
-						variant_records, variant_reports = generate_variants(
-							pil_image,
-							relative_asset_path,
-							media_root,
-							variant_layers,
-							original_size=original_size,
-						)
-			except Exception as exc:
-				log.warning('failed to prepare metadata/thumbnail for %s: %s', src_path, exc)
-				if repair:
-					variant_records = collect_existing_variants(
-						relative_asset_path,
-						media_root,
-						variant_layers,
-					)
-
-			if repair and not variant_records:
-				variant_records = collect_existing_variants(
-					relative_asset_path,
-					media_root,
-					variant_layers,
-				)
-			if repair:
-				variant_reports = []
-
-			if report_variants and (variant_reports or original_size):
-				print_variant_report(relative_asset_path, original_size, variant_reports)
-
-			if width is None or height is None:
-				log.warning('skipping %s due to missing size/width/height metadata', src_path)
-				continue
-
-			if original_variant is None:
-				public_path = f'{original_subdir}/{relative_asset_path.as_posix()}'
-				original_variant = VariantRecord(
-					rel=public_path,
-					format='unknown',
-					codecs=None,
-					size=original_size,
-					width=width,
-					height=height,
-					quality=None,
-				)
-
-			captured_at = None
-			created_at_value = record.get('created_at')
-			if created_at_value:
 				try:
-					captured_at = datetime.fromisoformat(created_at_value)
+					record = json.loads(line)
 				except Exception:
-					pass
+					stats['invalid'] += 1
+					continue  # skip invalid JSON
 
-			img = ImageRecord(
-				fingerprint=record['sha256'],
-				captured_at=captured_at,
-				status=ImageStatus.ACTIVE,
-				original=original_variant,
-				fallback=None,
-				variants=variant_records,
-			)
+				captured_at = None
+				created_at_value = record.get('created_at')
+				if created_at_value:
+					try:
+						captured_at = datetime.fromisoformat(created_at_value)
+					except Exception:
+						pass  # skip invalid datetime format
 
-			session.add(img)
-			stats['imported'] += 1
+				raw_path = Path(record['filepath'])
+				src_path = raw_path if raw_path.is_absolute() else gataku_root / raw_path
+				if not src_path.exists():
+					log.warning(f'missing file: {src_path}')
+					stats['missing'] += 1
+					continue  # image not found, skip entry
 
-			if stats['read'] % 10 == 0 or stats['read'] == limit:
-				print(
-					f'[importer] progress: read={stats["read"]}, imported={stats["imported"]}, invalid={stats["invalid"]}, missing={stats["missing"]}',
+				try:
+					origin_relative_path = src_path.relative_to(gataku_assets_root)
+				except ValueError:
+					log.warning(f'file outside assets root: {src_path}')
+					stats['missing'] += 1
+					continue
+
+				ingest_record = ingest.ingest(
+					origin_path=origin_relative_path,
+					fingerprint=record['sha256'],
+					captured_at=captured_at,
+					ingest_mode=mode,
 				)
-		session.commit()
-	session.close()
+				stats['ingested'] += 1
+
+				if report_variants:
+					print_variant_report(ingest_record)
+
+				if stats['read'] % 10 == 0 or stats['read'] == limit:
+					print(
+						f'[importer] progress: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}',
+					)
 
 	print(
-		f'[importer] summary: read={stats["read"]}, imported={stats["imported"]}, invalid={stats["invalid"]}, missing={stats["missing"]}',
+		f'[importer] summary: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}',
 	)
 
 
@@ -279,6 +176,7 @@ def _format_bytes(size: int) -> str:
 	"""Convert a size in bytes into a human-friendly string."""
 
 	thresholds = [
+		(1024**4, 'TB'),
 		(1024**3, 'GB'),
 		(1024**2, 'MB'),
 		(1024, 'KB'),
@@ -292,55 +190,45 @@ def _format_bytes(size: int) -> str:
 	return f'{size} B'
 
 
-def print_variant_report(
-	asset_path: Path,
-	original_size: int | None,
-	reports: list[VariantReport],
-) -> None:
-	print(f'[importer] variant report ({asset_path.as_posix()}):')
-	header = f'{"Layer":<8} {"Label":<8} {"Resolution":<12} {"Size":>12} {"Ratio":<12}'
+def print_variant_report(record: IngestRecord) -> None:
+	image = record.image
+	if image is None:
+		return
+
+	print(f'[importer] variant report ({record.relative_path}):')
+	header = f'{"Label":<10} {"Resolution":<12} {"Size":>10} {"Ratio":<12}'
 	print(header)
 	print('-' * len(header))
 
-	if original_size:
-		print(
-			f'{"original":<8} {"orig":<8} {"-":<12} {_format_bytes(original_size):>12} {"n/a":<12}',
-		)
+	original = image.original
+	original_width = original['width']
+	original_height = original['height']
+	original_resolution = f'{original_width}x{original_height}'
+	original_size = original['size']
+	print(
+		f'{"l0orig":<10} {original_resolution:<12} {_format_bytes(original_size):>10} {"n/a":<12}',
+	)
 
-	for report in reports:
-		size_str = _format_bytes(report.size_bytes or 0)
-		if (
-			report.ratio_percent is not None
-			and report.delta_bytes is not None
-			and original_size
-			and original_size > 0
-		):
-			diff_str = _format_bytes(abs(report.delta_bytes))
-			sign = '+' if report.delta_bytes >= 0 else '-'
-			ratio_str = f'{report.ratio_percent:.0f}% ({sign}{diff_str})'
-		else:
-			ratio_str = 'n/a'
+	variant_layers = image.variants
+	for layer_id, variant_layer in enumerate(variant_layers):
+		layer_id += 1
+		if layer_id == len(variant_layers):
+			layer_id = 9
 
-		resolution = f'{report.width}x{report.height}'
-		print(
-			f'{report.layer_name:<8} {report.label:<8} {resolution:<12} {size_str:>12} {ratio_str:<12}',
-		)
+		for variant in variant_layer:
+			label = 'l' + layer_id.__str__() + 'w' + variant['width'].__str__()
+			width = variant['width']
+			height = variant['height']
 
+			size = variant['size']
+			size_str = _format_bytes(size or 0)
 
-def _map_original_variant_attrs(pil_image: PILImage.Image) -> tuple[str, str | None]:
-	fmt = (pil_image.format or '').upper()
-	if fmt == 'BMP':
-		return 'bmp', None
-	if fmt == 'GIF':
-		return 'gif', None
-	if fmt == 'PNG':
-		return 'png', None
-	if fmt in {'JPG', 'JPEG'}:
-		return 'jpeg', None
-	if fmt == 'TIFF':
-		return 'tiff', None
-	if fmt == 'WEBP':
-		if pil_image.info.get('lossless'):
-			return 'webp', 'vp8l'
-		return 'webp', 'vp8'
-	return fmt, None
+			delta = size - original_size
+			delta_str = _format_bytes(abs(delta))
+
+			ratio = (size / original_size) * 100
+			ratio_sign = '+' if delta >= 0 else '-'
+			ratio_str = f'{ratio:.1f}% ({ratio_sign}{delta_str})'
+
+			resolution = f'{width}x{height}'
+			print(f'{label:<10} {resolution:<12} {size_str:>10} {ratio_str:<12}')
