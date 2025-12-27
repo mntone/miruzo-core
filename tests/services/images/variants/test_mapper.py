@@ -86,6 +86,7 @@ def test_map_original_info_to_variant_record(tmp_path: Path) -> None:
 
 def test_map_commit_results_to_variant_layers_filters_actions(tmp_path: Path) -> None:
 	spec_primary = build_variant_spec(1, 320, container='webp', codecs='vp8')
+	spec_primary2 = build_variant_spec(1, 640, container='webp', codecs='vp8')
 	spec_fallback = build_variant_spec(9, 320, container='jpeg', codecs=None)
 
 	file_primary = _build_variant_file(
@@ -94,6 +95,15 @@ def test_map_commit_results_to_variant_layers_filters_actions(tmp_path: Path) ->
 		bytes=100,
 		width=320,
 		height=240,
+		container='webp',
+		codecs='vp8',
+	)
+	file_primary2 = _build_variant_file(
+		tmp_path,
+		spec_primary2,
+		bytes=200,
+		width=640,
+		height=480,
 		container='webp',
 		codecs='vp8',
 	)
@@ -109,12 +119,12 @@ def test_map_commit_results_to_variant_layers_filters_actions(tmp_path: Path) ->
 
 	results = [
 		VariantCommitResult.success('generate', VariantReport(spec_primary, file_primary)),
-		VariantCommitResult.success('regenerate', VariantReport(spec_fallback, file_fallback)),
+		VariantCommitResult.success('regenerate', VariantReport(spec_primary2, file_primary2)),
 		VariantCommitResult.failure('generate', 'save_failed'),
-		VariantCommitResult.success('reuse', VariantReport(spec_primary, file_primary)),
+		VariantCommitResult.success('reuse', VariantReport(spec_fallback, file_fallback)),
 	]
 	layers = [
-		VariantLayerSpec(name='primary', layer_id=1, specs=(spec_primary,)),
+		VariantLayerSpec(name='primary', layer_id=1, specs=(spec_primary, spec_primary2)),
 		VariantLayerSpec(name='fallback', layer_id=9, specs=(spec_fallback,)),
 	]
 
@@ -123,25 +133,18 @@ def test_map_commit_results_to_variant_layers_filters_actions(tmp_path: Path) ->
 	assert len(mapped) == 2
 	assert mapped[0][0]['format'] == 'webp'
 	assert mapped[0][0]['size'] == 100
+	assert mapped[0][1]['format'] == 'webp'
+	assert mapped[0][1]['size'] == 200
 	assert mapped[1][0]['format'] == 'jpeg'
 	assert mapped[1][0]['size'] == 200
 
 
-def test_map_commit_results_to_variant_layers_returns_empty_for_no_success(tmp_path: Path) -> None:
+def test_map_commit_results_to_variant_layers_returns_empty_for_no_success() -> None:
 	spec_primary = build_variant_spec(1, 320, container='webp', codecs='vp8')
 	layer = VariantLayerSpec(name='primary', layer_id=1, specs=(spec_primary,))
 
-	file_primary = _build_variant_file(
-		tmp_path,
-		spec_primary,
-		bytes=100,
-		width=320,
-		height=240,
-		container='webp',
-		codecs='vp8',
-	)
 	results = [
-		VariantCommitResult.success('reuse', VariantReport(spec_primary, file_primary)),
+		VariantCommitResult.success('delete', None),
 		VariantCommitResult.failure('generate', 'save_failed'),
 	]
 

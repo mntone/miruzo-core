@@ -50,7 +50,7 @@ def map_commit_results_to_variant_layers(
 		if result.result != 'success':
 			continue
 
-		if result.action not in ('generate', 'regenerate'):
+		if result.action not in ('reuse', 'generate', 'regenerate'):
 			continue
 
 		assert result.report is not None
