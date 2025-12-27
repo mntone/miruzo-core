@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -41,7 +42,7 @@ class ImageListModel(BaseModel):
 	"""optional compatibility rendition used when layered variants can't be served"""
 
 	variants: Annotated[
-		list[list[VariantModel]],
+		Sequence[Sequence[VariantModel]],
 		Field(
 			title='Variant layers',
 			description='layered list (e.g. primary/secondary) of alternative renditions organized by size',
@@ -53,7 +54,7 @@ class ImageListModel(BaseModel):
 	def from_record(
 		cls,
 		image: ImageRecord,
-		normalized_layers: list[list[VariantRecord]],
+		normalized_layers: Sequence[Sequence[VariantRecord]],
 	) -> 'ImageListModel':
 		# fmt: off
 		return cls(

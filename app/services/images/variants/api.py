@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Set
 
 from app.models.records import VariantRecord
@@ -18,11 +19,11 @@ def compute_allowed_formats(excluded: tuple[str, ...] | None) -> set[str]:
 
 
 def normalize_variants_for_format(
-	layers: list[list[VariantRecord]],
+	layers: Sequence[Sequence[VariantRecord]],
 	allowed_formats: Set[str],
 	*,
 	keep_fallback: bool = True,
-) -> list[list[VariantRecord]]:
+) -> Sequence[Sequence[VariantRecord]]:
 	"""
 	Filter and normalize variant layers based on allowed formats.
 
@@ -38,7 +39,7 @@ def normalize_variants_for_format(
 		return layers
 
 	last_layer_index = len(layers) - 1
-	normalized_layers: list[list[VariantRecord]] = []
+	normalized_layers: list[Sequence[VariantRecord]] = []
 
 	for index, layer in enumerate(layers):
 		is_fallback_layer = index == last_layer_index

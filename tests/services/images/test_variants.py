@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Sequence
 
 from tests.services.images.utils import build_variant
 
@@ -6,7 +6,7 @@ from app.models.records import VariantRecord
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 
 
-def _flatten_non_fallback(layers: Iterable[list[VariantRecord]]) -> list[VariantRecord]:
+def _flatten_non_fallback(layers: Sequence[Sequence[VariantRecord]]) -> Sequence[VariantRecord]:
 	return [variant for layer in layers[:-1] for variant in layer]
 
 
@@ -67,10 +67,10 @@ def test_compute_allowed_formats_always_keeps_fallback_formats() -> None:
 
 
 def test_compute_allowed_formats_drops_excluded_items() -> None:
-	result = compute_allowed_formats(['webp'])
+	result = compute_allowed_formats(('webp',))
 	assert result == {'gif', 'jpeg', 'png'}
 
 
 def test_compute_allowed_formats_handles_mixed_case_and_unknowns() -> None:
-	result = compute_allowed_formats(['WEBP', 'avif', 'gif'])
+	result = compute_allowed_formats(('WEBP', 'avif', 'gif'))
 	assert result == {'jpeg', 'png'}
