@@ -1,5 +1,5 @@
 from app.models.records import ImageRecord
-from app.services.images.repository.base import ImageRepository
+from app.services.images.repository import ImageRepository
 
 
 class ImagePersistService:

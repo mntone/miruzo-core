@@ -1,13 +1,16 @@
 from datetime import datetime
+from typing import final
 
 from app.config.environments import env
 from app.models.api.images.list import ImageListModel
-from app.models.api.images.responses import ContextResponse, ImageListResponse
-from app.services.images.repository.base import ImageRepository
+from app.models.api.images.responses import ImageListResponse
+from app.models.records import ImageRecord
+from app.services.images.repository import ImageRepository
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 from app.services.images.variants.mapper import map_variants_to_layers
 
 
+@final
 class ImageQueryService:
 	def __init__(self, repository: ImageRepository) -> None:
 		self._repository = repository
@@ -23,7 +26,7 @@ class ImageQueryService:
 		Return a paginated list of images (summary only).
 		Includes variant normalization using allowed_formats.
 		"""
-		image_records, next_cursor = self._repository.get_latest(cursor=cursor, limit=limit)
+		image_records, next_cursor = self._repository.select_latest(cursor=cursor, limit=limit)
 
 		allowed_formats = compute_allowed_formats(exclude_formats)
 
@@ -41,23 +44,7 @@ class ImageQueryService:
 
 		return response
 
-	def get_context(
-		self,
-		ingest_id: int,
-	) -> ContextResponse | None:
-		"""
-		Return a single image detail payload.
+	def get_by_ingest_id(self, ingest_id: int) -> ImageRecord | None:
+		record = self._repository.select_by_ingest_id(ingest_id)
 
-		Fetches the image record, increments view stats, and normalizes
-		variant layers based on allowed formats.
-		"""
-		image = self._repository.get_context(ingest_id)
-
-		if image is None:
-			return None
-
-		stats = self._repository.upsert_stats_with_increment(ingest_id)
-
-		response = ContextResponse.from_record(image, stats)
-
-		return response
+		return record

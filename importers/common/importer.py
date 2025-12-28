@@ -12,7 +12,7 @@ from app.database import engine, init_database
 from app.models.enums import IngestMode
 from app.models.records import IngestRecord
 from app.services.images.ingest import ImageIngestService
-from app.services.images.repository.factory import create_image_repository
+from app.services.images.repository import ImageRepository
 from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
 from app.services.ingests.bootstrap import ensure_ingest_layout
 from app.services.ingests.repository.base import IngestRepository
@@ -100,7 +100,7 @@ def import_jsonl(
 	init_database()
 
 	session = Session(engine)
-	image_repo = create_image_repository(session)
+	image_repo = ImageRepository(session)
 	ingest_repo = IngestRepository(session)
 	ingest = ImageIngestService(
 		image_repo=image_repo,

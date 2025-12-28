@@ -5,7 +5,7 @@ from app.config.environments import env
 from app.models.enums import IngestMode
 from app.models.records import ImageRecord, IngestRecord
 from app.services.images.persist import ImagePersistService
-from app.services.images.repository.base import ImageRepository
+from app.services.images.repository import ImageRepository
 from app.services.images.variants.executors.local import LocalVariantExecutor
 from app.services.images.variants.mapper import (
 	map_commit_results_to_variants,

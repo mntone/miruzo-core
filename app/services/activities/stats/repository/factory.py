@@ -1,12 +1,12 @@
 from sqlmodel import Session
 
 from app.config.environments import DatabaseBackend, env
-from app.services.images.repository.base import ImageRepository
-from app.services.images.repository.postgre import PostgreSQLImageRepository
-from app.services.images.repository.sqlite import SQLiteImageRepository
+from app.services.activities.stats.repository.postgre import PostgreSQLStatsRepository
+from app.services.activities.stats.repository.protocol import StatsRepository
+from app.services.activities.stats.repository.sqlite import SQLiteStatsRepository
 
 
-def create_image_repository(session: Session) -> ImageRepository:
+def create_stats_repository(session: Session) -> StatsRepository:
 	"""
 	Build an image repository implementation for the configured backend.
 
@@ -20,8 +20,8 @@ def create_image_repository(session: Session) -> ImageRepository:
 		ValueError: if the configured backend is unsupported.
 	"""
 	if env.database_backend == DatabaseBackend.SQLITE:
-		return SQLiteImageRepository(session)
+		return SQLiteStatsRepository(session)
 	elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
-		return PostgreSQLImageRepository(session)
+		return PostgreSQLStatsRepository(session)
 	else:
 		raise ValueError(f'Unsupported database type: {env.database_backend}')
