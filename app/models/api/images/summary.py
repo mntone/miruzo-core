@@ -19,7 +19,7 @@ class SummaryModel(BaseModel):
 
 	id: Annotated[
 		int,
-		Field(title='Image identifier', description='numeric primary key assigned in the database.'),
+		Field(title='Ingest identifier', description='numeric primary key assigned in the database.'),
 	]
 	"""numeric primary key assigned in the database."""
 

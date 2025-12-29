@@ -5,8 +5,9 @@ from sqlmodel import Session
 from starlette.responses import Response
 
 from app.database import get_session
+from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
-from app.models.api.images.responses import ContextResponse, ImageListResponse
+from app.models.api.images.responses import ImageListResponse
 from app.services.activities.stats.repository.base import BaseStatsRepository
 from app.services.activities.stats.repository.factory import create_stats_repository
 from app.services.activities.stats.repository.protocol import StatsRepository

@@ -10,7 +10,7 @@ from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
 from app.config.constants import DEFAULT_SCORE, EXECUTION_MAXIMUM, SCORE_MAXIMUM, SCORE_MINIMUM
-from app.models.enums import ImageKind, ProcessStatus, VisibilityStatus
+from app.models.enums import ActionKind, ImageKind, ProcessStatus, VisibilityStatus
 from app.models.types import ExecutionEntry, ExecutionsJSON, VariantEntry
 
 
@@ -69,11 +69,26 @@ class ImageRecord(SQLModel, table=True):
 
 
 @final
+class ActionRecord(SQLModel, table=True):
+	__tablename__ = 'actions'
+
+	id: int = SQLField(default=None, primary_key=True, nullable=False)
+	ingest_id: int = SQLField(foreign_key='ingests.id', nullable=False)
+	kind: ActionKind = SQLField(
+		sa_column=Column(
+			SmallInteger,
+			autoincrement=False,
+			nullable=False,
+		),
+	)
+	occurred_at: datetime = SQLField(default=datetime.min, nullable=False)
+
+
+@final
 class StatsRecord(SQLModel, table=True):
 	__tablename__ = 'stats'
 
 	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
-	hall_of_fame_at: datetime | None = SQLField(default=None, index=True)
 	score: int = SQLField(
 		ge=SCORE_MINIMUM,
 		le=SCORE_MAXIMUM,
@@ -87,5 +102,7 @@ class StatsRecord(SQLModel, table=True):
 	)
 	view_count: int = SQLField(default=0, ge=0, nullable=False)
 	last_viewed_at: datetime | None = SQLField(default=None, index=True)
+	first_loved_at: datetime | None = SQLField(default=None, index=True)
+	hall_of_fame_at: datetime | None = SQLField(default=None, index=True)
 
 	ingest: IngestRecord = Relationship(back_populates='stats')

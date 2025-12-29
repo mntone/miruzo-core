@@ -12,19 +12,10 @@ class StatsModel(BaseModel):
 	"""Aggregate engagement data for a single image."""
 
 	model_config = ConfigDict(
-		title='Image stats model',
+		title='Stats model',
 		extra='forbid',
 		frozen=True,
 	)
-
-	hall_of_fame_at: Annotated[
-		datetime | None,
-		Field(
-			title='Hall of fame timestamp',
-			description='timestamp when the image entered the hall of fame, or `null` if it has not',
-		),
-	] = None
-	"""timestamp when the image entered the hall of fame, or `None` if it has not"""
 
 	score: Annotated[
 		int,
@@ -52,11 +43,30 @@ class StatsModel(BaseModel):
 	] = None
 	"""timestamp of the most recent view, or `None` if it hasn't been viewed yet"""
 
+	first_loved_at: Annotated[
+		datetime | None,
+		Field(
+			title='First loved timestamp',
+			description='timestamp of the first love action, or `null` if it has not been loved',
+		),
+	] = None
+	"""timestamp of the first love action, or `None` if it has not been loved"""
+
+	hall_of_fame_at: Annotated[
+		datetime | None,
+		Field(
+			title='Hall of fame timestamp',
+			description='timestamp when the image entered the hall of fame, or `null` if it has not',
+		),
+	] = None
+	"""timestamp when the image entered the hall of fame, or `None` if it has not"""
+
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'StatsModel':
 		return cls(
-			hall_of_fame_at=stats.hall_of_fame_at,
 			score=stats.score,
 			view_count=stats.view_count,
 			last_viewed_at=stats.last_viewed_at,
+			first_loved_at=stats.first_loved_at,
+			hall_of_fame_at=stats.hall_of_fame_at,
 		)
