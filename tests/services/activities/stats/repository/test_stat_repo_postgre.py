@@ -79,15 +79,3 @@ def session(postgres_dsn: str) -> Generator[Session, Any, None]:
 	SQLModel.metadata.create_all(engine)
 	with Session(engine) as session:
 		yield session
-
-
-def test_upsert_with_increment(session: Session) -> None:
-	repo = PostgreSQLStatsRepository(session)
-	image = add_image_record(session, 20)
-
-	stats = repo.upsert_with_increment(image.ingest_id)
-	assert stats.view_count == 1
-	assert stats.last_viewed_at is not None
-
-	stats_again = repo.upsert_with_increment(image.ingest_id)
-	assert stats_again.view_count == 2

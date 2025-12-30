@@ -4,14 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from starlette.responses import Response
 
+from app.config.environments import env
 from app.database import get_session
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
-from app.services.activities.stats.repository.base import BaseStatsRepository
+from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.repository.factory import create_stats_repository
-from app.services.activities.stats.repository.protocol import StatsRepository
-from app.services.activities.stats.service import StatsService
 from app.services.images.query import ImageQueryService
 from app.services.images.repository import ImageRepository
 from app.services.views.context import ContextService
@@ -22,29 +21,23 @@ def _get_image_repository(session: Annotated[Session, Depends(get_session)]) -> 
 	return ImageRepository(session)
 
 
-def _get_stats_repository(session: Annotated[Session, Depends(get_session)]) -> StatsRepository:
-	return create_stats_repository(session)
-
-
 def _get_image_query_service(
 	repository: Annotated[ImageRepository, Depends(_get_image_repository)],
 ) -> ImageQueryService:
 	return ImageQueryService(repository)
 
 
-def _get_stats_service(
-	repository: Annotated[BaseStatsRepository, Depends(_get_stats_repository)],
-) -> StatsService:
-	return StatsService(repository)
-
-
 def _get_context_service(
+	session: Annotated[Session, Depends(get_session)],
 	image_query: Annotated[ImageQueryService, Depends(_get_image_query_service)],
-	stats: Annotated[StatsService, Depends(_get_stats_service)],
 ) -> ContextService:
+	action_repo = ActionRepository(session)
 	return ContextService(
+		session,
+		action=action_repo,
 		image_query=image_query,
-		stats=stats,
+		stats=create_stats_repository(session),
+		env=env,
 	)
 
 

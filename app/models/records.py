@@ -9,9 +9,10 @@ from sqlalchemy import JSON, Column, Integer, SmallInteger
 from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
-from app.config.constants import DEFAULT_SCORE, EXECUTION_MAXIMUM, SCORE_MAXIMUM, SCORE_MINIMUM
+from app.config.constants import EXECUTION_MAXIMUM
+from app.config.environments import env
 from app.models.enums import ActionKind, ImageKind, ProcessStatus, VisibilityStatus
-from app.models.types import ExecutionEntry, ExecutionsJSON, VariantEntry
+from app.models.types import ExecutionEntry, ExecutionsJSON, UTCDateTime, VariantEntry
 
 
 @final
@@ -81,7 +82,10 @@ class ActionRecord(SQLModel, table=True):
 			nullable=False,
 		),
 	)
-	occurred_at: datetime = SQLField(default=datetime.min, nullable=False)
+	occurred_at: datetime = SQLField(
+		default=datetime.min,
+		sa_column=Column(UTCDateTime(), nullable=False),
+	)
 
 
 @final
@@ -90,19 +94,27 @@ class StatsRecord(SQLModel, table=True):
 
 	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
 	score: int = SQLField(
-		ge=SCORE_MINIMUM,
-		le=SCORE_MAXIMUM,
+		le=env.score.maximum_score,
 		sa_column=Column(
 			SmallInteger,
 			autoincrement=False,
-			default=DEFAULT_SCORE,
+			default=env.score.initial_score,
 			index=True,
 			nullable=False,
 		),
 	)
 	view_count: int = SQLField(default=0, ge=0, nullable=False)
-	last_viewed_at: datetime | None = SQLField(default=None, index=True)
-	first_loved_at: datetime | None = SQLField(default=None, index=True)
-	hall_of_fame_at: datetime | None = SQLField(default=None, index=True)
+	last_viewed_at: datetime | None = SQLField(
+		default=None,
+		sa_column=Column(UTCDateTime(), index=True),
+	)
+	first_loved_at: datetime | None = SQLField(
+		default=None,
+		sa_column=Column(UTCDateTime(), index=True),
+	)
+	hall_of_fame_at: datetime | None = SQLField(
+		default=None,
+		sa_column=Column(UTCDateTime(), index=True),
+	)
 
 	ingest: IngestRecord = Relationship(back_populates='stats')

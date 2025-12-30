@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
 from app.models.api.images.summary import SummaryModel
-from app.models.records import ImageRecord, StatsRecord
 
 
 @final
@@ -29,7 +28,7 @@ class ContextResponse(BaseModel):
 	"""basic metadata for the requested image"""
 
 	actions: Annotated[
-		Sequence[ActionModel] | None,
+		Sequence[ActionModel],
 		Field(
 			title='Actions',
 			description='all actions',
@@ -48,16 +47,15 @@ class ContextResponse(BaseModel):
 	]
 	"""latest statistics for the image; `None` when stats are missing"""
 
-	# NOTE:
-	# actions will become a required argument once context actions are wired.
 	@classmethod
 	def from_record(
 		cls,
-		image: ImageRecord,
-		stats: StatsRecord,
+		image: SummaryModel,
+		actions: Sequence[ActionModel],
+		stats: StatsModel,
 	) -> 'ContextResponse':
 		return cls(
-			image=SummaryModel.from_record(image),
-			actions=None,
-			stats=StatsModel.from_record(stats),
+			image=image,
+			actions=actions,
+			stats=stats,
 		)

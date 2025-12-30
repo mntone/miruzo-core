@@ -3,7 +3,7 @@ from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.config.constants import SCORE_MAXIMUM, SCORE_MINIMUM
+from app.config.environments import env
 from app.models.records import StatsRecord
 
 
@@ -21,9 +21,9 @@ class StatsModel(BaseModel):
 		int,
 		Field(
 			title='Score',
-			description=f'user-tunable ranking value clamped between {SCORE_MINIMUM} and {SCORE_MAXIMUM}',
-			ge=SCORE_MINIMUM,
-			le=SCORE_MAXIMUM,
+			description=f'user-tunable ranking value clamped between {env.score.minimum_score} and {env.score.maximum_score}',
+			ge=env.score.minimum_score,
+			le=env.score.maximum_score,
 		),
 	]
 	"""user-tunable ranking value"""
@@ -64,7 +64,7 @@ class StatsModel(BaseModel):
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'StatsModel':
 		return cls(
-			score=stats.score,
+			score=stats.score if stats.score >= env.score.minimum_score else env.score.minimum_score,
 			view_count=stats.view_count,
 			last_viewed_at=stats.last_viewed_at,
 			first_loved_at=stats.first_loved_at,

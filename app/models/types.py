@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, TypedDict, final
 
 from pydantic import Field
+from sqlalchemy import DateTime
 from sqlalchemy.types import JSON, TypeDecorator
 
 from app.models.enums import ExecutionStatus
@@ -133,6 +134,38 @@ class ExecutionsJSON(TypeDecorator[Sequence[ExecutionEntry] | None]):
 			return None
 		else:
 			return timedelta(seconds=seconds)
+
+
+@final
+class UTCDateTime(TypeDecorator[datetime]):
+	impl = DateTime(timezone=True)
+	cache_ok = True
+
+	def process_bind_param(
+		self,
+		value: datetime | None,
+		dialect: Any,  # noqa: ARG002
+	) -> datetime | None:
+		if value is None:
+			return None
+
+		if value.tzinfo is None:
+			return value.replace(tzinfo=timezone.utc)
+
+		return value.astimezone(timezone.utc)
+
+	def process_result_value(
+		self,
+		value: datetime | None,
+		dialect: Any,  # noqa: ARG002
+	) -> datetime | None:
+		if value is None:
+			return None
+
+		if value.tzinfo is None:
+			return value.replace(tzinfo=timezone.utc)
+
+		return value
 
 
 @final

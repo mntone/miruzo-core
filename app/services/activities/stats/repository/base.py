@@ -6,7 +6,8 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar
 
-from sqlalchemy import Insert, func
+from sqlalchemy import Insert
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, SQLModel
 
 from app.models.records import StatsRecord
@@ -19,40 +20,36 @@ class BaseStatsRepository(ABC):
 		self._session = session
 
 	@abstractmethod
-	def _build_insert(self, model: type[TModel]) -> Insert: ...
+	def _is_unique_violation(self, error: IntegrityError) -> bool: ...
 
-	def upsert_with_increment(
+	def get_or_create(
 		self,
 		ingest_id: int,
+		*,
+		initial_score: int,
 	) -> StatsRecord:
-		statement = (
-			self._build_insert(StatsRecord)
-			# INSERT INTO imagestats (ingest_id, view_count) VALUES (:ingest_id, 1)
-			.values(
-				ingest_id=ingest_id,
-				view_count=1,
-				last_viewed_at=func.current_timestamp(),
-			)
-			# ON CONFLICT(ingest_id)
-			# DO UPDATE SET view_count = view_count + 1
-			.on_conflict_do_update(
-				index_elements=['ingest_id'],
-				set_={
-					'view_count': StatsRecord.view_count + 1,
-					'last_viewed_at': func.current_timestamp(),
-				},
-			)
-			# RETURNING ingest_id, hall_of_fame_at, score, view_count, last_viewed_at
-			.returning(
-				StatsRecord.ingest_id,
-				StatsRecord.hall_of_fame_at,
-				StatsRecord.score,
-				StatsRecord.view_count,
-				StatsRecord.last_viewed_at,
-			)
+		stats = self._session.get(StatsRecord, ingest_id)
+		if stats is not None:
+			return stats
+
+		stats = StatsRecord(
+			ingest_id=ingest_id,
+			score=initial_score,
+			view_count=0,
+			last_viewed_at=None,
+			hall_of_fame_at=None,
 		)
+		self._session.add(stats)
 
-		row = self._session.exec(statement).first()
-		self._session.commit()
+		try:
+			self._session.flush()
+		except IntegrityError as exc:
+			self._session.rollback()
+			if not self._is_unique_violation(exc):
+				raise
+			stats = self._session.get_one(StatsRecord, ingest_id)
 
-		return StatsRecord(**row._asdict())
+		return stats
+
+	@abstractmethod
+	def _build_insert(self, model: type[TModel]) -> Insert: ...
