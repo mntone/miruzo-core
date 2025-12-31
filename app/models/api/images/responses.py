@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated, final
 
@@ -18,10 +19,11 @@ class ImageListResponse(BaseModel):
 	)
 
 	items: Annotated[
-		list[ImageListModel],
+		Sequence[ImageListModel] | None,
 		Field(
 			title='Items',
 			description='page of image summaries returned for this request',
+			min_length=1,
 			max_length=LIMIT_MAXIMUM,
 		),
 	]

@@ -6,7 +6,7 @@ from tests.services.images.utils import build_image_record
 from app.config.environments import env
 from app.models.enums import ActionKind
 from app.models.records import StatsRecord
-from app.services.images.query import ImageQueryService
+from app.services.images.query_service import ImageQueryService
 from app.services.views.context import ContextService
 
 
@@ -37,7 +37,11 @@ def test_get_context_returns_none_when_record_missing() -> None:
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
 		action=action_repo,  # pyright: ignore[reportArgumentType]
-		image_query=ImageQueryService(image_repo),  # pyright: ignore[reportArgumentType]
+		image_query=ImageQueryService(
+			session=session,  # pyright: ignore[reportArgumentType]
+			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			variant_layers=env.variant_layers,
+		),
 		stats=stats_repo,
 		env=env,
 	)
@@ -70,7 +74,11 @@ def test_get_context_returns_summary_and_stats() -> None:
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
 		action=action_repo,  # pyright: ignore[reportArgumentType]
-		image_query=ImageQueryService(image_repo),  # pyright: ignore[reportArgumentType]
+		image_query=ImageQueryService(
+			session=session,  # pyright: ignore[reportArgumentType]
+			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			variant_layers=env.variant_layers,
+		),
 		stats=stats_repo,
 		env=env,
 	)

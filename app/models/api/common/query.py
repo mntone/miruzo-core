@@ -27,7 +27,7 @@ class PaginationQuery(BaseModel):
 		Field(
 			title='Limit',
 			description='maximum number of items to return for this request',
-			gt=LIMIT_MINIMUM,
+			ge=LIMIT_MINIMUM,
 			le=LIMIT_MAXIMUM,
 		),
 	] = DEFAULT_LIMIT

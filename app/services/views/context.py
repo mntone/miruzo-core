@@ -13,7 +13,7 @@ from app.services.activities.actions.persist import ActionPersistService
 from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.repository.protocol import StatsRepository
 from app.services.activities.stats.score_factory import make_score_context
-from app.services.images.query import ImageQueryService
+from app.services.images.query_service import ImageQueryService
 
 
 @final

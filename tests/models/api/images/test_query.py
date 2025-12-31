@@ -29,6 +29,16 @@ def test_image_list_query_supports_iterable_input() -> None:
 	assert query.exclude_formats == ('webp', 'jxl', 'avif')
 
 
+def test_image_list_query_accepts_minimum_limit() -> None:
+	query = ListQuery(limit=1)
+	assert query.limit == 1
+
+
+def test_image_list_query_rejects_limit_below_minimum() -> None:
+	with pytest.raises(ValidationError):
+		ListQuery(limit=0)
+
+
 @pytest.mark.parametrize('value', ['webp,jxl', 'webp jxl', 'webp|jxl', 'WEBP+JXL'])
 def test_image_list_query_rejects_invalid_separators(value: str) -> None:
 	with pytest.raises(ValidationError):

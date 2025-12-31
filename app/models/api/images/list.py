@@ -47,6 +47,7 @@ class ImageListModel(BaseModel):
 		Field(
 			title='Variant layers',
 			description='layered list (e.g. primary/secondary) of alternative renditions organized by size',
+			min_length=1,
 		),
 	]
 	"""layered list (e.g. primary/secondary) of alternative renditions organized by size"""

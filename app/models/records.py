@@ -59,7 +59,10 @@ class ImageRecord(SQLModel, table=True):
 	__tablename__ = 'images'
 
 	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
-	captured_at: datetime | None = SQLField(default=None)
+	captured_at: datetime | None = SQLField(
+		default=None,
+		sa_column=Column(UTCDateTime(), index=True),
+	)
 	kind: ImageKind = SQLField(default=ImageKind.PHOTO, sa_column=Column(Integer))
 
 	original: VariantEntry = SQLField(sa_column=Column(JSON))
