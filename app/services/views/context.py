@@ -3,6 +3,7 @@ from typing import final
 
 from sqlmodel import Session
 
+from app.config.constants import VIEW_MILESTONES
 from app.config.environments import Settings
 from app.domain.score.calculator import ScoreCalculator
 from app.models.api.activities.action import ActionModel
@@ -77,6 +78,12 @@ class ContextService:
 			stats.score = new_score
 			stats.view_count += 1
 			stats.last_viewed_at = current
+
+			for milestone in VIEW_MILESTONES:
+				if stats.view_count >= milestone:
+					if stats.view_milestone_count < milestone:
+						stats.view_milestone_count = milestone
+						stats.view_milestone_archived_at = current
 
 		actions = self._action.select_by_ingest_id(ingest_id)
 

@@ -1,11 +1,12 @@
 from tests.services.activities.actions.stubs import StubActionRepository
+from tests.services.activities.stats.factory import build_stats_record
 from tests.services.activities.stats.stubs import StubStatsRepository
 from tests.services.images.stubs import StubImageRepository
 from tests.services.images.utils import build_image_record
 
+from app.config.constants import VIEW_MILESTONES
 from app.config.environments import env
 from app.models.enums import ActionKind
-from app.models.records import StatsRecord
 from app.services.images.query_service import ImageQueryService
 from app.services.views.context import ContextService
 
@@ -60,12 +61,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 	image_repo = StubImageRepository()
 	image_repo.one_response = image
 
-	stats = StatsRecord(
-		ingest_id=image.ingest_id,
-		score=env.score.initial_score,
-		view_count=0,
-		last_viewed_at=None,
-	)
+	stats = build_stats_record(image.ingest_id)
 	stats_repo = StubStatsRepository()
 	stats_repo.stats_response = stats
 	action_repo = StubActionRepository()
@@ -98,3 +94,38 @@ def test_get_context_returns_summary_and_stats() -> None:
 	assert result.actions is not None
 	assert len(result.actions) == 1
 	assert result.actions[0].type == ActionKind.VIEW.name.lower()
+
+
+def test_get_context_updates_view_milestone() -> None:
+	image = build_image_record(9)
+	image_repo = StubImageRepository()
+	image_repo.one_response = image
+
+	milestone = VIEW_MILESTONES[1]
+	stats = build_stats_record(
+		image.ingest_id,
+		view_count=milestone - 1,
+	)
+	stats_repo = StubStatsRepository()
+	stats_repo.stats_response = stats
+	action_repo = StubActionRepository()
+	session = StubSession()
+
+	service = ContextService(
+		session,  # pyright: ignore[reportArgumentType]
+		action=action_repo,  # pyright: ignore[reportArgumentType]
+		image_query=ImageQueryService(
+			session=session,  # pyright: ignore[reportArgumentType]
+			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			variant_layers=env.variant_layers,
+		),
+		stats=stats_repo,
+		env=env,
+	)
+
+	result = service.get_context(image.ingest_id)
+
+	assert result is not None
+	assert result.stats is not None
+	assert result.stats.view_milestone_count == milestone
+	assert result.stats.view_milestone_archived_at == result.stats.last_viewed_at

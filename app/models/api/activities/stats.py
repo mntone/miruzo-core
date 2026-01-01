@@ -61,6 +61,25 @@ class StatsModel(BaseModel):
 	] = None
 	"""timestamp when the image entered the hall of fame, or `None` if it has not"""
 
+	view_milestone_count: Annotated[
+		int | None,
+		Field(
+			title='View milestone',
+			description='highest view milestone reached so far, or `null` if none',
+			ge=1,
+		),
+	] = None
+	"""highest view milestone reached so far, or `None` if none"""
+
+	view_milestone_archived_at: Annotated[
+		datetime | None,
+		Field(
+			title='View milestone timestamp',
+			description='timestamp when the latest view milestone was reached, or `null` if none',
+		),
+	] = None
+	"""timestamp when the latest view milestone was reached, or `None` if none"""
+
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'StatsModel':
 		return cls(
@@ -69,4 +88,6 @@ class StatsModel(BaseModel):
 			last_viewed_at=stats.last_viewed_at,
 			first_loved_at=stats.first_loved_at,
 			hall_of_fame_at=stats.hall_of_fame_at,
+			view_milestone_count=stats.view_milestone_count if stats.view_milestone_count != 0 else None,
+			view_milestone_archived_at=stats.view_milestone_archived_at,
 		)
