@@ -17,13 +17,16 @@ class IngestRepository:
 		*,
 		relative_path: str,
 		fingerprint: str,
-		captured_at: datetime | None,
+		ingested_at: datetime,
+		captured_at: datetime,
 	) -> IngestRecord:
 		"""Insert a new ingest record."""
 		ingest = IngestRecord(
 			relative_path=relative_path,
 			fingerprint=fingerprint,
+			ingested_at=ingested_at,
 			captured_at=captured_at,
+			updated_at=ingested_at,
 			executions=None,
 		)
 

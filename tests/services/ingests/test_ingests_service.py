@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
 
@@ -20,11 +20,13 @@ class _StubRepository:
 		*,
 		relative_path: str,
 		fingerprint: str,
-		captured_at: datetime | None,
+		ingested_at: datetime,
+		captured_at: datetime,
 	) -> IngestRecord:
 		self.created = {
 			'relative_path': relative_path,
 			'fingerprint': fingerprint,
+			'ingested_at': ingested_at,
 			'captured_at': captured_at,
 		}
 		if self.fail:
@@ -33,6 +35,7 @@ class _StubRepository:
 			id=1,
 			relative_path=relative_path,
 			fingerprint=fingerprint,
+			ingested_at=ingested_at,
 			captured_at=captured_at,
 		)
 
@@ -66,7 +69,7 @@ def test_create_ingest_copy_creates_file(
 	ingest = service.create_ingest(
 		origin_path=origin_relative,
 		fingerprint=None,
-		captured_at=None,
+		captured_at=datetime.now(timezone.utc),
 		ingest_mode=IngestMode.COPY,
 	)
 
@@ -91,7 +94,7 @@ def test_create_ingest_symlink_does_not_copy(
 	ingest = service.create_ingest(
 		origin_path=origin_relative,
 		fingerprint=None,
-		captured_at=None,
+		captured_at=datetime.now(timezone.utc),
 		ingest_mode=IngestMode.SYMLINK,
 	)
 
@@ -115,7 +118,7 @@ def test_create_ingest_raises_for_unknown_mode(
 		service.create_ingest(
 			origin_path=origin_relative,
 			fingerprint=None,
-			captured_at=None,
+			captured_at=datetime.now(timezone.utc),
 			ingest_mode=cast(IngestMode, 999),
 		)
 
@@ -137,7 +140,7 @@ def test_create_ingest_copy_cleans_up_on_failure(
 		service.create_ingest(
 			origin_path=origin_relative,
 			fingerprint=None,
-			captured_at=None,
+			captured_at=datetime.now(timezone.utc),
 			ingest_mode=IngestMode.COPY,
 		)
 

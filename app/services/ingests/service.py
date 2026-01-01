@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import final
 
@@ -25,7 +25,7 @@ class IngestService:
 		*,
 		origin_path: Path,
 		fingerprint: str | None,
-		captured_at: datetime | None,
+		captured_at: datetime,
 		ingest_mode: IngestMode,
 	) -> IngestRecord:
 		"""Create an ingest record and optionally persist the original asset."""
@@ -46,10 +46,12 @@ class IngestService:
 		if fingerprint is None:
 			fingerprint = compute_fingerprint(output_path)
 
+		current = datetime.now(timezone.utc)
 		try:
 			ingest = self._repository.create_ingest(
 				relative_path=relative_path,
 				fingerprint=fingerprint,
+				ingested_at=current,
 				captured_at=captured_at,
 			)
 		except Exception:

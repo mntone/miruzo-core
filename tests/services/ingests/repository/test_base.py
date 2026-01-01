@@ -40,10 +40,12 @@ def _build_execution(status: ExecutionStatus, *, offset: int = 0) -> ExecutionEn
 
 def test_append_execution_replaces_previous_success(session: Session) -> None:
 	repo = IngestRepository(session)
+	now = datetime.now(timezone.utc)
 	ingest = repo.create_ingest(
 		relative_path='l0orig/foo.webp',
 		fingerprint='0' * 64,
-		captured_at=None,
+		ingested_at=now,
+		captured_at=now,
 	)
 
 	ingest = repo.append_execution(ingest.id, _build_execution(ExecutionStatus.UNKNOWN_ERROR))
@@ -70,10 +72,12 @@ def test_append_execution_replaces_previous_success(session: Session) -> None:
 
 def test_append_execution_trims_to_maximum(session: Session) -> None:
 	repo = IngestRepository(session)
+	now = datetime.now(timezone.utc)
 	ingest = repo.create_ingest(
 		relative_path='l0orig/foo.webp',
 		fingerprint='1' * 64,
-		captured_at=None,
+		ingested_at=now,
+		captured_at=now,
 	)
 	assert ingest is not None
 

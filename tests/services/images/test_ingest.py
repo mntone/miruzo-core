@@ -1,5 +1,5 @@
 from collections.abc import Iterator, Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
 
@@ -33,7 +33,7 @@ class DummyIngestCore:
 		*,
 		origin_path: Path,
 		fingerprint: str | None,
-		captured_at: datetime | None,
+		captured_at: datetime,
 		ingest_mode: IngestMode,
 	) -> IngestRecord:
 		self.created_args = {
@@ -107,7 +107,7 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 		id=5,
 		relative_path=str(origin_relpath),
 		fingerprint='f' * 64,
-		captured_at=None,
+		captured_at=datetime.now(timezone.utc),
 	)
 
 	spec = build_variant_spec(1, 320, container='webp', codecs='vp8')
@@ -134,7 +134,7 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	ingest = service.ingest(
 		origin_path=origin_relpath,
 		fingerprint=None,
-		captured_at=None,
+		captured_at=datetime.now(timezone.utc),
 		ingest_mode=IngestMode.COPY,
 	)
 
@@ -169,7 +169,7 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 		id=7,
 		relative_path=str(origin_relpath),
 		fingerprint='f' * 64,
-		captured_at=None,
+		captured_at=datetime.now(timezone.utc),
 	)
 
 	policy = VariantPolicy(
@@ -192,7 +192,7 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 		service.ingest(
 			origin_path=origin_relpath,
 			fingerprint=None,
-			captured_at=None,
+			captured_at=datetime.now(timezone.utc),
 			ingest_mode=IngestMode.COPY,
 		)
 

@@ -40,7 +40,7 @@ class ImageIngestService:
 		*,
 		origin_path: Path,
 		fingerprint: str | None,
-		captured_at: datetime | None,
+		captured_at: datetime,
 		ingest_mode: IngestMode,
 	) -> IngestRecord:
 		ingest = self._ingest_core.create_ingest(

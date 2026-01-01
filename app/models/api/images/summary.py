@@ -24,13 +24,13 @@ class SummaryModel(BaseModel):
 	"""numeric primary key assigned in the database."""
 
 	captured_at: Annotated[
-		datetime | None,
+		datetime,
 		Field(
 			title='Captured timestamp',
-			description='when the photo was originally shot; `null` if metadata is missing',
+			description='timestamp when the photo was originally shot',
 		),
 	]
-	"""when the photo was originally shot; `None` if metadata is missing"""
+	"""timestamp when the photo was originally shot"""
 
 	kind: Annotated[
 		ImageKind,

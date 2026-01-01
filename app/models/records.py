@@ -2,7 +2,7 @@
 # pyright: reportUnknownVariableType=false
 
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, final
 
 from sqlalchemy import JSON, Column, Integer, SmallInteger
@@ -40,9 +40,9 @@ class IngestRecord(SQLModel, table=True):
 	)
 	relative_path: str
 	fingerprint: str = SQLField(min_length=64, max_length=64, unique=True)
-	ingested_at: datetime = SQLField(default=datetime.now(timezone.utc), nullable=False)
-	captured_at: datetime | None = SQLField(default=None)
-	updated_at: datetime = SQLField(default=datetime.now(timezone.utc), nullable=False)
+	ingested_at: datetime = SQLField(default=datetime.min, sa_column=Column(UTCDateTime(), nullable=False))
+	captured_at: datetime = SQLField(default=datetime.min, sa_column=Column(UTCDateTime(), nullable=False))
+	updated_at: datetime = SQLField(default=datetime.min, sa_column=Column(UTCDateTime(), nullable=False))
 	executions: Sequence[ExecutionEntry] | None = SQLField(
 		default=None,
 		min_length=1,
@@ -59,10 +59,7 @@ class ImageRecord(SQLModel, table=True):
 	__tablename__ = 'images'
 
 	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
-	captured_at: datetime | None = SQLField(
-		default=None,
-		sa_column=Column(UTCDateTime(), index=True),
-	)
+	captured_at: datetime = SQLField(default=datetime.min, sa_column=Column(UTCDateTime(), nullable=False))
 	kind: ImageKind = SQLField(default=ImageKind.PHOTO, sa_column=Column(Integer))
 
 	original: VariantEntry = SQLField(sa_column=Column(JSON))

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
 from shutil import rmtree
@@ -113,7 +113,9 @@ def import_jsonl(
 		'ingested': 0,
 		'invalid': 0,
 		'missing': 0,
+		'fallback': 0,
 	}
+	warned_created_at_fallback = False
 
 	with session:
 		with open(jsonl_path, 'r') as f:
@@ -129,14 +131,6 @@ def import_jsonl(
 					stats['invalid'] += 1
 					continue  # skip invalid JSON
 
-				captured_at = None
-				created_at_value = record.get('created_at')
-				if created_at_value:
-					try:
-						captured_at = datetime.fromisoformat(created_at_value)
-					except Exception:
-						pass  # skip invalid datetime format
-
 				raw_path = Path(record['filepath'])
 				src_path = raw_path if raw_path.is_absolute() else gataku_root / raw_path
 				if not src_path.exists():
@@ -151,6 +145,27 @@ def import_jsonl(
 					stats['missing'] += 1
 					continue
 
+				created_at_value = record.get('created_at')
+				if created_at_value:
+					try:
+						captured_at = datetime.fromisoformat(created_at_value)
+					except Exception:
+						captured_at = datetime.fromtimestamp(src_path.stat().st_mtime, tz=timezone.utc)
+						stats['fallback'] += 1
+						if not warned_created_at_fallback:
+							log.warning(
+								'invalid created_at detected; falling back to file mtime for subsequent entries',
+							)
+							warned_created_at_fallback = True
+				else:
+					captured_at = datetime.fromtimestamp(src_path.stat().st_mtime, tz=timezone.utc)
+					stats['fallback'] += 1
+					if not warned_created_at_fallback:
+						log.warning(
+							'missing created_at detected; falling back to file mtime for subsequent entries',
+						)
+						warned_created_at_fallback = True
+
 				ingest_record = ingest.ingest(
 					origin_path=origin_relative_path,
 					fingerprint=record['sha256'],
@@ -164,11 +179,11 @@ def import_jsonl(
 
 				if stats['read'] % 10 == 0 or stats['read'] == limit:
 					print(
-						f'[importer] progress: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}',
+						f'[importer] progress: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
 					)
 
 	print(
-		f'[importer] summary: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}',
+		f'[importer] summary: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
 	)
 
 
