@@ -104,17 +104,8 @@ class StatsRecord(SQLModel, table=True):
 		),
 	)
 	view_count: int = SQLField(default=0, ge=0, nullable=False)
-	last_viewed_at: datetime | None = SQLField(
-		default=None,
-		sa_column=Column(UTCDateTime(), index=True),
-	)
-	first_loved_at: datetime | None = SQLField(
-		default=None,
-		sa_column=Column(UTCDateTime(), index=True),
-	)
-	hall_of_fame_at: datetime | None = SQLField(
-		default=None,
-		sa_column=Column(UTCDateTime(), index=True),
-	)
+	last_viewed_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
+	first_loved_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
+	hall_of_fame_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
 
 	ingest: IngestRecord = Relationship(back_populates='stats')
