@@ -112,3 +112,12 @@ class StatsRecord(SQLModel, table=True):
 	view_milestone_archived_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
 
 	ingest: IngestRecord = Relationship(back_populates='stats')
+
+
+@final
+class JobRecord(SQLModel, table=True):
+	__tablename__ = 'jobs'
+
+	name: str = SQLField(min_length=8, max_length=16, primary_key=True)
+	started_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
+	finished_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
