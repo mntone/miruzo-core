@@ -1,29 +1,8 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 
+from app.domain.activities.daily_period import resolve_daily_period_start
 from app.domain.score.context import ScoreContext
 from app.models.records import StatsRecord
-
-
-def _compute_period_start(
-	evaluated_at: datetime,
-	reset: time,
-) -> datetime:
-	"""
-	Return the start datetime of the daily scoring period
-	that evaluated_at belongs to.
-	"""
-
-	candidate = evaluated_at.replace(
-		hour=reset.hour,
-		minute=reset.minute,
-		second=reset.second,
-		microsecond=0,
-	)
-
-	if evaluated_at < candidate:
-		candidate -= timedelta(days=1)
-
-	return candidate
 
 
 def _has_view_in_current_period(
@@ -35,7 +14,10 @@ def _has_view_in_current_period(
 	if last_viewed_at is None:
 		return False
 
-	period_start = _compute_period_start(evaluated_at, reset=reset_time)
+	period_start = resolve_daily_period_start(
+		evaluated_at,
+		daily_reset_at=reset_time,
+	)
 
 	return last_viewed_at >= period_start
 

@@ -28,6 +28,35 @@ class ActionRepository:
 
 		return items
 
+	def select_one_by(
+		self,
+		ingest_id: int,
+		*,
+		kind: ActionKind,
+		since_occurred_at: datetime,
+		until_occurred_at: datetime,
+	) -> ActionRecord | None:
+		"""
+		Return any one matching ActionRecord.
+		Time range is interpreted as [since_occurred_at, until_occurred_at).
+		Order is not guaranteed.
+		"""
+
+		statement = (
+			select(ActionRecord)
+			.where(
+				ActionRecord.ingest_id == ingest_id,
+				ActionRecord.kind == kind,
+				ActionRecord.occurred_at >= since_occurred_at,
+				ActionRecord.occurred_at < until_occurred_at,
+			)
+			.limit(1)
+		)
+
+		row = self._session.exec(statement).one_or_none()
+
+		return row
+
 	def insert(
 		self,
 		ingest_id: int,

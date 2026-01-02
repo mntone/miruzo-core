@@ -4,11 +4,12 @@
 # pyright: reportUnknownVariableType=false
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from typing import TypeVar
 
-from sqlalchemy import Insert
+from sqlalchemy import Insert, true
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 from app.models.records import StatsRecord
 
@@ -53,3 +54,22 @@ class BaseStatsRepository(ABC):
 
 	@abstractmethod
 	def _build_insert(self, model: type[TModel]) -> Insert: ...
+
+	def iterable(self) -> Iterable[StatsRecord]:
+		last_ingest_id = None
+
+		while True:
+			statement = (
+				select(StatsRecord)
+				.where(StatsRecord.ingest_id > last_ingest_id if last_ingest_id is not None else true())
+				.order_by(StatsRecord.ingest_id.asc())
+				.limit(500)
+			)
+
+			rows = self._session.exec(statement).all()
+			if not rows:
+				break
+
+			yield from rows
+
+			last_ingest_id = rows[-1].ingest_id

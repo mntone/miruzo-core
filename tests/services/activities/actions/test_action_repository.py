@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import pytest
@@ -43,3 +43,62 @@ def test_select_by_ingest_id_orders_by_occurred_at(session: Session) -> None:
 		ActionKind.MEMO,
 		ActionKind.VIEW,
 	]
+
+
+def test_select_one_by_respects_time_window(session: Session) -> None:
+	ingest = add_ingest_record(session, 1)
+	repo = ActionRepository(session)
+
+	since = datetime(2026, 1, 1, tzinfo=timezone.utc)
+	until = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.DECAY,
+		occurred_at=since,
+	)
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.DECAY,
+		occurred_at=until,
+	)
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.DECAY,
+		occurred_at=datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc),
+	)
+
+	matched = repo.select_one_by(
+		ingest.id,
+		kind=ActionKind.DECAY,
+		since_occurred_at=since,
+		until_occurred_at=until,
+	)
+	assert matched is not None
+	assert matched.occurred_at < until
+
+	boundary_match = repo.select_one_by(
+		ingest.id,
+		kind=ActionKind.DECAY,
+		since_occurred_at=until,
+		until_occurred_at=until + timedelta(days=1),
+	)
+	assert boundary_match is not None
+	assert boundary_match.occurred_at == until
+
+
+def test_select_one_by_returns_none_when_missing(session: Session) -> None:
+	ingest = add_ingest_record(session, 1)
+	repo = ActionRepository(session)
+
+	since = datetime(2024, 1, 1, tzinfo=timezone.utc)
+	until = datetime(2024, 1, 2, tzinfo=timezone.utc)
+
+	result = repo.select_one_by(
+		ingest.id,
+		kind=ActionKind.DECAY,
+		since_occurred_at=since,
+		until_occurred_at=until,
+	)
+
+	assert result is None
