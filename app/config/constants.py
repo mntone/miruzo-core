@@ -6,8 +6,8 @@ LIMIT_MAXIMUM = 200
 
 VIEW_MILESTONES = (
 	1,
+	100,
 	500,
-	10**3,
 	10**4,
 	10**5,
 	10**6,
