@@ -62,8 +62,14 @@ def init_database() -> None:
 	SQLModel.metadata.create_all(engine)
 
 
-def get_session() -> Generator[Session, Any, None]:
+def create_session() -> Session:
 	session = Session(engine)
+
+	return session
+
+
+def get_session() -> Generator[Session, Any, None]:
+	session = create_session()
 	try:
 		yield session
 	finally:
