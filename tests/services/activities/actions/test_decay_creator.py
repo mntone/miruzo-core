@@ -1,4 +1,5 @@
 from datetime import datetime, time, timezone
+from zoneinfo import ZoneInfo
 
 from tests.services.activities.actions.stubs import StubActionRepository
 
@@ -15,6 +16,7 @@ def test_create_returns_action_when_missing() -> None:
 	creator = DecayActionCreator(
 		repository=repo,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	result = creator.create(1, occurred_at=evaluated_at)
@@ -27,6 +29,7 @@ def test_create_returns_action_when_missing() -> None:
 	expected_since, expected_until = resolve_daily_period_range(
 		evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 	assert repo.select_one_called_with is not None
 	assert repo.select_one_called_with.ingest_id == 1
@@ -49,6 +52,7 @@ def test_create_returns_none_when_existing() -> None:
 	creator = DecayActionCreator(
 		repository=repo,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	result = creator.create(1, occurred_at=evaluated_at)

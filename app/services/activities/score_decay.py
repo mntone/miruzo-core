@@ -1,5 +1,6 @@
 from datetime import datetime, time
 from typing import Callable, final
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session
 
@@ -20,10 +21,12 @@ class ScoreDecayRunner:
 		score_calculator: ScoreCalculator,
 		session_factory: Callable[[], Session],
 		daily_reset_at: time,
+		base_timezone: ZoneInfo | None,
 	) -> None:
 		self._score_calculator = score_calculator
 		self._session_factory = session_factory
 		self._daily_reset_at = daily_reset_at
+		self._base_timezone = base_timezone
 
 	def apply_daily_decay(self, *, evaluated_at: datetime) -> None:
 		with self._session_factory() as session:
@@ -31,6 +34,7 @@ class ScoreDecayRunner:
 			decay_creator = DecayActionCreator(
 				ActionRepository(session),
 				daily_reset_at=self._daily_reset_at,
+				base_timezone=self._base_timezone,
 			)
 
 			stats_list = stats_repo.iterable()
@@ -48,6 +52,7 @@ class ScoreDecayRunner:
 					stats=stats,
 					evaluated_at=evaluated_at,
 					daily_reset_at=self._daily_reset_at,
+					base_timezone=self._base_timezone,
 				)
 
 				new_score = self._score_calculator.apply(

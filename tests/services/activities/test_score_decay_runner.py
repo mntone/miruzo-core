@@ -1,6 +1,6 @@
-from dataclasses import dataclass
 from datetime import datetime, time, timezone
 from typing import final
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -78,6 +78,7 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
 		session_factory=_make_session,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	runner.apply_daily_decay(evaluated_at=evaluated_at)
@@ -141,6 +142,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
 		session_factory=_make_session,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	runner.apply_daily_decay(evaluated_at=evaluated_at)

@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,6 +31,7 @@ class Settings(BaseSettings):
 	)
 
 	environment: Environment = Environment.PRODUCTION
+	base_timezone: ZoneInfo | None = None  # None=local timezone
 
 	database_backend: DatabaseBackend = DatabaseBackend.SQLITE
 	database_url: str = 'sqlite:///var/miruzo.sqlite'
@@ -59,6 +61,15 @@ class Settings(BaseSettings):
 			if normalized in _ALLOWED_ENVIRONMENTS:
 				return normalized
 		raise ValueError("environment must be 'development' or 'production'")
+
+	@classmethod
+	@field_validator('base_timezone', mode='before')
+	def _normalize_base_timezone(cls, value: object) -> object:
+		if value is None or isinstance(value, ZoneInfo):
+			return value
+		if isinstance(value, str):
+			return ZoneInfo(value)
+		raise ValueError('base_timezone must be a zoneinfo')
 
 	@classmethod
 	@field_validator('database_url')

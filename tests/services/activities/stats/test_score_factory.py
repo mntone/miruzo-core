@@ -1,4 +1,5 @@
 from datetime import datetime, time, timezone
+from zoneinfo import ZoneInfo
 
 from tests.services.activities.stats.factory import build_stats_record
 
@@ -13,6 +14,7 @@ def test_make_score_context_without_last_view() -> None:
 		stats=stats,
 		evaluated_at=evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert context.last_viewed_at is None
@@ -31,6 +33,7 @@ def test_make_score_context_marks_view_within_period() -> None:
 		stats=stats,
 		evaluated_at=evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert context.has_view_today is True
@@ -48,6 +51,7 @@ def test_make_score_context_marks_view_before_period() -> None:
 		stats=stats,
 		evaluated_at=evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert context.has_view_today is False

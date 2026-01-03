@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
 
@@ -28,6 +29,7 @@ def test_resolve_daily_period_start_keeps_time_after_reset(target_time: time) ->
 	result = resolve_daily_period_start(
 		evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert result == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)
@@ -53,6 +55,7 @@ def test_resolve_daily_period_start_shifts_before_reset(target_time: time) -> No
 	result = resolve_daily_period_start(
 		evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert result == datetime(2026, 1, 1, 5, 0, tzinfo=timezone.utc)
@@ -65,9 +68,26 @@ def test_resolve_daily_period_start_converts_timezone_to_utc() -> None:
 	result = resolve_daily_period_start(
 		evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert result == datetime(2026, 1, 1, 5, 0, tzinfo=timezone.utc)
+
+
+def test_resolve_daily_period_start_uses_base_timezone() -> None:
+	try:
+		jst = ZoneInfo('Asia/Tokyo')
+	except ZoneInfoNotFoundError:
+		pytest.skip('ZoneInfo data not available')
+	evaluated_at = datetime(2026, 1, 2, 0, 30, tzinfo=timezone.utc)
+
+	result = resolve_daily_period_start(
+		evaluated_at,
+		daily_reset_at=time(5, 0),
+		base_timezone=jst,
+	)
+
+	assert result == datetime(2026, 1, 2, 5, 0, tzinfo=jst)
 
 
 def test_resolve_daily_period_start_assumes_utc_for_naive() -> None:
@@ -76,9 +96,43 @@ def test_resolve_daily_period_start_assumes_utc_for_naive() -> None:
 	result = resolve_daily_period_start(
 		evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert result == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)
+
+
+def test_resolve_daily_period_start_assumes_base_timezone_for_naive() -> None:
+	try:
+		jst = ZoneInfo('Asia/Tokyo')
+	except ZoneInfoNotFoundError:
+		pytest.skip('ZoneInfo data not available')
+	evaluated_at = datetime(2026, 1, 2, 4, 0)
+
+	result = resolve_daily_period_start(
+		evaluated_at,
+		daily_reset_at=time(5, 0),
+		base_timezone=jst,
+	)
+
+	assert result == datetime(2026, 1, 1, 5, 0, tzinfo=jst)
+
+
+def test_resolve_daily_period_start_handles_dst_transition() -> None:
+	try:
+		local_tz = ZoneInfo('America/New_York')
+	except ZoneInfoNotFoundError:
+		pytest.skip('ZoneInfo data not available')
+
+	evaluated_at = datetime(2026, 3, 8, 10, 0, tzinfo=timezone.utc)
+
+	result = resolve_daily_period_start(
+		evaluated_at,
+		daily_reset_at=time(5, 0),
+		base_timezone=local_tz,
+	)
+
+	assert result == datetime(2026, 3, 8, 5, 0, tzinfo=local_tz)
 
 
 def test_resolve_daily_period_range_returns_one_day_span() -> None:
@@ -87,6 +141,7 @@ def test_resolve_daily_period_range_returns_one_day_span() -> None:
 	period_start, period_end = resolve_daily_period_range(
 		evaluated_at,
 		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
 	)
 
 	assert period_start == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)

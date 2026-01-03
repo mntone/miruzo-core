@@ -35,6 +35,7 @@ class ContextService:
 		self._stats = stats
 		self._score_calc = ScoreCalculator(env.score)
 		self._daily_reset_at = env.time.daily_reset_at
+		self._base_timezone = env.base_timezone
 
 	def get_context(
 		self,
@@ -67,6 +68,7 @@ class ContextService:
 				stats=stats,
 				evaluated_at=current,
 				daily_reset_at=self._daily_reset_at,
+				base_timezone=self._base_timezone,
 			)
 
 			new_score = self._score_calc.apply(

@@ -42,6 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 			score_calculator=ScoreCalculator(env.score),
 			session_factory=create_session,
 			daily_reset_at=env.time.daily_reset_at,
+			base_timezone=env.base_timezone,
 		),
 	)
 

@@ -1,4 +1,5 @@
 from datetime import datetime, time
+from zoneinfo import ZoneInfo
 
 from app.domain.activities.daily_period import resolve_daily_period_start
 from app.domain.score.context import ScoreContext
@@ -10,6 +11,7 @@ def _has_view_in_current_period(
 	last_viewed_at: datetime | None,
 	evaluated_at: datetime,
 	reset_time: time,
+	timezone: ZoneInfo | None,
 ) -> bool:
 	if last_viewed_at is None:
 		return False
@@ -17,6 +19,7 @@ def _has_view_in_current_period(
 	period_start = resolve_daily_period_start(
 		evaluated_at,
 		daily_reset_at=reset_time,
+		base_timezone=timezone,
 	)
 
 	return last_viewed_at >= period_start
@@ -27,6 +30,7 @@ def make_score_context(
 	stats: StatsRecord,
 	evaluated_at: datetime,
 	daily_reset_at: time,
+	base_timezone: ZoneInfo | None,
 ) -> ScoreContext:
 	last_viewed_at = stats.last_viewed_at
 
@@ -39,6 +43,7 @@ def make_score_context(
 		last_viewed_at=stats.last_viewed_at,
 		evaluated_at=evaluated_at,
 		reset_time=daily_reset_at,
+		timezone=base_timezone,
 	)
 
 	context = ScoreContext(
