@@ -4,9 +4,9 @@ from typing import Literal, TypeAlias
 
 from PIL import Image as PILImage
 
-from app.config.variant import VariantSlotkey, VariantSpec
+from app.config.variant import VariantSlot, VariantSpec
 from app.services.images.variants.path import VariantRelativePath, build_absolute_path
-from app.services.images.variants.utils import ImageInfo, parse_variant_slotkey
+from app.services.images.variants.utils import ImageInfo, parse_variant_slot
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,16 +50,16 @@ class VariantFile:
 	file_info: FileInfo
 	image_info: ImageInfo
 	variant_dir: str
-	_slotkey_cache: VariantSlotkey | None = field(init=False, default=None, repr=False)
+	_slot_cache: VariantSlot | None = field(init=False, default=None, repr=False)
 
 	@property
-	def slotkey(self) -> VariantSlotkey:
-		if self._slotkey_cache is None:
-			slotkey = parse_variant_slotkey(self.variant_dir)
-			object.__setattr__(self, '_slotkey_cache', slotkey)
-			return slotkey
+	def slot(self) -> VariantSlot:
+		if self._slot_cache is None:
+			slot = parse_variant_slot(self.variant_dir)
+			object.__setattr__(self, '_slot_cache', slot)
+			return slot
 
-		return self._slotkey_cache
+		return self._slot_cache
 
 
 @dataclass(frozen=True, slots=True)

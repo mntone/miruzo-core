@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import ExifTags, TiffImagePlugin
 from PIL import Image as PILImage
 
-from app.config.variant import VariantSlotkey
+from app.config.variant import VariantSlot
 
 _TIFF_LOSSLESS_COMPRESSIONS = {
 	1,  # No compression
@@ -79,18 +79,18 @@ def get_image_info_from_file(path: Path) -> ImageInfo:
 		return info
 
 
-def parse_variant_slotkey(label: str) -> VariantSlotkey:
+def parse_variant_slot(label: str) -> VariantSlot:
 	"""
-	Parse slotkey and return structured representation.
+	Parse slot and return structured representation.
 	Raises ValueError if invalid.
 	Returns structured, normalized representation.
 	"""
 
 	match = re.fullmatch(r'l(?P<layer>\d+)w(?P<width>\d+)', label)
 	if not match:
-		raise ValueError(f'Malformed variant slotkey: {label}')
+		raise ValueError(f'Malformed variant slot: {label}')
 
-	return VariantSlotkey(
+	return VariantSlot(
 		layer_id=int(match['layer']),
 		width=int(match['width']),
 	)

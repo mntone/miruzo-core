@@ -57,10 +57,10 @@ def test_compare_variant_specs_classifies_matches_mismatches_and_orphans() -> No
 		[file_match, file_mismatch, file_orphan],
 	)
 
-	assert [cmp.expected_spec.slotkey for cmp in diff.matched] == [spec_match.slotkey]
-	assert [cmp.expected_spec.slotkey for cmp in diff.mismatched] == [spec_mismatch.slotkey]
-	assert [spec.slotkey for spec in diff.missing] == [spec_missing.slotkey]
-	assert [file.slotkey for file in diff.orphaned] == [file_orphan.slotkey]
+	assert [cmp.expected_spec.slot for cmp in diff.matched] == [spec_match.slot]
+	assert [cmp.expected_spec.slot for cmp in diff.mismatched] == [spec_mismatch.slot]
+	assert [spec.slot for spec in diff.missing] == [spec_missing.slot]
+	assert [file.slot for file in diff.orphaned] == [file_orphan.slot]
 
 
 def test_compare_variant_specs_reports_multiple_files_per_spec() -> None:
@@ -70,8 +70,8 @@ def test_compare_variant_specs_reports_multiple_files_per_spec() -> None:
 
 	diff = _compare_variant_specs([spec], [file_webp, file_jpeg])
 
-	assert [cmp.expected_spec.slotkey for cmp in diff.matched] == [spec.slotkey]
-	assert [cmp.expected_spec.slotkey for cmp in diff.mismatched] == [spec.slotkey]
+	assert [cmp.expected_spec.slot for cmp in diff.matched] == [spec.slot]
+	assert [cmp.expected_spec.slot for cmp in diff.mismatched] == [spec.slot]
 	assert diff.missing == []
 	assert diff.orphaned == []
 

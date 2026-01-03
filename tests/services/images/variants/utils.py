@@ -63,7 +63,7 @@ def build_variant_file(
 		lossless=False,
 	)
 	relative_path = VariantRelativePath(
-		Path(f'{spec.slotkey.label}/foo/{spec.slotkey.label}.{container}'),
+		Path(f'{spec.slot.key}/foo/{spec.slot.key}.{container}'),
 	)
 	absolute_path = Path('/tmp').resolve() / relative_path
 	file_info = FileInfo(
@@ -74,5 +74,5 @@ def build_variant_file(
 	return VariantFile(
 		file_info=file_info,
 		image_info=info,
-		variant_dir=spec.slotkey.label,
+		variant_dir=spec.slot.key,
 	)

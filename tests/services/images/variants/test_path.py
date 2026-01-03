@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.config.variant import VariantSlotkey
+from app.config.variant import VariantSlot
 from app.services.images.variants.path import (
 	build_absolute_path,
 	build_variant_relative_path,
@@ -13,11 +13,11 @@ def test_map_origin_to_variant_basepath_drops_prefix_and_suffix() -> None:
 	assert result == Path('foo/bar')
 
 
-def test_build_variant_relative_path_uses_slotkey() -> None:
+def test_build_variant_relative_path_uses_slot() -> None:
 	basepath = map_origin_to_variant_basepath(Path('l0orig/foo/bar.webp'))
-	slotkey = VariantSlotkey(layer_id=1, width=200)
+	slot = VariantSlot(layer_id=1, width=200)
 
-	relpath = build_variant_relative_path(basepath, under=slotkey)
+	relpath = build_variant_relative_path(basepath, under=slot)
 
 	assert relpath == Path('l1w200/foo/bar')
 

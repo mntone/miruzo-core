@@ -2,7 +2,7 @@ from pathlib import Path
 
 from tests.services.images.variants.utils import build_webp_info
 
-from app.config.variant import WEBP_FORMAT, VariantSlotkey, VariantSpec
+from app.config.variant import WEBP_FORMAT, VariantSlot, VariantSpec
 from app.services.images.variants.commit import _delete_variant_file
 from app.services.images.variants.path import VariantRelativePath
 from app.services.images.variants.types import FileInfo, VariantFile
@@ -11,7 +11,7 @@ from app.services.images.variants.types import FileInfo, VariantFile
 def _build_variant_file(file_path: Path, file_name: Path) -> VariantFile:
 	info = build_webp_info(width=100, height=80)
 	spec = VariantSpec(
-		slotkey=VariantSlotkey(layer_id=1, width=200),
+		slot=VariantSlot(layer_id=1, width=200),
 		layer_id=1,
 		width=200,
 		format=WEBP_FORMAT,
@@ -24,7 +24,7 @@ def _build_variant_file(file_path: Path, file_name: Path) -> VariantFile:
 	return VariantFile(
 		file_info=file_info,
 		image_info=info,
-		variant_dir=spec.slotkey.label,
+		variant_dir=spec.slot.key,
 	)
 
 

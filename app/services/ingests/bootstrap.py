@@ -33,7 +33,7 @@ def _ensure_variant_roots(
 	seen: set[str] = set()
 	for layer in layers:
 		for spec in layer.specs:
-			variant_dirname = spec.slotkey.label
+			variant_dirname = spec.slot.key
 			if variant_dirname in seen:
 				continue
 

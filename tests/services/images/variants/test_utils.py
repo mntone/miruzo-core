@@ -5,11 +5,11 @@ import pytest
 from PIL import Image as PILImage
 from PIL import TiffImagePlugin
 
-from app.config.variant import VariantSlotkey
+from app.config.variant import VariantSlot
 from app.services.images.variants.utils import (
 	_get_image_format,
 	get_image_info_from_file,
-	parse_variant_slotkey,
+	parse_variant_slot,
 )
 
 
@@ -57,15 +57,15 @@ def test_get_image_format_defaults_to_lowercased_container() -> None:
 	assert _get_image_format(image) == ('abc', None, False, False)
 
 
-def test_parse_variant_slotkey_parses_valid_label() -> None:
-	slotkey = parse_variant_slotkey('l12w640')
-	assert slotkey == VariantSlotkey(layer_id=12, width=640)
+def test_parse_variant_slot_parses_valid_label() -> None:
+	slot = parse_variant_slot('l12w640')
+	assert slot == VariantSlot(layer_id=12, width=640)
 
 
 @pytest.mark.parametrize('label', ['lw200', 'l2w', 'l-1w200', 'l2w2x0', 'l2wfoo'])
-def test_parse_variant_slotkey_raises_for_invalid_labels(label: str) -> None:
+def test_parse_variant_slot_raises_for_invalid_labels(label: str) -> None:
 	with pytest.raises(ValueError):
-		parse_variant_slotkey(label)
+		parse_variant_slot(label)
 
 
 def test_get_image_info_from_file_reads_png(tmp_path: Path) -> None:

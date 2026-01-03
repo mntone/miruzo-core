@@ -32,7 +32,7 @@ def _build_variant_file(
 	codecs: str | None,
 ) -> VariantFile:
 	relative_path = VariantRelativePath(
-		Path(f'{spec.slotkey.label}/foo{spec.format.file_extension}'),
+		Path(f'{spec.slot.key}/foo{spec.format.file_extension}'),
 	)
 	absolute_path = tmp_path / relative_path
 	file_info = FileInfo(
@@ -50,7 +50,7 @@ def _build_variant_file(
 	return VariantFile(
 		file_info=file_info,
 		image_info=image_info,
-		variant_dir=spec.slotkey.label,
+		variant_dir=spec.slot.key,
 	)
 
 

@@ -57,7 +57,7 @@ def _compare_variant_specs(
 		for f in range(len(remaining_files) - 1, -1, -1):
 			file = remaining_files[f]
 
-			if spec.slotkey == file.slotkey:
+			if spec.slot == file.slot:
 				candidates.append(VariantComparison(spec, file))
 				del remaining_files[f]
 				found_candidate = True
@@ -121,7 +121,7 @@ def _prepare_variant_plan(
 
 	missing_plan_files: list[VariantPlanFile] = []
 	for spec in diff.missing:
-		variant_relpath = build_variant_relative_path(relative_path, under=spec.slotkey).with_suffix(
+		variant_relpath = build_variant_relative_path(relative_path, under=spec.slot).with_suffix(
 			spec.format.file_extension,
 		)
 		plan_file = VariantPlanFile(

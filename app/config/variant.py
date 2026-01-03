@@ -13,12 +13,12 @@ class VariantFormat:
 
 
 @dataclass(frozen=True, slots=True)
-class VariantSlotkey:
+class VariantSlot:
 	layer_id: int
 	width: int
 
 	@property
-	def label(self) -> str:
+	def key(self) -> str:
 		return f'l{self.layer_id}w{self.width}'
 
 
@@ -26,7 +26,7 @@ class VariantSlotkey:
 class VariantSpec:
 	"""Concrete thumbnail definition (size + format + output directory)."""
 
-	slotkey: VariantSlotkey
+	slot: VariantSlot
 	layer_id: int
 	width: int
 	format: VariantFormat
@@ -74,7 +74,7 @@ def _spec(
 	required: bool = False,
 ) -> VariantSpec:
 	return VariantSpec(
-		slotkey=VariantSlotkey(layer_id, width),
+		slot=VariantSlot(layer_id, width),
 		layer_id=layer_id,
 		width=width,
 		format=fmt,

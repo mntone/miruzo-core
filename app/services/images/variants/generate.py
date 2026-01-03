@@ -107,7 +107,7 @@ def _save_variant(
 	file = VariantFile(
 		file_info=file_info,
 		image_info=image_info,
-		variant_dir=spec.slotkey.label,
+		variant_dir=spec.slot.key,
 	)
 
 	return file

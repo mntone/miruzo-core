@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import NewType
 
-from app.config.variant import VariantSlotkey
+from app.config.variant import VariantSlot
 
 VariantBasePath = NewType('VariantBasePath', Path)
 VariantRelativePath = NewType('VariantRelativePath', Path)
@@ -21,10 +21,10 @@ def map_origin_to_variant_basepath(relative_path: Path) -> VariantBasePath:
 def build_variant_relative_path(
 	variant_basepath: VariantBasePath,
 	*,
-	under: str | VariantSlotkey,
+	under: str | VariantSlot,
 ) -> VariantRelativePath:
-	if isinstance(under, VariantSlotkey):
-		variant_dirname = under.label
+	if isinstance(under, VariantSlot):
+		variant_dirname = under.key
 	else:
 		variant_dirname = under
 

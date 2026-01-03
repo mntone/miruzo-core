@@ -5,7 +5,7 @@ from tempfile import gettempdir
 
 from sqlmodel import Session
 
-from app.config.variant import VariantFormat, VariantSlotkey, VariantSpec
+from app.config.variant import VariantFormat, VariantSlot, VariantSpec
 from app.models.enums import ProcessStatus, VisibilityStatus
 from app.models.records import ImageRecord, IngestRecord
 from app.models.types import VariantEntry
@@ -63,10 +63,7 @@ def _make_image_record(
 		original=build_variant('webp', 960),
 		fallback=None,
 		variants=[
-			*[
-				build_variant('webp', width, layer_id=1)
-				for width in widths
-			],
+			*[build_variant('webp', width, layer_id=1) for width in widths],
 			build_variant('jpeg', 320, layer_id=9, label='fallback'),
 		],
 	)
@@ -139,7 +136,7 @@ def build_variant_spec(
 	required: bool = False,
 ) -> VariantSpec:
 	return VariantSpec(
-		slotkey=VariantSlotkey(layer_id, width),
+		slot=VariantSlot(layer_id, width),
 		layer_id=layer_id,
 		width=width,
 		format=VariantFormat(container=container, codecs=codecs, file_extension=f'.{container}'),  # pyright: ignore[reportArgumentType]

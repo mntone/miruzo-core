@@ -11,7 +11,7 @@ from app.services.images.variants.path import (
 	build_variant_relative_path,
 )
 from app.services.images.variants.types import FileInfo, VariantFile, VariantRelativePath
-from app.services.images.variants.utils import get_image_info, parse_variant_slotkey
+from app.services.images.variants.utils import get_image_info, parse_variant_slot
 
 log = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ def normalize_media_relative_paths(
 
 	for variant_dirname in variant_dirnames:
 		try:
-			_ = parse_variant_slotkey(variant_dirname)
+			_ = parse_variant_slot(variant_dirname)
 		except ValueError:
 			continue
 

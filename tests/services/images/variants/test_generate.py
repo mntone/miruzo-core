@@ -57,7 +57,7 @@ def test_generate_variant_writes_relative_path(tmp_path: Path) -> None:
 		image=image,
 		info=build_png_info(width=80, height=60),
 	)
-	group_path = Path(spec.slotkey.label) / 'foo' / f'bar{spec.format.file_extension}'
+	group_path = Path(spec.slot.key) / 'foo' / f'bar{spec.format.file_extension}'
 	(tmp_path / group_path.parent).mkdir(parents=True)
 	plan_file = VariantPlanFile(VariantRelativePath(group_path), spec)
 

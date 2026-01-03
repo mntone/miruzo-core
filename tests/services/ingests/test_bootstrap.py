@@ -18,7 +18,7 @@ def _make_symlink(target: Path, link: Path) -> None:
 
 
 def _collect_variant_dirnames() -> set[str]:
-	return {spec.slotkey.label for layer in DEFAULT_VARIANT_LAYERS for spec in layer.specs}
+	return {spec.slot.key for layer in DEFAULT_VARIANT_LAYERS for spec in layer.specs}
 
 
 def test_ensure_media_root_creates_directory(tmp_path: Path) -> None:
