@@ -1,10 +1,10 @@
 from datetime import datetime
 from pathlib import Path
+from typing import final
 
 from app.config.environments import env
 from app.models.enums import IngestMode
 from app.models.records import ImageRecord, IngestRecord
-from app.services.images.persist import ImagePersistService
 from app.services.images.repository import ImageRepository
 from app.services.images.variants.executors.local import LocalVariantExecutor
 from app.services.images.variants.mapper import (
@@ -20,6 +20,7 @@ from app.services.ingests.repository.base import IngestRepository
 from app.services.ingests.service import IngestService
 
 
+@final
 class ImageIngestService:
 	def __init__(
 		self,
@@ -27,8 +28,8 @@ class ImageIngestService:
 		ingest_repo: IngestRepository,
 		policy: VariantPolicy,
 	) -> None:
+		self._image_repo = image_repo
 		self._ingest_core = IngestService(ingest_repo)
-		self._persist = ImagePersistService(image_repo)
 		self._pipeline = VariantPipeline(
 			media_root=env.media_root,
 			policy=policy,
@@ -79,7 +80,7 @@ class ImageIngestService:
 						variants=list(variants),
 					)
 
-					self._persist.record(image)
+					self._image_repo.insert(image)
 		finally:
 			entry = session.to_entry()
 			self._ingest_core.append_execution(ingest.id, entry)

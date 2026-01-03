@@ -10,7 +10,7 @@ from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.summary import SummaryModel
-from app.services.activities.actions.persist import ActionPersistService
+from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.repository.protocol import StatsRepository
 from app.services.activities.stats.score_factory import make_score_context
@@ -30,7 +30,7 @@ class ContextService:
 	) -> None:
 		self._session = session
 		self._action = action
-		self._action_persist = ActionPersistService(action)
+		self._action_persist = ActionCreator(action)
 		self._image = image_query
 		self._stats = stats
 		self._score_calc = ScoreCalculator(env.score)

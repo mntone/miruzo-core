@@ -9,7 +9,7 @@ from app.config.variant import VariantLayerSpec
 from app.models.api.images.responses import ImageListResponse
 from app.models.records import ImageRecord
 from app.services.images.mapper import map_image_records_to_list_response
-from app.services.images.query_builder import ImageListQueryBuilder
+from app.services.images.query_executor import ImageListQueryExecutor
 from app.services.images.repository import ImageRepository
 
 
@@ -43,7 +43,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[ImageRecord],
-			ImageListQueryBuilder(self._session)
+			ImageListQueryExecutor(self._session)
 				.latest(cursor=cursor)
 				.order_by_latest()
 				.limit(limit + 1)
@@ -74,7 +74,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[tuple[ImageRecord, datetime]],
-			ImageListQueryBuilder(self._session)
+			ImageListQueryExecutor(self._session)
 				.recently(cursor=cursor)
 				.order_by_latest()
 				.limit(limit + 1)
@@ -105,7 +105,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[tuple[ImageRecord, datetime]],
-			ImageListQueryBuilder(self._session)
+			ImageListQueryExecutor(self._session)
 				.hall_of_fame(cursor=cursor)
 				.order_by_latest()
 				.limit(limit + 1)

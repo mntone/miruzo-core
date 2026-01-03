@@ -16,7 +16,7 @@ from sqlmodel import Session, select
 from app.models.records import ImageRecord, StatsRecord
 
 
-class ImageListQueryBuilder:
+class ImageListQueryExecutor:
 	"""Build and execute list-query statements for images."""
 
 	def __init__(self, session: Session) -> None:
@@ -25,7 +25,7 @@ class ImageListQueryBuilder:
 		self._statement = None
 		self._session = session
 
-	def latest(self, *, cursor: datetime | None) -> 'ImageListQueryBuilder':
+	def latest(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
 		"""Prepare a latest-first images query."""
 
 		# SELECT * FROM images
@@ -39,7 +39,7 @@ class ImageListQueryBuilder:
 
 		return self
 
-	def recently(self, *, cursor: datetime | None) -> 'ImageListQueryBuilder':
+	def recently(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
 		"""Prepare a recently-viewed images query."""
 
 		self._statement = (
@@ -64,7 +64,7 @@ class ImageListQueryBuilder:
 
 		return self
 
-	def hall_of_fame(self, *, cursor: datetime | None) -> 'ImageListQueryBuilder':
+	def hall_of_fame(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
 		"""Prepare a hall-of-fame images query."""
 
 		self._statement = (
@@ -89,7 +89,7 @@ class ImageListQueryBuilder:
 
 		return self
 
-	def order_by_latest(self) -> 'ImageListQueryBuilder':
+	def order_by_latest(self) -> 'ImageListQueryExecutor':
 		"""Order by captured time and ingest id, newest first."""
 
 		# ORDER BY images.captured_at DESC, images.ingest_id DESC
@@ -100,7 +100,7 @@ class ImageListQueryBuilder:
 
 		return self
 
-	def limit(self, n: int) -> 'ImageListQueryBuilder':
+	def limit(self, n: int) -> 'ImageListQueryExecutor':
 		"""Apply a row limit to the current statement."""
 
 		self._statement = self._statement.limit(n)

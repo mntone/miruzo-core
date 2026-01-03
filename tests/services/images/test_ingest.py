@@ -6,6 +6,7 @@ from typing import cast
 import pytest
 from PIL import Image as PILImage
 
+from tests.services.images.stubs import StubImageRepository
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_variant_file
 
@@ -122,8 +123,9 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 		delete_orphaned=False,
 	)
 
+	image_repo = StubImageRepository()
 	service = ImageIngestService(
-		image_repo=object(),  # pyright: ignore[reportArgumentType]
+		image_repo=image_repo,  # pyright: ignore[reportArgumentType]
 		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
 		policy=policy,
 	)
@@ -139,9 +141,9 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	)
 
 	assert ingest is ingest_record
-	assert service._persist.recorded is not None  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+	assert image_repo.insert_called_with is not None  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
 
-	image = cast(ImageRecord | None, service._persist.recorded)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+	image = image_repo.insert_called_with
 	assert image is not None
 	assert image.ingest_id == ingest_record.id
 	assert image.original['rel'] == origin_relpath.__str__()
@@ -179,13 +181,13 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 		delete_orphaned=False,
 	)
 
+	image_repo = StubImageRepository()
 	service = ImageIngestService(
-		image_repo=object(),  # pyright: ignore[reportArgumentType]
+		image_repo=image_repo,  # pyright: ignore[reportArgumentType]
 		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
 		policy=policy,
 	)
 	service._ingest_core = DummyIngestCore(ingest_record)  # pyright: ignore[reportAttributeAccessIssue]
-	service._persist = DummyPersist()  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = FailingPipeline(tmp_path, [])  # pyright: ignore[reportAttributeAccessIssue]
 
 	with pytest.raises(ValueError, match='boom'):

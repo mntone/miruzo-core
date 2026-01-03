@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import final
 
 from app.models.enums import ActionKind
@@ -7,7 +7,7 @@ from app.services.activities.actions.repository import ActionRepository
 
 
 @final
-class ActionPersistService:
+class ActionCreator:
 	def __init__(self, repository: ActionRepository) -> None:
 		self._repository = repository
 
