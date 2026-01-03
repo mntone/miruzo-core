@@ -36,9 +36,6 @@ class BaseStatsRepository(ABC):
 		stats = StatsRecord(
 			ingest_id=ingest_id,
 			score=initial_score,
-			view_count=0,
-			last_viewed_at=None,
-			hall_of_fame_at=None,
 		)
 		self._session.add(stats)
 
