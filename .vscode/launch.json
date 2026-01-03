@@ -20,6 +20,14 @@
 			"jinja": true
 		},
 		{
+			"name": "score_decay cli debug",
+			"type": "debugpy",
+			"cwd": "${workspaceFolder}",
+			"request": "launch",
+			"module": "scripts.score_decay",
+			"jinja": true
+		},
+		{
 			"name": "gataku-import debug",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}",
