@@ -1,8 +1,11 @@
 from datetime import datetime, time, timezone
 from zoneinfo import ZoneInfo
 
+import pytest
+
 from tests.services.activities.stats.factory import build_stats_record
 
+from app.errors import InvariantViolationError
 from app.services.activities.stats.score_factory import make_score_context
 
 
@@ -56,3 +59,16 @@ def test_make_score_context_marks_view_before_period() -> None:
 
 	assert context.has_view_today is False
 	assert context.days_since_last_view == 1
+
+
+def test_make_score_context_raises_for_future_last_view() -> None:
+	stats = build_stats_record(1, last_viewed_at=datetime(2026, 1, 2, 12, 0, tzinfo=timezone.utc))
+	evaluated_at = datetime(2026, 1, 2, 11, 0, tzinfo=timezone.utc)
+
+	with pytest.raises(InvariantViolationError, match='last_viewed_at'):
+		make_score_context(
+			stats=stats,
+			evaluated_at=evaluated_at,
+			daily_reset_at=time(5, 0),
+			base_timezone=ZoneInfo('UTC'),
+		)

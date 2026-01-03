@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from app.domain.activities.daily_period import resolve_daily_period_start
 from app.domain.score.context import ScoreContext
+from app.errors import InvariantViolationError
 from app.models.records import StatsRecord
 
 
@@ -36,6 +37,10 @@ def make_score_context(
 
 	if last_viewed_at is None:
 		days_since_last_view = 0
+	elif last_viewed_at > evaluated_at:
+		raise InvariantViolationError(
+			f'last_viewed_at ({last_viewed_at}) is later than evaluated_at ({evaluated_at})',
+		)
 	else:
 		days_since_last_view = (evaluated_at - last_viewed_at).days
 
