@@ -3,31 +3,13 @@ from tests.services.activities.stats.factory import build_stats_record
 from tests.services.activities.stats.stubs import StubStatsRepository
 from tests.services.images.stubs import StubImageRepository
 from tests.services.images.utils import build_image_record
+from tests.stubs.session import StubSession
 
 from app.config.constants import VIEW_MILESTONES
 from app.config.environments import env
 from app.models.enums import ActionKind
 from app.services.images.query_service import ImageQueryService
 from app.services.views.context import ContextService
-
-
-class _StubBegin:
-	def __init__(self, session: 'StubSession') -> None:
-		self._session = session
-
-	def __enter__(self) -> None:
-		self._session.begin_called += 1
-
-	def __exit__(self, exc_type: object, exc: object, tb: object) -> bool:
-		return False
-
-
-class StubSession:
-	def __init__(self) -> None:
-		self.begin_called = 0
-
-	def begin(self) -> _StubBegin:
-		return _StubBegin(self)
 
 
 def test_get_context_returns_none_when_record_missing() -> None:
@@ -43,7 +25,7 @@ def test_get_context_returns_none_when_record_missing() -> None:
 			repository=image_repo,  # pyright: ignore[reportArgumentType]
 			variant_layers=env.variant_layers,
 		),
-		stats=stats_repo,
+		stats=stats_repo,  # pyright: ignore[reportArgumentType]
 		env=env,
 	)
 
@@ -75,7 +57,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 			repository=image_repo,  # pyright: ignore[reportArgumentType]
 			variant_layers=env.variant_layers,
 		),
-		stats=stats_repo,
+		stats=stats_repo,  # pyright: ignore[reportArgumentType]
 		env=env,
 	)
 
@@ -119,7 +101,7 @@ def test_get_context_updates_view_milestone() -> None:
 			repository=image_repo,  # pyright: ignore[reportArgumentType]
 			variant_layers=env.variant_layers,
 		),
-		stats=stats_repo,
+		stats=stats_repo,  # pyright: ignore[reportArgumentType]
 		env=env,
 	)
 

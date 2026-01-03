@@ -31,24 +31,26 @@ class JobManager:
 		current = datetime.now(timezone.utc)
 
 		with self._session_factory() as session:
-			job_repo = self._job_repo_factory(session)
+			with session.begin():
+				job_repo = self._job_repo_factory(session)
 
-			job_record = job_repo.get_or_create(job.name)
+				job_record = job_repo.get_or_create(job.name)
 
-			skip_run = self._should_skip_run(
-				job_record=job_record,
-				current=current,
-			)
-			if skip_run:
-				return False
+				skip_run = self._should_skip_run(
+					job_record=job_record,
+					current=current,
+				)
+				if skip_run:
+					return False
 
-			job_repo.mark_started(job_record, started_at=current)
+				job_repo.mark_started(job_record, started_at=current)
 
 		job.run(evaluated_at=current)
 
 		with self._session_factory() as session:
-			job_repo = self._job_repo_factory(session)
+			with session.begin():
+				job_repo = self._job_repo_factory(session)
 
-			job_repo.mark_finished(job.name, finished_at=datetime.now(timezone.utc))
+				job_repo.mark_finished(job.name, finished_at=datetime.now(timezone.utc))
 
 		return True

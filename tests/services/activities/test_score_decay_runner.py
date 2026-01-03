@@ -7,23 +7,11 @@ import pytest
 from tests.domains.score.stub import StubScoreCalculator
 from tests.services.activities.stats.factory import build_stats_record
 from tests.services.activities.stats.stubs import StubStatsRepository
+from tests.stubs.session import StubSession
 
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
 from app.services.activities.score_decay import ScoreDecayRunner
-
-
-@final
-class _StubSession:
-	def __enter__(self) -> '_StubSession':
-		return self
-
-	def __exit__(self, exc_type: object, exc: object, tb: object) -> None:  # pyright: ignore[reportMissingParameterType, reportUnknownParameterType]
-		return None
-
-
-def _make_session() -> _StubSession:
-	return _StubSession()
 
 
 @final
@@ -55,7 +43,7 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 	decay_creator = _StubDecayCreator()
 	score_calculator = StubScoreCalculator()
 
-	def _create_stats_repository(_: _StubSession) -> StubStatsRepository:
+	def _create_stats_repository(_: StubSession) -> StubStatsRepository:
 		return stats_repo
 
 	class _DecayCreatorFactory:
@@ -74,14 +62,17 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 		_DecayCreatorFactory,
 	)
 
+	session = StubSession()
 	runner = ScoreDecayRunner(
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
-		session_factory=_make_session,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
 		base_timezone=ZoneInfo('UTC'),
 	)
 
-	runner.apply_daily_decay(evaluated_at=evaluated_at)
+	runner.apply_daily_decay(
+		session,  # pyright: ignore[reportArgumentType]
+		evaluated_at=evaluated_at,
+	)
 
 	assert stats_one.score == 8
 	assert stats_two.score == 18
@@ -113,7 +104,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 
 	score_calculator = StubScoreCalculator()
 
-	def _create_stats_repository(_: _StubSession) -> StubStatsRepository:
+	def _create_stats_repository(_: StubSession) -> StubStatsRepository:
 		return stats_repo
 
 	class _DecayCreatorFactory:
@@ -138,14 +129,17 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 		_DecayCreatorFactory,
 	)
 
+	session = StubSession()
 	runner = ScoreDecayRunner(
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
-		session_factory=_make_session,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
 		base_timezone=ZoneInfo('UTC'),
 	)
 
-	runner.apply_daily_decay(evaluated_at=evaluated_at)
+	runner.apply_daily_decay(
+		session,  # pyright: ignore[reportArgumentType]
+		evaluated_at=evaluated_at,
+	)
 
 	assert stats_one.score == 8
 	assert stats_two.score == 20

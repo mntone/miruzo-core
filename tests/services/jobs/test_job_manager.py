@@ -6,26 +6,12 @@ import pytest
 
 from tests.jobs.stub import StubJob
 from tests.services.jobs.stubs import StubJobRepository
+from tests.stubs.ref import RefInt
+from tests.stubs.session import create_stub_session_factory
 
 import app.services.jobs.manager as manager
 from app.models.records import JobRecord
 from app.services.jobs.manager import JobManager
-
-
-class _StubSession:
-	def __enter__(self) -> '_StubSession':
-		return self
-
-	def __exit__(self, exc_type: object, exc: object, tb: object) -> bool:
-		return False
-
-
-def _make_session_factory(counter: list[int]) -> Callable[[], _StubSession]:
-	def factory() -> _StubSession:
-		counter[0] += 1
-		return _StubSession()
-
-	return factory
 
 
 def test_try_run_executes_job_and_marks_records(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -42,10 +28,10 @@ def test_try_run_executes_job_and_marks_records(monkeypatch: pytest.MonkeyPatch)
 	record = JobRecord(name=job._NAME)
 	repo = StubJobRepository()
 	repo.jobs = {job.name: record}
-	session_calls = [0]
+	session_calls = RefInt(0)
 
 	manager_instance = JobManager(
-		session_factory=_make_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
+		session_factory=create_stub_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
 		job_repo_factory=lambda _: repo,
 		min_interval=timedelta(minutes=10),
 	)
@@ -53,7 +39,7 @@ def test_try_run_executes_job_and_marks_records(monkeypatch: pytest.MonkeyPatch)
 	ran = manager_instance.try_run(job)
 
 	assert ran is True
-	assert session_calls[0] == 2
+	assert session_calls.value == 2
 	assert repo.get_called_with == [job.name]
 	assert repo.started_called_with == [started_at]
 	assert repo.finished_called_with == [(job.name, finished_at)]
@@ -73,10 +59,10 @@ def test_try_run_skips_recent_run(monkeypatch: pytest.MonkeyPatch) -> None:
 	)
 	repo = StubJobRepository()
 	repo.jobs = {job.name: record}
-	session_calls = [0]
+	session_calls = RefInt(0)
 
 	manager_instance = JobManager(
-		session_factory=_make_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
+		session_factory=create_stub_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
 		job_repo_factory=lambda _: repo,
 		min_interval=timedelta(minutes=10),
 	)
@@ -84,7 +70,7 @@ def test_try_run_skips_recent_run(monkeypatch: pytest.MonkeyPatch) -> None:
 	ran = manager_instance.try_run(job)
 
 	assert ran is False
-	assert session_calls[0] == 1
+	assert session_calls.value == 1
 	assert repo.get_called_with == [job.name]
 	assert repo.started_called_with == []
 	assert repo.finished_called_with == []
@@ -108,10 +94,10 @@ def test_try_run_runs_when_interval_equals_minimum(monkeypatch: pytest.MonkeyPat
 	)
 	repo = StubJobRepository()
 	repo.jobs = {job.name: record}
-	session_calls = [0]
+	session_calls = RefInt(0)
 
 	manager_instance = JobManager(
-		session_factory=_make_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
+		session_factory=create_stub_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
 		job_repo_factory=lambda _: repo,
 		min_interval=timedelta(minutes=10),
 	)
@@ -119,7 +105,7 @@ def test_try_run_runs_when_interval_equals_minimum(monkeypatch: pytest.MonkeyPat
 	ran = manager_instance.try_run(job)
 
 	assert ran is True
-	assert session_calls[0] == 2
+	assert session_calls.value == 2
 	assert repo.started_called_with == [current]
 	assert repo.finished_called_with == [(job.name, finished_at)]
 	assert job.run_called_with == [current]
@@ -139,10 +125,10 @@ def test_try_run_does_not_mark_finished_on_run_error(
 	record = JobRecord(name=job.name)
 	repo = StubJobRepository()
 	repo.jobs = {job.name: record}
-	session_calls = [0]
+	session_calls = RefInt(0)
 
 	manager_instance = JobManager(
-		session_factory=_make_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
+		session_factory=create_stub_session_factory(session_calls),  # pyright: ignore[reportArgumentType]
 		job_repo_factory=lambda _: repo,
 		min_interval=timedelta(minutes=10),
 	)
@@ -150,6 +136,6 @@ def test_try_run_does_not_mark_finished_on_run_error(
 	with pytest.raises(RuntimeError, match='boom'):
 		manager_instance.try_run(job)
 
-	assert session_calls[0] == 1
+	assert session_calls.value == 1
 	assert repo.started_called_with == [current]
 	assert repo.finished_called_with == []

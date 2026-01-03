@@ -40,10 +40,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 	score_decay = ScoreDecayJob(
 		ScoreDecayRunner(
 			score_calculator=ScoreCalculator(env.score),
-			session_factory=create_session,
 			daily_reset_at=env.time.daily_reset_at,
 			base_timezone=env.base_timezone,
 		),
+		session_factory=create_session,
 	)
 
 	register_daily_job(
