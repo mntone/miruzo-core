@@ -121,3 +121,21 @@ class JobRecord(SQLModel, table=True):
 	name: str = SQLField(min_length=8, max_length=16, primary_key=True)
 	started_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
 	finished_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
+
+
+@final
+class UserRecord(SQLModel, table=True):
+	__tablename__ = 'users'
+
+	id: int = SQLField(default=None, primary_key=True, nullable=False)
+	daily_love_used: int = SQLField(
+		default=0,
+		ge=0,
+		le=10,
+		sa_column=Column(
+			SmallInteger,
+			autoincrement=False,
+			default=0,
+			nullable=False,
+		),
+	)

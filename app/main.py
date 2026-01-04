@@ -15,6 +15,7 @@ from app.infrastructures.scheduler import create_scheduler, register_daily_job
 from app.jobs.score_decay import ScoreDecayJob
 from app.routers.health import router as health
 from app.routers.images import router as images
+from app.routers.quota import router as quota
 from app.services.activities.score_decay import ScoreDecayRunner
 from app.services.ingests.bootstrap import ensure_ingest_layout
 from app.services.jobs.manager import JobManager
@@ -62,6 +63,7 @@ app = FastAPI(title='miruzo API', lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=9)
 app.include_router(images, prefix='/api')
 app.include_router(health, prefix='/api')
+app.include_router(quota, prefix='/api')
 
 app.add_middleware(
 	CORSMiddleware,

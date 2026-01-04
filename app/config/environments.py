@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.config.quota import QuotaConfig
 from app.config.score import ScoreConfig
 from app.config.time import TimeConfig
 from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
@@ -43,6 +44,7 @@ class Settings(BaseSettings):
 	gataku_assets_root: Path = Path('../gataku/out/downloads')
 	gataku_symlink_dirname: str = 'gataku'
 
+	quota: QuotaConfig = QuotaConfig()
 	score: ScoreConfig = ScoreConfig()
 	time: TimeConfig = TimeConfig()
 	variant_layers: tuple[VariantLayerSpec, ...] = DEFAULT_VARIANT_LAYERS
