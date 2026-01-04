@@ -57,9 +57,9 @@ else:
 
 
 def init_database() -> None:
-	_verify_schema_version(env.database_url, 'alembic.ini')
-
 	SQLModel.metadata.create_all(engine)
+
+	_verify_schema_version(env.database_url, 'alembic.ini')
 
 
 def create_session() -> Session:
