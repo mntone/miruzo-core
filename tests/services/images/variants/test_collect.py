@@ -79,7 +79,7 @@ def test_collect_variant_files_yields_existing_variants(
 	assert len(result) == 1
 	assert result[0].variant_dir == 'l1w200'
 	assert called['absolute'] == target
-	assert called['relative'] == Path('l1w200/foo/bar')
+	assert called['relative'] == Path('l1w200/foo/bar.webp')
 
 
 def test_normalize_media_relative_paths_filters_invalid() -> None:

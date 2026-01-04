@@ -111,7 +111,8 @@ def collect_variant_files(
 		output_name = target_base.name
 
 		for absolute_path in output_path.glob(f'{output_name}.*'):
-			variant_file = _load_variant_file(absolute_path, relative_path, variant_dirname)
+			relpath_withext = relative_path.with_suffix(absolute_path.suffix)
+			variant_file = _load_variant_file(absolute_path, relpath_withext, variant_dirname)
 			if variant_file is not None:
 				yield variant_file
 
