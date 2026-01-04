@@ -20,13 +20,35 @@ def session() -> Generator[Session, Any, None]:
 
 def test_latest_adds_cursor_filter_and_order(session: Session) -> None:
 	cursor = datetime(2024, 1, 1)
-	statement = ImageListQueryExecutor(session).latest(cursor=cursor).order_by_latest().limit(5)._statement
+	statement = (
+		ImageListQueryExecutor(session).latest(cursor=cursor).order_by_ingest_id().limit(4)._statement
+	)
 
 	sql = str(statement)
 
 	assert 'FROM images' in sql
-	assert 'images.captured_at <' in sql
-	assert 'ORDER BY images.captured_at DESC, images.ingest_id DESC' in sql
+	assert 'images.ingested_at <' in sql
+	assert 'ORDER BY images.ingested_at DESC' in sql
+	assert statement is not None
+	assert statement._limit_clause is not None
+	assert statement._limit_clause.value == 4
+
+
+def test_chronological_filters_on_captured_at(session: Session) -> None:
+	cursor = datetime(2024, 1, 1)
+	statement = (
+		ImageListQueryExecutor(session)
+		.chronological(cursor=cursor)
+		.order_by_ingest_id()
+		.limit(5)
+		._statement
+	)
+
+	sql = str(statement)
+
+	assert 'JOIN ingests ON ingests.id = images.ingest_id' in sql
+	assert 'ingests.captured_at <' in sql
+	assert 'ORDER BY ingests.captured_at DESC' in sql
 	assert statement is not None
 	assert statement._limit_clause is not None
 	assert statement._limit_clause.value == 5
@@ -35,7 +57,7 @@ def test_latest_adds_cursor_filter_and_order(session: Session) -> None:
 def test_recently_filters_on_last_viewed_at(session: Session) -> None:
 	cursor = datetime(2024, 1, 1)
 	statement = (
-		ImageListQueryExecutor(session).recently(cursor=cursor).order_by_latest().limit(6)._statement
+		ImageListQueryExecutor(session).recently(cursor=cursor).order_by_ingest_id().limit(6)._statement
 	)
 
 	sql = str(statement)
@@ -49,10 +71,27 @@ def test_recently_filters_on_last_viewed_at(session: Session) -> None:
 	assert statement._limit_clause.value == 6
 
 
+def test_first_love_filters_on_first_loved_at(session: Session) -> None:
+	cursor = datetime(2024, 1, 1)
+	statement = (
+		ImageListQueryExecutor(session).first_love(cursor=cursor).order_by_ingest_id().limit(7)._statement
+	)
+
+	sql = str(statement)
+
+	assert 'JOIN stats ON stats.ingest_id = images.ingest_id' in sql
+	assert 'stats.first_loved_at IS NOT NULL' in sql
+	assert 'stats.first_loved_at <' in sql
+	assert 'ORDER BY stats.first_loved_at DESC' in sql
+	assert statement is not None
+	assert statement._limit_clause is not None
+	assert statement._limit_clause.value == 7
+
+
 def test_hall_of_fame_filters_on_hall_of_fame_at(session: Session) -> None:
 	cursor = datetime(2024, 1, 1)
 	statement = (
-		ImageListQueryExecutor(session).hall_of_fame(cursor=cursor).order_by_latest().limit(7)._statement
+		ImageListQueryExecutor(session).hall_of_fame(cursor=cursor).order_by_ingest_id().limit(8)._statement
 	)
 
 	sql = str(statement)
@@ -63,4 +102,4 @@ def test_hall_of_fame_filters_on_hall_of_fame_at(session: Session) -> None:
 	assert 'ORDER BY stats.hall_of_fame_at DESC' in sql
 	assert statement is not None
 	assert statement._limit_clause is not None
-	assert statement._limit_clause.value == 7
+	assert statement._limit_clause.value == 8

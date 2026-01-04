@@ -13,7 +13,7 @@ from typing import Any
 from sqlalchemy.engine import Row
 from sqlmodel import Session, select
 
-from app.models.records import ImageRecord, StatsRecord
+from app.models.records import ImageRecord, IngestRecord, StatsRecord
 
 
 class ImageListQueryExecutor:
@@ -28,13 +28,40 @@ class ImageListQueryExecutor:
 	def latest(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
 		"""Prepare a latest-first images query."""
 
-		# SELECT * FROM images
-		self._statement = select(ImageRecord)
+		self._statement = (
+			# SELECT * FROM images
+			select(ImageRecord)
+			# ORDER BY images.ingested_at DESC
+			.order_by(ImageRecord.ingested_at.desc())
+		)
 
 		if cursor is not None:
-			# WHERE captured_at < ?
+			# WHERE ingested_at < ?
 			self._statement = self._statement.where(
-				ImageRecord.captured_at < cursor,
+				ImageRecord.ingested_at < cursor,
+			)
+
+		return self
+
+	def chronological(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
+		"""Prepare a timeline images query."""
+
+		self._statement = (
+			# SELECT images.*, ingests.captured_at FROM images
+			select(ImageRecord, IngestRecord.captured_at)
+			# JOIN ingests ON ingests.id = images.ingest_id
+			.join(
+				IngestRecord,
+				IngestRecord.id == ImageRecord.ingest_id,
+			)
+			# ORDER BY ingests.captured_at DESC
+			.order_by(IngestRecord.captured_at.desc())
+		)
+
+		if cursor is not None:
+			# WHERE ingests.captured_at < ?
+			self._statement = self._statement.where(
+				IngestRecord.captured_at < cursor,
 			)
 
 		return self
@@ -52,7 +79,7 @@ class ImageListQueryExecutor:
 			)
 			# WHERE stats.last_viewed_at IS NOT NULL
 			.where(StatsRecord.last_viewed_at.is_not(None))
-			# ORDER BY stats.hall_of_fame_at DESC
+			# ORDER BY stats.last_viewed_at DESC
 			.order_by(StatsRecord.last_viewed_at.desc())
 		)
 
@@ -60,6 +87,31 @@ class ImageListQueryExecutor:
 			# WHERE stats.last_viewed_at < ?
 			self._statement = self._statement.where(
 				StatsRecord.last_viewed_at < cursor,
+			)
+
+		return self
+
+	def first_love(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
+		"""Prepare a first-loved images query."""
+
+		self._statement = (
+			# SELECT images.*, stats.first_loved_at FROM images
+			select(ImageRecord, StatsRecord.first_loved_at)
+			# JOIN stats ON stats.ingest_id = images.ingest_id
+			.join(
+				StatsRecord,
+				StatsRecord.ingest_id == ImageRecord.ingest_id,
+			)
+			# WHERE stats.first_loved_at IS NOT NULL
+			.where(StatsRecord.first_loved_at.is_not(None))
+			# ORDER BY stats.first_loved_at DESC
+			.order_by(StatsRecord.first_loved_at.desc())
+		)
+
+		if cursor is not None:
+			# WHERE stats.first_loved_at < ?
+			self._statement = self._statement.where(
+				StatsRecord.first_loved_at < cursor,
 			)
 
 		return self
@@ -89,14 +141,11 @@ class ImageListQueryExecutor:
 
 		return self
 
-	def order_by_latest(self) -> 'ImageListQueryExecutor':
-		"""Order by captured time and ingest id, newest first."""
+	def order_by_ingest_id(self) -> 'ImageListQueryExecutor':
+		"""Append ingest_id DESC ordering as a stable tie-breaker."""
 
-		# ORDER BY images.captured_at DESC, images.ingest_id DESC
-		self._statement = self._statement.order_by(
-			ImageRecord.captured_at.desc(),
-			ImageRecord.ingest_id.desc(),
-		)
+		# ORDER BY images.ingest_id DESC
+		self._statement = self._statement.order_by(ImageRecord.ingest_id.desc())
 
 		return self
 

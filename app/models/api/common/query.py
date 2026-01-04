@@ -17,10 +17,10 @@ class PaginationQuery(BaseModel):
 		datetime | None,
 		Field(
 			title='Cursor',
-			description='opaque pagination cursor representing the captured_at of the last item returned; `null` for the first page',
+			description='opaque pagination cursor representing the last item returned; `null` for the first page',
 		),
 	] = None
-	"""opaque pagination cursor representing the captured_at of the last item returned; `null` for the first page"""
+	"""opaque pagination cursor representing the last item returned; `null` for the first page"""
 
 	limit: Annotated[
 		int,

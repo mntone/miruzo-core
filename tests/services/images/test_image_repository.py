@@ -28,4 +28,4 @@ def test_select_by_ingest_id(session: Session) -> None:
 	item = repo.select_by_ingest_id(image.ingest_id)
 	assert item is not None
 	assert item.ingest_id == image.ingest_id
-	assert item.captured_at == image.captured_at
+	assert item.ingested_at == image.ingested_at

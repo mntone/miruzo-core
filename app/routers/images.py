@@ -57,12 +57,38 @@ def get_latest(
 	return build_response(response)
 
 
+@router.get('/chronological', response_model=ImageListResponse)
+def get_chronological(
+	query: Annotated[ListQuery, Depends()],
+	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
+) -> Response:
+	response = service.get_chronological(
+		cursor=query.cursor,
+		limit=query.limit,
+		exclude_formats=query.exclude_formats,
+	)
+	return build_response(response)
+
+
 @router.get('/recently', response_model=ImageListResponse)
 def get_recently(
 	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_recently(
+		cursor=query.cursor,
+		limit=query.limit,
+		exclude_formats=query.exclude_formats,
+	)
+	return build_response(response)
+
+
+@router.get('/first_love', response_model=ImageListResponse)
+def get_first_love(
+	query: Annotated[ListQuery, Depends()],
+	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
+) -> Response:
+	response = service.get_first_love(
 		cursor=query.cursor,
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,

@@ -12,7 +12,7 @@ def slice_with_cursor_latest(
 
 	next_cursor: datetime | None = None
 	if len(rows) > limit:
-		next_cursor = rows[limit - 1].captured_at
+		next_cursor = rows[limit - 1].ingested_at
 
 	items: Sequence[ImageRecord] = rows[:limit]
 

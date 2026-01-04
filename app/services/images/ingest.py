@@ -74,7 +74,7 @@ class ImageIngestService:
 
 					image = ImageRecord(
 						ingest_id=ingest.id,
-						captured_at=captured_at,
+						ingested_at=ingest.ingested_at,
 						original=original,
 						fallback=None,
 						variants=list(variants),

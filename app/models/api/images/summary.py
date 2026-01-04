@@ -23,14 +23,14 @@ class SummaryModel(BaseModel):
 	]
 	"""numeric primary key assigned in the database."""
 
-	captured_at: Annotated[
+	ingested_at: Annotated[
 		datetime,
 		Field(
-			title='Captured timestamp',
-			description='timestamp when the photo was originally shot',
+			title='Ingested timestamp',
+			description='timestamp when the image was ingested',
 		),
 	]
-	"""timestamp when the photo was originally shot"""
+	"""timestamp when the image was ingested"""
 
 	kind: Annotated[
 		ImageKind,
@@ -45,6 +45,6 @@ class SummaryModel(BaseModel):
 	def from_record(cls, image: ImageRecord) -> 'SummaryModel':
 		return cls(
 			id=image.ingest_id,
-			captured_at=image.captured_at,
+			ingested_at=image.ingested_at,
 			kind=image.kind,
 		)

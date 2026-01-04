@@ -45,13 +45,44 @@ class ImageQueryService:
 			Sequence[ImageRecord],
 			ImageListQueryExecutor(self._session)
 				.latest(cursor=cursor)
-				.order_by_latest()
+				.order_by_ingest_id()
 				.limit(limit + 1)
 				.execute(),
 		)
 		# fmt: on
 
 		items, next_cursor = paginator.slice_with_cursor_latest(rows, limit)
+
+		response = map_image_records_to_list_response(
+			items,
+			next_cursor=next_cursor,
+			exclude_formats=exclude_formats,
+			variant_layers=self._variant_layers,
+		)
+
+		return response
+
+	def get_chronological(
+		self,
+		*,
+		cursor: datetime | None,
+		limit: int,
+		exclude_formats: tuple[str, ...],
+	) -> ImageListResponse:
+		"""Return a paginated list of timeline images."""
+
+		# fmt: off
+		rows = cast(
+			Sequence[tuple[ImageRecord, datetime]],
+			ImageListQueryExecutor(self._session)
+				.chronological(cursor=cursor)
+				.order_by_ingest_id()
+				.limit(limit + 1)
+				.execute(),
+		)
+		# fmt: on
+
+		items, next_cursor = paginator.slice_with_cursor_for_datetime(rows, limit)
 
 		response = map_image_records_to_list_response(
 			items,
@@ -76,7 +107,38 @@ class ImageQueryService:
 			Sequence[tuple[ImageRecord, datetime]],
 			ImageListQueryExecutor(self._session)
 				.recently(cursor=cursor)
-				.order_by_latest()
+				.order_by_ingest_id()
+				.limit(limit + 1)
+				.execute(),
+		)
+		# fmt: on
+
+		items, next_cursor = paginator.slice_with_cursor_for_datetime(rows, limit)
+
+		response = map_image_records_to_list_response(
+			items,
+			next_cursor=next_cursor,
+			exclude_formats=exclude_formats,
+			variant_layers=self._variant_layers,
+		)
+
+		return response
+
+	def get_first_love(
+		self,
+		*,
+		cursor: datetime | None,
+		limit: int,
+		exclude_formats: tuple[str, ...],
+	) -> ImageListResponse:
+		"""Return a paginated list of first-loved images."""
+
+		# fmt: off
+		rows = cast(
+			Sequence[tuple[ImageRecord, datetime]],
+			ImageListQueryExecutor(self._session)
+				.first_love(cursor=cursor)
+				.order_by_ingest_id()
 				.limit(limit + 1)
 				.execute(),
 		)
@@ -107,7 +169,7 @@ class ImageQueryService:
 			Sequence[tuple[ImageRecord, datetime]],
 			ImageListQueryExecutor(self._session)
 				.hall_of_fame(cursor=cursor)
-				.order_by_latest()
+				.order_by_ingest_id()
 				.limit(limit + 1)
 				.execute(),
 		)

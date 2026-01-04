@@ -25,9 +25,9 @@ def session() -> Generator[Session, Any, None]:
 
 def test_get_latest_orders_desc_and_sets_cursor(session: Session) -> None:
 	now = datetime.now(timezone.utc)
-	first = add_image_record(session, 1, captured_at=now)
-	second = add_image_record(session, 2, captured_at=now - timedelta(hours=1))
-	third = add_image_record(session, 3, captured_at=now - timedelta(hours=2))
+	first = add_image_record(session, 1, ingested_at=now)
+	second = add_image_record(session, 2, ingested_at=now - timedelta(hours=1))
+	third = add_image_record(session, 3, ingested_at=now - timedelta(hours=2))
 
 	service = ImageQueryService(
 		session=session,
@@ -36,7 +36,7 @@ def test_get_latest_orders_desc_and_sets_cursor(session: Session) -> None:
 	)
 
 	response = service.get_latest(cursor=None, limit=2, exclude_formats=())
-	assert response.cursor == second.captured_at
+	assert response.cursor == second.ingested_at
 	assert response.items is not None
 	assert [item.id for item in response.items] == [first.ingest_id, second.ingest_id]
 
@@ -46,10 +46,32 @@ def test_get_latest_orders_desc_and_sets_cursor(session: Session) -> None:
 	assert [item.id for item in next_response.items] == [third.ingest_id]
 
 
-def test_get_recently_orders_by_last_viewed_at(session: Session) -> None:
+def test_get_chronological_orders_by_captured_at(session: Session) -> None:
 	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
 	first = add_image_record(session, 1, captured_at=now)
 	second = add_image_record(session, 2, captured_at=now - timedelta(hours=1))
+
+	service = ImageQueryService(
+		session=session,
+		repository=ImageRepository(session),
+		variant_layers=env.variant_layers,
+	)
+
+	response = service.get_chronological(cursor=None, limit=1, exclude_formats=())
+	assert response.cursor == now
+	assert response.items is not None
+	assert [item.id for item in response.items] == [first.ingest_id]
+
+	next_response = service.get_chronological(cursor=response.cursor, limit=1, exclude_formats=())
+	assert next_response.cursor is None
+	assert next_response.items is not None
+	assert [item.id for item in next_response.items] == [second.ingest_id]
+
+
+def test_get_recently_orders_by_last_viewed_at(session: Session) -> None:
+	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
+	first = add_image_record(session, 1, ingested_at=now)
+	second = add_image_record(session, 2, ingested_at=now - timedelta(hours=1))
 
 	add_stats_record(
 		session,
@@ -81,6 +103,41 @@ def test_get_recently_orders_by_last_viewed_at(session: Session) -> None:
 	assert [item.id for item in next_response.items] == [second.ingest_id]
 
 
+def test_get_first_love_orders_by_first_loved_at(session: Session) -> None:
+	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
+	first = add_image_record(session, 1, ingested_at=now)
+	second = add_image_record(session, 2, ingested_at=now - timedelta(hours=1))
+
+	add_stats_record(
+		session,
+		first.ingest_id,
+		view_count=1,
+		first_loved_at=now,
+	)
+	add_stats_record(
+		session,
+		second.ingest_id,
+		view_count=1,
+		first_loved_at=now - timedelta(days=1),
+	)
+
+	service = ImageQueryService(
+		session=session,
+		repository=ImageRepository(session),
+		variant_layers=env.variant_layers,
+	)
+
+	response = service.get_first_love(cursor=None, limit=1, exclude_formats=())
+	assert response.cursor == now
+	assert response.items is not None
+	assert [item.id for item in response.items] == [first.ingest_id]
+
+	next_response = service.get_first_love(cursor=response.cursor, limit=1, exclude_formats=())
+	assert next_response.cursor is None
+	assert next_response.items is not None
+	assert [item.id for item in next_response.items] == [second.ingest_id]
+
+
 def test_get_hall_of_fame_orders_by_hall_of_fame_at(session: Session) -> None:
 	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
 	first = add_image_record(session, 1, captured_at=now)
@@ -89,14 +146,12 @@ def test_get_hall_of_fame_orders_by_hall_of_fame_at(session: Session) -> None:
 	add_stats_record(
 		session,
 		first.ingest_id,
-		score=env.score.initial_score,
 		view_count=1,
 		hall_of_fame_at=now,
 	)
 	add_stats_record(
 		session,
 		second.ingest_id,
-		score=env.score.initial_score,
 		view_count=1,
 		hall_of_fame_at=now - timedelta(days=2),
 	)

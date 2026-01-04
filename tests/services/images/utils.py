@@ -36,30 +36,33 @@ def _make_ingest_record(
 	relative_path: str = '/foo/bar.webp',
 	process: ProcessStatus = ProcessStatus.PROCESSING,
 	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
+	ingested_at: datetime | None = None,
 	captured_at: datetime | None = None,
 ) -> IngestRecord:
-	timestamp = captured_at or datetime.now(timezone.utc)
+	current = datetime.now(timezone.utc)
+	ingested_at = ingested_at or current
+	captured_at = captured_at or current
 	return IngestRecord(
 		id=ingest_id,
 		process=process,
 		visibility=visibility,
 		relative_path=relative_path,
 		fingerprint=f'{ingest_id:064d}',
-		ingested_at=timestamp,
-		captured_at=timestamp,
+		ingested_at=ingested_at,
+		captured_at=captured_at,
 	)
 
 
 def _make_image_record(
 	ingest_id: int,
 	*,
-	captured_at: datetime | None = None,
+	ingested_at: datetime | None = None,
 	widths: Iterable[int] = [320, 480, 640],
 ) -> ImageRecord:
-	timestamp = captured_at or datetime.now(timezone.utc)
+	timestamp = ingested_at or datetime.now(timezone.utc)
 	return ImageRecord(
 		ingest_id=ingest_id,
-		captured_at=timestamp,
+		ingested_at=timestamp,
 		original=build_variant('webp', 960),
 		fallback=None,
 		variants=[
@@ -82,6 +85,7 @@ def add_ingest_record(
 	relative_path: str = '/foo/bar.webp',
 	process: ProcessStatus = ProcessStatus.PROCESSING,
 	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
+	ingested_at: datetime | None = None,
 	captured_at: datetime | None = None,
 ) -> IngestRecord:
 	record = _make_ingest_record(
@@ -89,6 +93,7 @@ def add_ingest_record(
 		relative_path=relative_path,
 		process=process,
 		visibility=visibility,
+		ingested_at=ingested_at,
 		captured_at=captured_at,
 	)
 	session.add(record)
@@ -104,6 +109,7 @@ def add_image_record(
 	relative_path: str = '/foo/bar.webp',
 	process: ProcessStatus = ProcessStatus.PROCESSING,
 	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
+	ingested_at: datetime | None = None,
 	captured_at: datetime | None = None,
 ) -> ImageRecord:
 	ingest = _make_ingest_record(
@@ -111,13 +117,16 @@ def add_image_record(
 		relative_path=relative_path,
 		process=process,
 		visibility=visibility,
+		ingested_at=ingested_at,
 		captured_at=captured_at,
 	)
 	session.add(ingest)
+	session.flush()
+	session.refresh(ingest)
 
 	image = _make_image_record(
 		ingest_id=idx,
-		captured_at=captured_at,
+		ingested_at=ingest.ingested_at,
 	)
 	session.add(image)
 
