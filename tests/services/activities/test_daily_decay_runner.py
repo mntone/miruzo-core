@@ -8,6 +8,7 @@ from tests.domains.score.stub import StubScoreCalculator
 from tests.services.activities.stats.factory import build_stats_record
 from tests.services.activities.stats.stubs import StubStatsRepository
 from tests.stubs.session import StubSession
+from tests.stubs.user import StubUserRepository
 
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
@@ -42,9 +43,15 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 
 	decay_creator = _StubDecayCreator()
 	score_calculator = StubScoreCalculator()
+	user_repo = StubUserRepository()
+	user = user_repo.get_or_create_singleton()
+	user.daily_love_used = 3
 
 	def _create_stats_repository(_: StubSession) -> StubStatsRepository:
 		return stats_repo
+
+	def _create_user_repository(_: StubSession) -> StubUserRepository:
+		return user_repo
 
 	class _DecayCreatorFactory:
 		def __init__(self, *args, **kwargs) -> None:  # pyright: ignore[reportMissingParameterType, reportUnknownParameterType]
@@ -56,6 +63,10 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.create_stats_repository',
 		_create_stats_repository,
+	)
+	monkeypatch.setattr(
+		'app.services.activities.daily_decay.create_user_repository',
+		_create_user_repository,
 	)
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.DecayActionCreator',
@@ -93,6 +104,8 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 	assert second_context.evaluated_at == evaluated_at
 	assert second_context.has_view_today is True
 
+	assert user.daily_love_used == 0
+
 
 def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch) -> None:
 	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
@@ -103,9 +116,15 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 	stats_repo.stats_list_response = [stats_one, stats_two]
 
 	score_calculator = StubScoreCalculator()
+	user_repo = StubUserRepository()
+	user = user_repo.get_or_create_singleton()
+	user.daily_love_used = 2
 
 	def _create_stats_repository(_: StubSession) -> StubStatsRepository:
 		return stats_repo
+
+	def _create_user_repository(_: StubSession) -> StubUserRepository:
+		return user_repo
 
 	class _DecayCreatorFactory:
 		def __init__(self, *args, **kwargs) -> None:  # pyright: ignore[reportMissingParameterType, reportUnknownParameterType]
@@ -123,6 +142,10 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.create_stats_repository',
 		_create_stats_repository,
+	)
+	monkeypatch.setattr(
+		'app.services.activities.daily_decay.create_user_repository',
+		_create_user_repository,
 	)
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.DecayActionCreator',
@@ -144,3 +167,5 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 	assert stats_one.score == 8
 	assert stats_two.score == 20
 	assert len(score_calculator.apply_called_with) == 1
+
+	assert user.daily_love_used == 0

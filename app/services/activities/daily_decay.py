@@ -9,6 +9,7 @@ from app.services.activities.actions.decay_creator import DecayActionCreator
 from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.repository.factory import create_stats_repository
 from app.services.activities.stats.score_factory import make_score_context
+from app.services.users.repository.factory import create_user_repository
 
 
 @final
@@ -59,3 +60,7 @@ class DailyDecayRunner:
 			)
 
 			stats.score = new_score
+
+		user_repo = create_user_repository(session)
+		user = user_repo.get_or_create_singleton()
+		user.daily_love_used = 0
