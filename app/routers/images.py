@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -10,6 +11,8 @@ from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
 from app.services.activities.actions.repository import ActionRepository
+from app.services.activities.love import LoveRunner
+from app.services.activities.love_cancel import LoveCancelRunner
 from app.services.activities.stats.repository.factory import create_stats_repository
 from app.services.images.query_service import ImageQueryService
 from app.services.images.repository import ImageRepository
@@ -38,6 +41,23 @@ def _get_context_service(
 		image_query=image_query,
 		stats=create_stats_repository(session),
 		env=env,
+	)
+
+
+def _get_love_runner() -> LoveRunner:
+	return LoveRunner(
+		base_timezone=env.base_timezone,
+		daily_reset_at=env.time.daily_reset_at,
+		daily_love_limit=env.quota.daily_love_limit,
+		score_config=env.score,
+	)
+
+
+def _get_love_cancel_runner() -> LoveCancelRunner:
+	return LoveCancelRunner(
+		base_timezone=env.base_timezone,
+		daily_reset_at=env.time.daily_reset_at,
+		score_config=env.score,
 	)
 
 
@@ -120,3 +140,31 @@ def get_context(
 		raise HTTPException(404)
 
 	return build_response(response)
+
+
+@router.post('/{ingest_id}/love')
+def post_love(
+	ingest_id: int,
+	session: Annotated[Session, Depends(get_session)],
+	runner: Annotated[LoveRunner, Depends(_get_love_runner)],
+) -> None:
+	current = datetime.now(timezone.utc)
+
+	with session.begin():
+		runner.run(session, ingest_id=ingest_id, evaluated_at=current)
+
+	return None
+
+
+@router.post('/{ingest_id}/love/cancel')
+def post_love_cancel(
+	ingest_id: int,
+	session: Annotated[Session, Depends(get_session)],
+	runner: Annotated[LoveCancelRunner, Depends(_get_love_cancel_runner)],
+) -> None:
+	current = datetime.now(timezone.utc)
+
+	with session.begin():
+		runner.run(session, ingest_id=ingest_id, evaluated_at=current)
+
+	return None

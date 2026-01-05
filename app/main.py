@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config.environments import env
 from app.database import create_session, init_database
 from app.domain.score.calculator import ScoreCalculator
+from app.infrastructures.api.exception_handlers import register_exception_handlers
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
 from app.jobs.daily_decay import DailyDecayJob
 from app.routers.health import router as health
@@ -61,6 +62,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
 app = FastAPI(title='miruzo API', lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=9)
+register_exception_handlers(app)
 app.include_router(images, prefix='/api')
 app.include_router(health, prefix='/api')
 app.include_router(quota, prefix='/api')

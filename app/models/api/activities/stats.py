@@ -52,6 +52,15 @@ class StatsModel(BaseModel):
 	] = None
 	"""timestamp of the first love action, or `None` if it has not been loved"""
 
+	last_loved_at: Annotated[
+		datetime | None,
+		Field(
+			title='Last loved timestamp',
+			description='timestamp of the last love action, or `null` if it has not been loved',
+		),
+	] = None
+	"""timestamp of the last love action, or `None` if it has not been loved"""
+
 	hall_of_fame_at: Annotated[
 		datetime | None,
 		Field(
@@ -87,6 +96,7 @@ class StatsModel(BaseModel):
 			view_count=stats.view_count,
 			last_viewed_at=stats.last_viewed_at,
 			first_loved_at=stats.first_loved_at,
+			last_loved_at=stats.last_loved_at,
 			hall_of_fame_at=stats.hall_of_fame_at,
 			view_milestone_count=stats.view_milestone_count if stats.view_milestone_count != 0 else None,
 			view_milestone_archived_at=stats.view_milestone_archived_at,

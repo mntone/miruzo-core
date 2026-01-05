@@ -1,13 +1,17 @@
 # pyright: reportAttributeAccessIssue=false
+# pyright: reportArgumentType=false
+# pyright: reportOptionalMemberAccess=false
+# pyright: reportOptionalOperand=false
 # pyright: reportUnknownArgumentType=false
 # pyright: reportUnknownMemberType=false
 # pyright: reportUnknownVariableType=false
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+from datetime import datetime
 from typing import TypeVar
 
-from sqlalchemy import Insert, true
+from sqlalchemy import Insert, or_, true, update
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, SQLModel, select
 
@@ -22,6 +26,11 @@ class BaseStatsRepository(ABC):
 
 	@abstractmethod
 	def _is_unique_violation(self, error: IntegrityError) -> bool: ...
+
+	def get_one(self, ingest_id: int) -> StatsRecord:
+		stats = self._session.get_one(StatsRecord, ingest_id)
+
+		return stats
 
 	def get_or_create(
 		self,
@@ -48,6 +57,49 @@ class BaseStatsRepository(ABC):
 			stats = self._session.get_one(StatsRecord, ingest_id)
 
 		return stats
+
+	def try_set_last_loved_at(
+		self,
+		ingest_id: int,
+		*,
+		last_loved_at: datetime,
+		since_occurred_at: datetime,
+	) -> bool:
+		statement = (
+			update(StatsRecord)
+			.where(StatsRecord.ingest_id == ingest_id)
+			.where(
+				or_(
+					StatsRecord.last_loved_at.is_(None),
+					StatsRecord.last_loved_at < since_occurred_at,
+				),
+			)
+			.values(last_loved_at=last_loved_at)
+		)
+
+		result = self._session.exec(statement)
+
+		return result.rowcount == 1
+
+	def try_unset_last_loved_at(
+		self,
+		ingest_id: int,
+		*,
+		since_occurred_at: datetime,
+	) -> bool:
+		statement = (
+			update(StatsRecord)
+			.where(StatsRecord.ingest_id == ingest_id)
+			.where(
+				StatsRecord.last_loved_at.is_not(None),
+				StatsRecord.last_loved_at >= since_occurred_at,
+			)
+			.values(last_loved_at=None)
+		)
+
+		result = self._session.exec(statement)
+
+		return result.rowcount == 1
 
 	@abstractmethod
 	def _build_insert(self, model: type[TModel]) -> Insert: ...

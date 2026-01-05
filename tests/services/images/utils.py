@@ -97,7 +97,7 @@ def add_ingest_record(
 		captured_at=captured_at,
 	)
 	session.add(record)
-	session.commit()
+	session.flush()
 	session.refresh(record)
 	return record
 

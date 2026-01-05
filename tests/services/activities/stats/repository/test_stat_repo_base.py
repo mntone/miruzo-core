@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Any, Generator
 
 import pytest
@@ -31,6 +32,87 @@ def test_get_or_create(session: Session) -> None:
 	stats_again = repo.get_or_create(image.ingest_id, initial_score=99)
 	assert stats_again.ingest_id == image.ingest_id
 	assert stats_again.score == 42
+
+
+def test_try_set_last_loved_at_updates_when_empty(session: Session) -> None:
+	repo = SQLiteStatsRepository(session)
+	ingest = add_ingest_record(session, 1)
+	repo.get_or_create(ingest.id, initial_score=1)
+
+	period_start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+	evaluated_at = datetime(2024, 1, 2, tzinfo=timezone.utc)
+
+	updated = repo.try_set_last_loved_at(
+		ingest.id,
+		last_loved_at=evaluated_at,
+		since_occurred_at=period_start,
+	)
+	assert updated is True
+
+	stats = repo.get_one(ingest.id)
+	assert stats.last_loved_at == evaluated_at
+
+
+def test_try_set_last_loved_at_rejects_current_period(session: Session) -> None:
+	repo = SQLiteStatsRepository(session)
+	ingest = add_ingest_record(session, 1)
+	stats = repo.get_or_create(ingest.id, initial_score=1)
+
+	period_start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+	existing = datetime(2024, 1, 1, 1, tzinfo=timezone.utc)
+	stats.last_loved_at = existing
+	session.add(stats)
+	session.commit()
+
+	updated = repo.try_set_last_loved_at(
+		ingest.id,
+		last_loved_at=datetime(2024, 1, 2, tzinfo=timezone.utc),
+		since_occurred_at=period_start,
+	)
+	assert updated is False
+
+	stats = repo.get_one(ingest.id)
+	assert stats.last_loved_at == existing
+
+
+def test_try_unset_last_loved_at_clears_current_period(session: Session) -> None:
+	repo = SQLiteStatsRepository(session)
+	ingest = add_ingest_record(session, 1)
+	stats = repo.get_or_create(ingest.id, initial_score=1)
+
+	period_start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+	stats.last_loved_at = datetime(2024, 1, 1, 2, tzinfo=timezone.utc)
+	session.add(stats)
+	session.commit()
+
+	updated = repo.try_unset_last_loved_at(
+		ingest.id,
+		since_occurred_at=period_start,
+	)
+	assert updated is True
+
+	stats = repo.get_one(ingest.id)
+	assert stats.last_loved_at is None
+
+
+def test_try_unset_last_loved_at_ignores_previous_period(session: Session) -> None:
+	repo = SQLiteStatsRepository(session)
+	ingest = add_ingest_record(session, 1)
+	stats = repo.get_or_create(ingest.id, initial_score=1)
+
+	period_start = datetime(2024, 1, 2, tzinfo=timezone.utc)
+	stats.last_loved_at = datetime(2024, 1, 1, 23, tzinfo=timezone.utc)
+	session.add(stats)
+	session.commit()
+
+	updated = repo.try_unset_last_loved_at(
+		ingest.id,
+		since_occurred_at=period_start,
+	)
+	assert updated is False
+
+	stats = repo.get_one(ingest.id)
+	assert stats.last_loved_at == datetime(2024, 1, 1, 23, tzinfo=timezone.utc)
 
 
 def test_iterable_paginates_without_duplicates(session: Session) -> None:
