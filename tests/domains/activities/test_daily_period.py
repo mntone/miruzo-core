@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import pytest
 
 from app.domain.activities.daily_period import (
+	is_since_daily_period_start,
 	resolve_daily_period_range,
 	resolve_daily_period_start,
 )
@@ -146,3 +147,44 @@ def test_resolve_daily_period_range_returns_one_day_span() -> None:
 
 	assert period_start == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)
 	assert period_end == datetime(2026, 1, 3, 5, 0, tzinfo=timezone.utc)
+
+
+def test_is_since_daily_period_start_handles_none() -> None:
+	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
+
+	result = is_since_daily_period_start(
+		None,
+		evaluated_at=evaluated_at,
+		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
+	)
+	assert result is False
+
+
+@pytest.mark.parametrize(
+	'target_time, expected',
+	[
+		(time(5, 0), True),
+		(time(4, 59, 59), False),
+		(time(5, 0, 1), True),
+	],
+)
+def test_is_since_daily_period_start_checks_period_boundary(
+	target_time: time,
+	expected: bool,
+) -> None:
+	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
+	target = datetime(2026, 1, 2, 0, 0, tzinfo=timezone.utc).replace(
+		hour=target_time.hour,
+		minute=target_time.minute,
+		second=target_time.second,
+		microsecond=target_time.microsecond,
+	)
+
+	result = is_since_daily_period_start(
+		target,
+		evaluated_at=evaluated_at,
+		daily_reset_at=time(5, 0),
+		base_timezone=ZoneInfo('UTC'),
+	)
+	assert result is expected

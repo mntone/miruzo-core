@@ -57,3 +57,24 @@ def resolve_daily_period_range(
 	period_end = period_start + timedelta(days=1)
 
 	return period_start, period_end
+
+
+def is_since_daily_period_start(
+	target: datetime | None,
+	*,
+	evaluated_at: datetime,
+	daily_reset_at: time,
+	base_timezone: ZoneInfo | None,
+) -> bool:
+	if target is None:
+		return False
+
+	period_start = resolve_daily_period_start(
+		evaluated_at,
+		daily_reset_at=daily_reset_at,
+		base_timezone=base_timezone,
+	)
+
+	is_since_period = target >= period_start
+
+	return is_since_period
