@@ -16,3 +16,8 @@ class StubUserRepository:
 		user_record = UserRecord(id=user_id)
 		self.users[user_id] = user_record
 		return user_record
+
+	def get_or_create_singleton(self) -> UserRecord:
+		user_record = self.get_or_create(1)
+
+		return user_record

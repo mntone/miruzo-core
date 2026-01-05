@@ -18,11 +18,11 @@ def session() -> Generator[Session, Any, None]:
 		yield session
 
 
-def test_get_or_create_returns_existing(session: Session) -> None:
+def test_get_or_create_singleton_returns_existing(session: Session) -> None:
 	repo = SQLiteUserRepository(session)
 
-	user = repo.get_or_create(1)
+	user = repo.get_or_create_singleton()
 
-	user_again = repo.get_or_create(1)
+	user_again = repo.get_or_create_singleton()
 
 	assert user_again is user

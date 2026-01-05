@@ -6,8 +6,6 @@ from app.domain.activities.daily_period import resolve_daily_period_start
 from app.models.api.quota import QuotaItem, QuotaResponse
 from app.services.users.repository.protocol import UserRepository
 
-_UNIQUE_USER_ID = 1
-
 
 @final
 class UserQueryService:
@@ -27,7 +25,7 @@ class UserQueryService:
 	def get_quota(self) -> QuotaResponse:
 		current = datetime.now(timezone.utc)
 
-		user_record = self._repository.get_or_create(_UNIQUE_USER_ID)
+		user_record = self._repository.get_or_create_singleton()
 
 		daily_love_limit = self._daily_love_limit
 		daily_love_remaining = max(0, daily_love_limit - user_record.daily_love_used)

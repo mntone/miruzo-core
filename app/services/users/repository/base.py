@@ -8,6 +8,8 @@ from app.models.records import UserRecord
 
 TModel = TypeVar('TModel', bound=SQLModel)
 
+_UNIQUE_USER_ID = 1
+
 
 class BaseUserRepository(ABC):
 	def __init__(self, session: Session) -> None:
@@ -16,7 +18,7 @@ class BaseUserRepository(ABC):
 	@abstractmethod
 	def _is_unique_violation(self, error: IntegrityError) -> bool: ...
 
-	def get_or_create(self, user_id: int) -> UserRecord:
+	def _get_or_create(self, user_id: int) -> UserRecord:
 		user = self._session.get(UserRecord, user_id)
 		if user is not None:
 			return user
@@ -31,5 +33,10 @@ class BaseUserRepository(ABC):
 			if not self._is_unique_violation(exc):
 				raise
 			user = self._session.get_one(UserRecord, user_id)
+
+		return user
+
+	def get_or_create_singleton(self) -> UserRecord:
+		user = self._get_or_create(_UNIQUE_USER_ID)
 
 		return user
