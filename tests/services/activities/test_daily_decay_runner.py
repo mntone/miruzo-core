@@ -11,7 +11,7 @@ from tests.stubs.session import StubSession
 
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
-from app.services.activities.score_decay import ScoreDecayRunner
+from app.services.activities.daily_decay import DailyDecayRunner
 
 
 @final
@@ -54,16 +54,16 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 			return decay_creator.create(ingest_id, occurred_at=occurred_at)
 
 	monkeypatch.setattr(
-		'app.services.activities.score_decay.create_stats_repository',
+		'app.services.activities.daily_decay.create_stats_repository',
 		_create_stats_repository,
 	)
 	monkeypatch.setattr(
-		'app.services.activities.score_decay.DecayActionCreator',
+		'app.services.activities.daily_decay.DecayActionCreator',
 		_DecayCreatorFactory,
 	)
 
 	session = StubSession()
-	runner = ScoreDecayRunner(
+	runner = DailyDecayRunner(
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
 		base_timezone=ZoneInfo('UTC'),
@@ -121,16 +121,16 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 			)
 
 	monkeypatch.setattr(
-		'app.services.activities.score_decay.create_stats_repository',
+		'app.services.activities.daily_decay.create_stats_repository',
 		_create_stats_repository,
 	)
 	monkeypatch.setattr(
-		'app.services.activities.score_decay.DecayActionCreator',
+		'app.services.activities.daily_decay.DecayActionCreator',
 		_DecayCreatorFactory,
 	)
 
 	session = StubSession()
-	runner = ScoreDecayRunner(
+	runner = DailyDecayRunner(
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
 		daily_reset_at=time(5, 0),
 		base_timezone=ZoneInfo('UTC'),

@@ -12,7 +12,7 @@ from app.services.activities.stats.score_factory import make_score_context
 
 
 @final
-class ScoreDecayRunner:
+class DailyDecayRunner:
 	"""Run daily decay for all stats using the provided dependencies."""
 
 	def __init__(

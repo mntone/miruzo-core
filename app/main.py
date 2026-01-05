@@ -12,11 +12,11 @@ from app.config.environments import env
 from app.database import create_session, init_database
 from app.domain.score.calculator import ScoreCalculator
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
-from app.jobs.score_decay import ScoreDecayJob
+from app.jobs.daily_decay import DailyDecayJob
 from app.routers.health import router as health
 from app.routers.images import router as images
 from app.routers.quota import router as quota
-from app.services.activities.score_decay import ScoreDecayRunner
+from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.ingests.bootstrap import ensure_ingest_layout
 from app.services.jobs.manager import JobManager
 from app.services.jobs.repository.factory import create_job_repository
@@ -38,8 +38,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 		min_interval=timedelta(minutes=3),
 	)
 
-	score_decay = ScoreDecayJob(
-		ScoreDecayRunner(
+	score_decay = DailyDecayJob(
+		DailyDecayRunner(
 			score_calculator=ScoreCalculator(env.score),
 			daily_reset_at=env.time.daily_reset_at,
 			base_timezone=env.base_timezone,

@@ -4,8 +4,8 @@ from datetime import timedelta
 from app.config.environments import env
 from app.database import create_session, init_database
 from app.domain.score.calculator import ScoreCalculator
-from app.jobs.score_decay import ScoreDecayJob
-from app.services.activities.score_decay import ScoreDecayRunner
+from app.jobs.daily_decay import DailyDecayJob
+from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.jobs.manager import JobManager
 from app.services.jobs.repository.factory import create_job_repository
 
@@ -34,8 +34,8 @@ def main() -> None:
 		min_interval=min_interval,
 	)
 
-	job = ScoreDecayJob(
-		ScoreDecayRunner(
+	job = DailyDecayJob(
+		DailyDecayRunner(
 			score_calculator=ScoreCalculator(env.score),
 			daily_reset_at=env.time.daily_reset_at,
 			base_timezone=env.base_timezone,

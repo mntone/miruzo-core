@@ -4,18 +4,18 @@ from typing import Callable, ClassVar, final
 from sqlmodel import Session
 
 from app.jobs.protocol import Job
-from app.services.activities.score_decay import ScoreDecayRunner
+from app.services.activities.daily_decay import DailyDecayRunner
 
 
 @final
-class ScoreDecayJob(Job):
-	"""Scheduled job wrapper for running daily score decay."""
+class DailyDecayJob(Job):
+	"""Scheduled job wrapper for running daily decay."""
 
-	_NAME: ClassVar[str] = 'score_decay'
+	_NAME: ClassVar[str] = 'daily_decay'
 
 	def __init__(
 		self,
-		runner: ScoreDecayRunner,
+		runner: DailyDecayRunner,
 		*,
 		session_factory: Callable[[], Session],
 	) -> None:
@@ -24,7 +24,7 @@ class ScoreDecayJob(Job):
 
 	@property
 	def name(self) -> str:
-		return ScoreDecayJob._NAME
+		return DailyDecayJob._NAME
 
 	def run(self, *, evaluated_at: datetime) -> None:
 		with self._session_factory() as session:
