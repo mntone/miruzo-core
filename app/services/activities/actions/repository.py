@@ -28,18 +28,19 @@ class ActionRepository:
 
 		return items
 
-	def select_one_by(
+	def select_latest_one(
 		self,
 		ingest_id: int,
 		*,
 		kind: ActionKind,
 		since_occurred_at: datetime,
-		until_occurred_at: datetime,
+		until_occurred_at: datetime | None = None,
+		require_unique: bool = False,
 	) -> ActionRecord | None:
 		"""
-		Return any one matching ActionRecord.
+		Return the latest matching ActionRecord.
 		Time range is interpreted as [since_occurred_at, until_occurred_at).
-		Order is not guaranteed.
+		When require_unique is True, raise if multiple rows exist.
 		"""
 
 		statement = (
@@ -48,10 +49,18 @@ class ActionRepository:
 				ActionRecord.ingest_id == ingest_id,
 				ActionRecord.kind == kind,
 				ActionRecord.occurred_at >= since_occurred_at,
+			)
+			.order_by(
+				ActionRecord.occurred_at.desc(),
+				ActionRecord.id.desc(),
+			)
+			.limit(2 if require_unique else 1)
+		)
+
+		if until_occurred_at is not None:
+			statement = statement.where(
 				ActionRecord.occurred_at < until_occurred_at,
 			)
-			.limit(1)
-		)
 
 		row = self._session.exec(statement).one_or_none()
 

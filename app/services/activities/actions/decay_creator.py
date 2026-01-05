@@ -14,8 +14,8 @@ class DecayActionCreator:
 
 	def __init__(
 		self,
-		repository: ActionRepository,
 		*,
+		repository: ActionRepository,
 		daily_reset_at: time,
 		base_timezone: ZoneInfo | None,
 	) -> None:
@@ -29,25 +29,29 @@ class DecayActionCreator:
 		*,
 		occurred_at: datetime,
 	) -> ActionRecord | None:
-		since, until = resolve_daily_period_range(
+		# --- get period_start ---
+		period_start, period_end = resolve_daily_period_range(
 			occurred_at,
 			daily_reset_at=self._daily_reset_at,
 			base_timezone=self._base_timezone,
 		)
 
-		action = self._repository.select_one_by(
+		# --- get decay action ---
+		action = self._repository.select_latest_one(
 			ingest_id,
 			kind=ActionKind.DECAY,
-			since_occurred_at=since,
-			until_occurred_at=until,
+			since_occurred_at=period_start,
+			until_occurred_at=period_end,
+			require_unique=True,
 		)
 		if action is not None:
 			return None
 
-		action = self._repository.insert(
+		# --- insert new action ---
+		new_action = self._repository.insert(
 			ingest_id,
 			kind=ActionKind.DECAY,
 			occurred_at=occurred_at,
 		)
 
-		return action
+		return new_action

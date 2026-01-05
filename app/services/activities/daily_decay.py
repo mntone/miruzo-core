@@ -30,7 +30,7 @@ class DailyDecayRunner:
 	def apply_daily_decay(self, session: Session, *, evaluated_at: datetime) -> None:
 		stats_repo = create_stats_repository(session)
 		decay_creator = DecayActionCreator(
-			ActionRepository(session),
+			repository=ActionRepository(session),
 			daily_reset_at=self._daily_reset_at,
 			base_timezone=self._base_timezone,
 		)

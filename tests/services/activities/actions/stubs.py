@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import final
 
+from sqlalchemy.exc import MultipleResultsFound
+
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
 
@@ -13,7 +15,8 @@ class _StubActionRepository_SelectOneArgs:
 	ingest_id: int
 	kind: ActionKind
 	since_occurred_at: datetime
-	until_occurred_at: datetime
+	until_occurred_at: datetime | None
+	require_unique: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,24 +37,27 @@ class StubActionRepository:
 
 	def select_by_ingest_id(self, ingest_id: int) -> Sequence[ActionRecord]:
 		self.select_called_with = ingest_id
-		return [action for action in self.actions if action.ingest_id == ingest_id]
+		items = [action for action in self.actions if action.ingest_id == ingest_id]
+		return sorted(items, key=self._sort_key)
 
-	def select_one_by(
+	def select_latest_one(
 		self,
 		ingest_id: int,
 		*,
 		kind: ActionKind,
 		since_occurred_at: datetime,
-		until_occurred_at: datetime,
+		until_occurred_at: datetime | None = None,
+		require_unique: bool = False,
 	) -> ActionRecord | None:
 		self.select_one_called_with = _StubActionRepository_SelectOneArgs(
 			ingest_id=ingest_id,
 			kind=kind,
 			since_occurred_at=since_occurred_at,
 			until_occurred_at=until_occurred_at,
+			require_unique=require_unique,
 		)
 
-		target_action: ActionRecord | None = None
+		candidates: list[ActionRecord] = []
 		for action in self.actions:
 			if action.ingest_id != ingest_id:
 				continue
@@ -62,13 +68,19 @@ class StubActionRepository:
 			if since_occurred_at > action.occurred_at:
 				continue
 
-			if action.occurred_at >= until_occurred_at:
+			if until_occurred_at and action.occurred_at >= until_occurred_at:
 				continue
 
-			target_action = action
-			break
+			candidates.append(action)
 
-		return target_action
+		if not candidates:
+			return None
+
+		candidates = sorted(candidates, key=self._sort_key, reverse=True)
+		if require_unique and len(candidates) > 1:
+			raise MultipleResultsFound('multiple action')
+
+		return candidates[0]
 
 	def insert(
 		self,
@@ -94,3 +106,7 @@ class StubActionRepository:
 
 		self.actions.append(action)
 		return action
+
+	@staticmethod
+	def _sort_key(action: ActionRecord) -> tuple[datetime, int]:
+		return (action.occurred_at, action.id or 0)
