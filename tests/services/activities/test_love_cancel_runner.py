@@ -56,14 +56,17 @@ def test_run_restores_previous_love(session: Session) -> None:
 	)
 
 	with session.begin():
-		runner.run(session, ingest_id=ingest.id, evaluated_at=period_start)
+		response = runner.run(session, ingest_id=ingest.id, evaluated_at=period_start)
+	assert response.stats.first_loved_at == previous_love
+	assert response.stats.last_loved_at == previous_love
+	assert response.stats.score == 82
 
 	user = user_repo.get_or_create_singleton()
 	assert user.daily_love_used == 0
 
 	stats = stats_repo.get_one(ingest.id)
-	assert stats.last_loved_at == previous_love
 	assert stats.first_loved_at == previous_love
+	assert stats.last_loved_at == previous_love
 	assert stats.score == 82
 
 
@@ -84,11 +87,13 @@ def test_run_clears_first_loved_at_when_no_previous_love(session: Session) -> No
 	)
 
 	with session.begin():
-		runner.run(session, ingest_id=ingest.id, evaluated_at=evaluated_at)
+		response = runner.run(session, ingest_id=ingest.id, evaluated_at=evaluated_at)
+	assert response.stats.first_loved_at is None
+	assert response.stats.last_loved_at is None
 
 	stats = stats_repo.get_one(ingest.id)
-	assert stats.last_loved_at is None
 	assert stats.first_loved_at is None
+	assert stats.last_loved_at is None
 
 
 def test_run_raises_when_no_love_in_period(session: Session) -> None:

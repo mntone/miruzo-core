@@ -7,6 +7,8 @@ from app.config.score import ScoreConfig
 from app.domain.activities.daily_period import resolve_daily_period_start
 from app.domain.score.calculator import ScoreCalculator
 from app.errors import InvalidStateError, QuotaExceededError
+from app.models.api.activities.responses import LoveStatsResponse
+from app.models.api.activities.stats import LoveStatsModel
 from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.repository.factory import create_stats_repository
@@ -28,7 +30,7 @@ class LoveRunner:
 		self._daily_love_limit = daily_love_limit
 		self._score_calc = ScoreCalculator(score_config)
 
-	def run(self, session: Session, *, ingest_id: int, evaluated_at: datetime) -> None:
+	def run(self, session: Session, *, ingest_id: int, evaluated_at: datetime) -> LoveStatsResponse:
 		# --- resolve period start ---
 		period_start = resolve_daily_period_start(
 			evaluated_at,
@@ -85,3 +87,10 @@ class LoveRunner:
 
 		# --- update usage ---
 		user.daily_love_used += 1
+
+		# --- create response ---
+		response = LoveStatsResponse(
+			stats=LoveStatsModel.from_record(stats),
+		)
+
+		return response

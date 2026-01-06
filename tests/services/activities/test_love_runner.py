@@ -41,7 +41,10 @@ def test_run_updates_stats_and_user(session: Session) -> None:
 
 	evaluated_at = datetime(2024, 1, 2, tzinfo=timezone.utc)
 	with session.begin():
-		runner.run(session, ingest_id=ingest.id, evaluated_at=evaluated_at)
+		response = runner.run(session, ingest_id=ingest.id, evaluated_at=evaluated_at)
+	assert response.stats.first_loved_at == evaluated_at
+	assert response.stats.last_loved_at == evaluated_at
+	assert response.stats.score == 120
 
 	user = SQLiteUserRepository(session).get_or_create_singleton()
 	assert user.daily_love_used == 1

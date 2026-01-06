@@ -8,6 +8,54 @@ from app.models.records import StatsRecord
 
 
 @final
+class LoveStatsModel(BaseModel):
+	"""Love statistics for a single image."""
+
+	model_config = ConfigDict(
+		title='Love stats model',
+		extra='forbid',
+		frozen=True,
+	)
+
+	score: Annotated[
+		int,
+		Field(
+			title='Score',
+			description=f'user-tunable ranking value clamped between {env.score.minimum_score} and {env.score.maximum_score}',
+			ge=env.score.minimum_score,
+			le=env.score.maximum_score,
+		),
+	]
+	"""user-tunable ranking value"""
+
+	first_loved_at: Annotated[
+		datetime | None,
+		Field(
+			title='First loved timestamp',
+			description='timestamp of the first love action, or `null` if it has not been loved',
+		),
+	]
+	"""timestamp of the first love action, or `None` if it has not been loved"""
+
+	last_loved_at: Annotated[
+		datetime | None,
+		Field(
+			title='Last loved timestamp',
+			description='timestamp of the last love action, or `null` if it has not been loved',
+		),
+	]
+	"""timestamp of the last love action, or `None` if it has not been loved"""
+
+	@classmethod
+	def from_record(cls, stats: StatsRecord) -> 'LoveStatsModel':
+		return cls(
+			score=stats.score,
+			first_loved_at=stats.first_loved_at,
+			last_loved_at=stats.last_loved_at,
+		)
+
+
+@final
 class StatsModel(BaseModel):
 	"""Aggregate engagement data for a single image."""
 

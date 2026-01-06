@@ -7,6 +7,7 @@ from starlette.responses import Response
 
 from app.config.environments import env
 from app.database import get_session
+from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
@@ -142,29 +143,29 @@ def get_context(
 	return build_response(response)
 
 
-@router.post('/{ingest_id}/love')
+@router.post('/{ingest_id}/love', response_model=LoveStatsResponse)
 def post_love(
 	ingest_id: int,
 	session: Annotated[Session, Depends(get_session)],
 	runner: Annotated[LoveRunner, Depends(_get_love_runner)],
-) -> None:
+) -> Response:
 	current = datetime.now(timezone.utc)
 
 	with session.begin():
-		runner.run(session, ingest_id=ingest_id, evaluated_at=current)
+		response = runner.run(session, ingest_id=ingest_id, evaluated_at=current)
 
-	return None
+	return build_response(response, exclude_none=False)
 
 
-@router.post('/{ingest_id}/love/cancel')
+@router.post('/{ingest_id}/love/cancel', response_model=LoveStatsResponse)
 def post_love_cancel(
 	ingest_id: int,
 	session: Annotated[Session, Depends(get_session)],
 	runner: Annotated[LoveCancelRunner, Depends(_get_love_cancel_runner)],
-) -> None:
+) -> Response:
 	current = datetime.now(timezone.utc)
 
 	with session.begin():
-		runner.run(session, ingest_id=ingest_id, evaluated_at=current)
+		response = runner.run(session, ingest_id=ingest_id, evaluated_at=current)
 
-	return None
+	return build_response(response, exclude_none=False)

@@ -7,10 +7,11 @@ def build_response(
 	*,
 	status_code: int = 200,
 	exclude_defaults: bool = True,
+	exclude_none: bool = True,
 ) -> Response:
 	payload = data.model_dump_json(
 		exclude_defaults=exclude_defaults,
-		exclude_none=True,
+		exclude_none=exclude_none,
 	)
 	return Response(
 		content=payload,

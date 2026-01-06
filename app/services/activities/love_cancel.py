@@ -7,6 +7,8 @@ from app.config.score import ScoreConfig
 from app.domain.activities.daily_period import resolve_daily_period_start
 from app.domain.score.calculator import ScoreCalculator
 from app.errors import InvalidStateError
+from app.models.api.activities.responses import LoveStatsResponse
+from app.models.api.activities.stats import LoveStatsModel
 from app.models.enums import ActionKind
 from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.actions.repository import ActionRepository
@@ -58,7 +60,7 @@ class LoveCancelRunner:
 
 			return action.occurred_at
 
-	def run(self, session: Session, *, ingest_id: int, evaluated_at: datetime) -> None:
+	def run(self, session: Session, *, ingest_id: int, evaluated_at: datetime) -> LoveStatsResponse:
 		# --- resolve period start ---
 		period_start = resolve_daily_period_start(
 			evaluated_at,
@@ -123,3 +125,10 @@ class LoveCancelRunner:
 		user = user_repo.get_or_create_singleton()
 		if user.daily_love_used > 0:
 			user.daily_love_used -= 1
+
+		# --- create response ---
+		response = LoveStatsResponse(
+			stats=LoveStatsModel.from_record(stats),
+		)
+
+		return response
