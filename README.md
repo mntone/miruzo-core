@@ -5,13 +5,13 @@
 [![Written by Python](https://forthebadge.com/api/badges/generate?panels=2&primaryLabel=WRITTEN+BY&secondaryLabel=Python&primaryBGColor=%238fc965&primaryTextColor=%23FFFFFF&secondaryBGColor=%23419b5a&secondaryTextColor=%23FFFFFF&primaryFontSize=12&primaryFontWeight=300&primaryLetterSpacing=2&primaryFontFamily=Montserrat&primaryTextTransform=uppercase&secondaryFontSize=12&secondaryFontWeight=900&secondaryLetterSpacing=2&secondaryFontFamily=Montserrat&secondaryTextTransform=uppercase&secondaryIcon=python&secondaryIconColor=%23FFFFFF&secondaryIconSize=24&secondaryIconPosition=right)](https://www.python.org/)
 
 miruzo-core is the FastAPI/SQLModel backend that powers the miruzo photo
-archive. It serves REST APIs for image browsing, scoring, and favorites, and
+archive. It serves REST APIs for image browsing, scoring, and love actions, and
 ships an importer pipeline that ingests gataku assets into SQLite or PostgreSQL.
 
 
 ## ✨ Features
 
-- REST API for listing images, fetching contexts, and patching scores/favorites
+- REST API for listing images, fetching contexts, and posting love actions
 - Importer tooling to populate the database and generate thumbnails/variants
 - SQLite (default) and PostgreSQL repositories with shared business logic
 - Pure helper modules for variant normalization and query parsing
@@ -72,7 +72,7 @@ Run miruzo-core locally by following these steps.
    python importers/gataku_import.py --jsonl path/to/data.jsonl
    ```
 
-4. Hit `/api/images` or `/api/images/{id}` to verify data is available.
+4. Hit `/api/i/latest` or `/api/i/{ingest_id}` to verify data is available.
 
 
 ## ⚙️ Configuration
@@ -81,11 +81,11 @@ All configuration flows through [`.env.development`](./.env.development) using
 `pydantic-settings`. Key variables include:
 
 - `DATABASE_BACKEND`: `sqlite` (default) or `postgres`
-- `DATABASE_URL`: SQLAlchemy DSN (e.g., `sqlite:///miruzo.db`,
+- `DATABASE_URL`: SQLAlchemy DSN (e.g., `sqlite:///var/miruzo.sqlite`,
   `postgresql://user:pass@host/db`)
 - `GATAKU_ROOT` / `GATAKU_ASSETS_ROOT` / `MEDIA_ROOT`: filesystem roots for
   importer + media files
-- `VARIANT_LAYERS`: loaded from `app/core/variant_config.py`
+- `VARIANT_LAYERS`: loaded from `app/config/variant.py`
 
 
 ## 📦 Database support

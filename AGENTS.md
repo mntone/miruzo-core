@@ -43,13 +43,13 @@ who is executing them.
   not perform DB/variant logic in routers
 - Service classes (e.g., `ImageService`) should depend only on repository
   interfaces and pure helpers (`variants.py`, etc.)
-- Repositories must inherit from `ImageRepository` and store their `Session`
-  via `super().__init__(session)` so the shared helpers work
+- Repositories should inherit from the relevant base repository class and
+  store their `Session` via `super().__init__(session)` so shared helpers work
 - Always add OpenAPI `title` and `description` via `Field` metadata for new API
   models; omit only when the parent schema already conveys the same meaning
 - Enum/string settings should be normalized via validators in
-  `app/core/settings.py`; avoid environment-specific branching outside that
-  module
+  `app/config/environments.py`; avoid environment-specific branching outside
+  that module
 - Importers in `importers/common/*` must log all destructive actions and honor
   the `force` flag before deleting files
 
