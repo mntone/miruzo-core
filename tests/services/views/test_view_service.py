@@ -1,9 +1,9 @@
-from tests.services.activities.actions.stubs import StubActionRepository
 from tests.services.activities.stats.factory import build_stats_record
-from tests.services.activities.stats.stubs import StubStatsRepository
-from tests.services.images.stubs import StubImageRepository
 from tests.services.images.utils import build_image_record
+from tests.stubs.action import StubActionRepository
+from tests.stubs.image import StubImageRepository
 from tests.stubs.session import StubSession
+from tests.stubs.stats import StubStatsRepository
 
 from app.config.constants import VIEW_MILESTONES
 from app.config.environments import env

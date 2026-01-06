@@ -1,11 +1,9 @@
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
-from typing import Callable
 
 import pytest
 
-from tests.jobs.stub import StubJob
-from tests.services.jobs.stubs import StubJobRepository
+from tests.stubs.job import StubJob, StubJobRepository
 from tests.stubs.ref import RefInt
 from tests.stubs.session import create_stub_session_factory
 

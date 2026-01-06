@@ -6,9 +6,9 @@ from typing import cast
 import pytest
 from PIL import Image as PILImage
 
-from tests.services.images.stubs import StubImageRepository
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_variant_file
+from tests.stubs.image import StubImageRepository
 
 from app.config.variant import VariantLayerSpec
 from app.models.enums import ExecutionStatus, IngestMode

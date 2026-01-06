@@ -1,7 +1,7 @@
 from datetime import datetime, time, timezone
 from zoneinfo import ZoneInfo
 
-from tests.services.activities.actions.stubs import StubActionRepository
+from tests.stubs.action import StubActionRepository
 
 from app.domain.activities.daily_period import resolve_daily_period_range
 from app.models.enums import ActionKind

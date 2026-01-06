@@ -4,10 +4,10 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from tests.domains.score.stub import StubScoreCalculator
 from tests.services.activities.stats.factory import build_stats_record
-from tests.services.activities.stats.stubs import StubStatsRepository
+from tests.stubs.score import StubScoreCalculator
 from tests.stubs.session import StubSession
+from tests.stubs.stats import StubStatsRepository
 from tests.stubs.user import StubUserRepository
 
 from app.models.enums import ActionKind
