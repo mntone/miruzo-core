@@ -1,9 +1,9 @@
-"""Add image list indexes
+"""
+Add image list indexes
 
 Revision ID: a46b415897c4
 Revises:
 Create Date: 2026-01-01 09:58:54.621175
-
 """
 
 from collections.abc import Sequence
