@@ -23,6 +23,7 @@ def test_get_context_returns_none_when_record_missing() -> None:
 		image_query=ImageQueryService(
 			session=session,  # pyright: ignore[reportArgumentType]
 			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			engaged_score_threshold=160,
 			variant_layers=env.variant_layers,
 		),
 		stats=stats_repo,  # pyright: ignore[reportArgumentType]
@@ -55,6 +56,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 		image_query=ImageQueryService(
 			session=session,  # pyright: ignore[reportArgumentType]
 			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			engaged_score_threshold=160,
 			variant_layers=env.variant_layers,
 		),
 		stats=stats_repo,  # pyright: ignore[reportArgumentType]
@@ -99,6 +101,7 @@ def test_get_context_updates_view_milestone() -> None:
 		image_query=ImageQueryService(
 			session=session,  # pyright: ignore[reportArgumentType]
 			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			engaged_score_threshold=160,
 			variant_layers=env.variant_layers,
 		),
 		stats=stats_repo,  # pyright: ignore[reportArgumentType]

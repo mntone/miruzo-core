@@ -27,6 +27,7 @@ def _get_image_query_service(
 	return ImageQueryService(
 		session=session,
 		repository=ImageRepository(session),
+		engaged_score_threshold=env.score.engaged_score_threshold,
 		variant_layers=env.variant_layers,
 	)
 
@@ -123,6 +124,19 @@ def get_hall_of_fame(
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_hall_of_fame(
+		cursor=query.cursor,
+		limit=query.limit,
+		exclude_formats=query.exclude_formats,
+	)
+	return build_response(response)
+
+
+@router.get('/engaged', response_model=ImageListResponse[int])
+def get_engaged(
+	query: Annotated[ListQuery[int], Depends()],
+	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
+) -> Response:
+	response = service.get_engaged(
 		cursor=query.cursor,
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,

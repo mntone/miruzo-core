@@ -22,10 +22,12 @@ class ImageQueryService:
 		*,
 		session: Session,
 		repository: ImageRepository,
+		engaged_score_threshold: int,
 		variant_layers: Sequence[VariantLayerSpec],
 	) -> None:
 		self._session = session
 		self._repository = repository
+		self._executor = ImageListQueryExecutor(session, engaged_score_threshold=engaged_score_threshold)
 		self._variant_layers = variant_layers
 
 	def get_latest(
@@ -43,7 +45,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[ImageRecord],
-			ImageListQueryExecutor(self._session)
+			self._executor
 				.latest(cursor=cursor)
 				.order_by_ingest_id()
 				.limit(limit + 1)
@@ -74,7 +76,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[tuple[ImageRecord, datetime]],
-			ImageListQueryExecutor(self._session)
+			self._executor
 				.chronological(cursor=cursor)
 				.order_by_ingest_id()
 				.limit(limit + 1)
@@ -105,7 +107,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[tuple[ImageRecord, datetime]],
-			ImageListQueryExecutor(self._session)
+			self._executor
 				.recently(cursor=cursor)
 				.order_by_ingest_id()
 				.limit(limit + 1)
@@ -136,7 +138,7 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[tuple[ImageRecord, datetime]],
-			ImageListQueryExecutor(self._session)
+			self._executor
 				.first_love(cursor=cursor)
 				.order_by_ingest_id()
 				.limit(limit + 1)
@@ -167,8 +169,39 @@ class ImageQueryService:
 		# fmt: off
 		rows = cast(
 			Sequence[tuple[ImageRecord, datetime]],
-			ImageListQueryExecutor(self._session)
+			self._executor
 				.hall_of_fame(cursor=cursor)
+				.order_by_ingest_id()
+				.limit(limit + 1)
+				.execute(),
+		)
+		# fmt: on
+
+		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
+
+		response = map_image_records_to_list_response(
+			items,
+			next_cursor=next_cursor,
+			exclude_formats=exclude_formats,
+			variant_layers=self._variant_layers,
+		)
+
+		return response
+
+	def get_engaged(
+		self,
+		*,
+		cursor: int | None,
+		limit: int,
+		exclude_formats: tuple[str, ...],
+	) -> ImageListResponse[int]:
+		"""Return a paginated list of engaged images."""
+
+		# fmt: off
+		rows = cast(
+			Sequence[tuple[ImageRecord, int]],
+			self._executor
+				.engaged(cursor=cursor)
 				.order_by_ingest_id()
 				.limit(limit + 1)
 				.execute(),

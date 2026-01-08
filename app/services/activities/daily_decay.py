@@ -60,6 +60,8 @@ class DailyDecayRunner:
 			)
 
 			stats.score = new_score
+			stats.score_evaluated = new_score
+			stats.score_evaluated_at = evaluated_at
 
 		user_repo = create_user_repository(session)
 		user = user_repo.get_or_create_singleton()

@@ -14,6 +14,7 @@ class ScoreConfig:
 	initial_score: int = 100
 	minimum_score: int = 0
 	maximum_score: int = 200
+	engaged_score_threshold: int = 160
 
 	# --- decay (daily) ---
 	decay_high_score_threshold: int = 180  # == hall_of_fame_threshold for now

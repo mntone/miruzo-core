@@ -99,10 +99,19 @@ class StatsRecord(SQLModel, table=True):
 			SmallInteger,
 			autoincrement=False,
 			default=env.score.initial_score,
-			index=True,
 			nullable=False,
 		),
 	)
+	score_evaluated: int = SQLField(
+		le=env.score.maximum_score,
+		sa_column=Column(
+			SmallInteger,
+			autoincrement=False,
+			default=env.score.initial_score,
+			nullable=False,
+		),
+	)
+	score_evaluated_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
 	view_count: int = SQLField(default=0, ge=0, nullable=False)
 	last_viewed_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
 	first_loved_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))

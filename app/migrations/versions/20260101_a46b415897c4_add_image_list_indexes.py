@@ -30,6 +30,11 @@ def upgrade() -> None:
 		ON ingests (captured_at DESC, id DESC);
 	""")
 	op.execute("""
+		CREATE INDEX ix_stats_engaged
+		ON stats (score_evaluated DESC, ingest_id DESC)
+		WHERE hall_of_fame_at IS NULL;
+	""")
+	op.execute("""
 		CREATE INDEX ix_stats_recently
 		ON stats (last_viewed_at DESC, ingest_id DESC)
 		WHERE last_viewed_at IS NOT NULL;
@@ -50,5 +55,6 @@ def downgrade() -> None:
 	op.drop_index('ix_stats_hall_of_fame', table_name='stats')
 	op.drop_index('ix_stats_first_love', table_name='stats')
 	op.drop_index('ix_stats_recently', table_name='stats')
+	op.drop_index('ix_stats_engaged', table_name='stats')
 	op.drop_index('ix_ingests_chronological', table_name='ingests')
 	op.drop_index('ix_images_latest', table_name='images')

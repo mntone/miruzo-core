@@ -19,11 +19,12 @@ from app.models.records import ImageRecord, IngestRecord, StatsRecord
 class ImageListQueryExecutor:
 	"""Build and execute list-query statements for images."""
 
-	def __init__(self, session: Session) -> None:
+	def __init__(self, session: Session, *, engaged_score_threshold: int) -> None:
 		"""Store the session used to execute list queries."""
 
 		self._statement = None
 		self._session = session
+		self._engaged_score_threshold = engaged_score_threshold
 
 	def latest(self, *, cursor: datetime | None) -> 'ImageListQueryExecutor':
 		"""Prepare a latest-first images query."""
@@ -137,6 +138,34 @@ class ImageListQueryExecutor:
 			# WHERE stats.hall_of_fame_at < ?
 			self._statement = self._statement.where(
 				StatsRecord.hall_of_fame_at < cursor,
+			)
+
+		return self
+
+	def engaged(self, *, cursor: int | None) -> 'ImageListQueryExecutor':
+		"""Prepare a engaged images query."""
+
+		self._statement = (
+			# SELECT images.*, stats.score_evaluated FROM images
+			select(ImageRecord, StatsRecord.score_evaluated)
+			# JOIN stats ON stats.ingest_id = images.ingest_id
+			.join(
+				StatsRecord,
+				StatsRecord.ingest_id == ImageRecord.ingest_id,
+			)
+			# WHERE stats.hall_of_fame_at IS NULL AND stats.score_evaluated >= THRESHOLD
+			.where(
+				StatsRecord.hall_of_fame_at.is_(None),
+				StatsRecord.score_evaluated >= self._engaged_score_threshold,
+			)
+			# ORDER BY stats.score_evaluated DESC
+			.order_by(StatsRecord.score_evaluated.desc())
+		)
+
+		if cursor is not None:
+			# WHERE stats.score_evaluated < ?
+			self._statement = self._statement.where(
+				StatsRecord.score_evaluated < cursor,
 			)
 
 		return self
