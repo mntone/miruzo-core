@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from datetime import datetime
+from typing import TypeVar
 
 from app.config.variant import VariantLayerSpec
 from app.models.api.images.list import ImageListModel
@@ -8,14 +8,16 @@ from app.models.records import ImageRecord
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 from app.services.images.variants.mapper import map_variants_to_layers
 
+TCursor = TypeVar('TCursor')
+
 
 def map_image_records_to_list_response(
 	images: Sequence[ImageRecord],
 	*,
-	next_cursor: datetime | None,
+	next_cursor: TCursor | None,
 	exclude_formats: tuple[str, ...],
 	variant_layers: Sequence[VariantLayerSpec],
-) -> ImageListResponse:
+) -> ImageListResponse[TCursor]:
 	"""Build an ImageListResponse from records with normalized variants."""
 
 	allowed_formats = compute_allowed_formats(exclude_formats)

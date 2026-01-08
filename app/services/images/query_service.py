@@ -34,7 +34,7 @@ class ImageQueryService:
 		cursor: datetime | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse:
+	) -> ImageListResponse[datetime]:
 		"""
 		Return a paginated list of images (summary only).
 		Includes variant normalization using allowed_formats.
@@ -68,7 +68,7 @@ class ImageQueryService:
 		cursor: datetime | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse:
+	) -> ImageListResponse[datetime]:
 		"""Return a paginated list of timeline images."""
 
 		# fmt: off
@@ -82,7 +82,7 @@ class ImageQueryService:
 		)
 		# fmt: on
 
-		items, next_cursor = paginator.slice_with_cursor_for_datetime(rows, limit)
+		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
 
 		response = map_image_records_to_list_response(
 			items,
@@ -99,7 +99,7 @@ class ImageQueryService:
 		cursor: datetime | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse:
+	) -> ImageListResponse[datetime]:
 		"""Return a paginated list of recently viewed images."""
 
 		# fmt: off
@@ -113,7 +113,7 @@ class ImageQueryService:
 		)
 		# fmt: on
 
-		items, next_cursor = paginator.slice_with_cursor_for_datetime(rows, limit)
+		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
 
 		response = map_image_records_to_list_response(
 			items,
@@ -130,7 +130,7 @@ class ImageQueryService:
 		cursor: datetime | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse:
+	) -> ImageListResponse[datetime]:
 		"""Return a paginated list of first-loved images."""
 
 		# fmt: off
@@ -144,7 +144,7 @@ class ImageQueryService:
 		)
 		# fmt: on
 
-		items, next_cursor = paginator.slice_with_cursor_for_datetime(rows, limit)
+		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
 
 		response = map_image_records_to_list_response(
 			items,
@@ -161,7 +161,7 @@ class ImageQueryService:
 		cursor: datetime | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse:
+	) -> ImageListResponse[datetime]:
 		"""Return a paginated list of hall-of-fame images."""
 
 		# fmt: off
@@ -175,7 +175,7 @@ class ImageQueryService:
 		)
 		# fmt: on
 
-		items, next_cursor = paginator.slice_with_cursor_for_datetime(rows, limit)
+		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
 
 		response = map_image_records_to_list_response(
 			items,

@@ -65,9 +65,9 @@ def _get_love_cancel_runner() -> LoveCancelRunner:
 router = APIRouter(prefix='/i')
 
 
-@router.get('/latest', response_model=ImageListResponse)
+@router.get('/latest', response_model=ImageListResponse[datetime])
 def get_latest(
-	query: Annotated[ListQuery, Depends()],
+	query: Annotated[ListQuery[datetime], Depends()],
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_latest(
@@ -78,9 +78,9 @@ def get_latest(
 	return build_response(response)
 
 
-@router.get('/chronological', response_model=ImageListResponse)
+@router.get('/chronological', response_model=ImageListResponse[datetime])
 def get_chronological(
-	query: Annotated[ListQuery, Depends()],
+	query: Annotated[ListQuery[datetime], Depends()],
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_chronological(
@@ -91,9 +91,9 @@ def get_chronological(
 	return build_response(response)
 
 
-@router.get('/recently', response_model=ImageListResponse)
+@router.get('/recently', response_model=ImageListResponse[datetime])
 def get_recently(
-	query: Annotated[ListQuery, Depends()],
+	query: Annotated[ListQuery[datetime], Depends()],
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_recently(
@@ -104,9 +104,9 @@ def get_recently(
 	return build_response(response)
 
 
-@router.get('/first_love', response_model=ImageListResponse)
+@router.get('/first_love', response_model=ImageListResponse[datetime])
 def get_first_love(
-	query: Annotated[ListQuery, Depends()],
+	query: Annotated[ListQuery[datetime], Depends()],
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_first_love(
@@ -117,9 +117,9 @@ def get_first_love(
 	return build_response(response)
 
 
-@router.get('/hall_of_fame', response_model=ImageListResponse)
+@router.get('/hall_of_fame', response_model=ImageListResponse[datetime])
 def get_hall_of_fame(
-	query: Annotated[ListQuery, Depends()],
+	query: Annotated[ListQuery[datetime], Depends()],
 	service: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> Response:
 	response = service.get_hall_of_fame(

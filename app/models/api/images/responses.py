@@ -1,16 +1,17 @@
 from collections.abc import Sequence
-from datetime import datetime
-from typing import Annotated, final
+from typing import Annotated, Generic, TypeVar, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.config.constants import LIMIT_MAXIMUM
 from app.models.api.images.list import ImageListModel
 
+TCursor = TypeVar('TCursor')
+
 
 @final
-class ImageListResponse(BaseModel):
-	"""Envelope returned by the latest-images API."""
+class ImageListResponse(BaseModel, Generic[TCursor]):
+	"""Envelope returned by image list APIs."""
 
 	model_config = ConfigDict(
 		title='Image list response',
@@ -30,7 +31,7 @@ class ImageListResponse(BaseModel):
 	"""page of image summaries returned for this request"""
 
 	cursor: Annotated[
-		datetime | None,
+		TCursor | None,
 		Field(
 			title='Next cursor',
 			default=None,

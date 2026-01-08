@@ -1,7 +1,10 @@
 from collections.abc import Sequence
 from datetime import datetime
+from typing import TypeVar
 
 from app.models.records import ImageRecord
+
+TCursor = TypeVar('TCursor')
 
 
 def slice_with_cursor_latest(
@@ -19,13 +22,13 @@ def slice_with_cursor_latest(
 	return items, next_cursor
 
 
-def slice_with_cursor_for_datetime(
-	rows: Sequence[tuple[ImageRecord, datetime]],
+def slice_with_tuple_cursor(
+	rows: Sequence[tuple[ImageRecord, TCursor]],
 	limit: int,
-) -> tuple[Sequence[ImageRecord], datetime | None]:
-	"""Trim to limit and return the next cursor for datetime-ordered rows."""
+) -> tuple[Sequence[ImageRecord], TCursor | None]:
+	"""Trim to limit and return the next cursor for cursor-ordered rows."""
 
-	next_cursor: datetime | None = None
+	next_cursor: TCursor | None = None
 	if len(rows) > limit:
 		_, next_cursor = rows[limit - 1]
 

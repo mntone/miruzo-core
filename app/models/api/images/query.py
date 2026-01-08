@@ -1,16 +1,16 @@
 import re
 from collections.abc import Iterable
-from typing import Annotated, cast, final
+from typing import Annotated, Generic, cast, final
 
 from pydantic import ConfigDict, Field, field_validator
 
-from app.models.api.common.query import PaginationQuery
+from app.models.api.common.query import PaginationQuery, TCursor
 
 _FORMAT_TOKEN_PATTERN = re.compile(r'^[a-z0-9]+$')
 
 
 @final
-class ListQuery(PaginationQuery):
+class ListQuery(PaginationQuery[TCursor], Generic[TCursor]):
 	model_config = ConfigDict(title='Image list query', strict=True)
 
 	exclude_formats: Annotated[

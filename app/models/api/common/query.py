@@ -1,12 +1,13 @@
-from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.config.constants import DEFAULT_LIMIT, LIMIT_MAXIMUM, LIMIT_MINIMUM
 
+TCursor = TypeVar('TCursor')
 
-class PaginationQuery(BaseModel):
+
+class PaginationQuery(BaseModel, Generic[TCursor]):
 	model_config = ConfigDict(
 		title='Pagination query',
 		extra='forbid',
@@ -14,7 +15,7 @@ class PaginationQuery(BaseModel):
 	)
 
 	cursor: Annotated[
-		datetime | None,
+		TCursor | None,
 		Field(
 			title='Cursor',
 			description='opaque pagination cursor representing the last item returned; `null` for the first page',
