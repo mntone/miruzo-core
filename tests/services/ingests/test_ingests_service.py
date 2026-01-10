@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
@@ -8,6 +9,7 @@ from app.config.environments import env
 from app.models.enums import IngestMode
 from app.models.records import IngestRecord
 from app.services.ingests.service import IngestService
+from app.services.ingests.utils.fingerprint import compute_fingerprint
 
 
 class _StubRepository:
@@ -145,3 +147,32 @@ def test_create_ingest_copy_cleans_up_on_failure(
 		)
 
 	assert not output_path.exists()
+
+
+def test_create_ingest_recomputes_invalid_fingerprint(
+	tmp_path: Path,
+	monkeypatch: pytest.MonkeyPatch,
+	caplog: pytest.LogCaptureFixture,
+) -> None:
+	assets_root = _setup_roots(tmp_path, monkeypatch)
+	origin_relative = Path('foo') / 'bar.webp'
+	origin = assets_root / origin_relative
+	origin.parent.mkdir(parents=True)
+	origin.write_bytes(b'data')
+
+	repo = _StubRepository()
+	service = IngestService(repo)  # type: ignore[arg-type]
+
+	caplog.set_level(logging.WARNING)
+	ingest = service.create_ingest(
+		origin_path=origin_relative,
+		fingerprint='not-a-hash',
+		captured_at=datetime.now(timezone.utc),
+		ingest_mode=IngestMode.COPY,
+	)
+
+	assert ingest.relative_path == 'l0orig/foo/bar.webp'
+	output_path = tmp_path / 'media' / 'l0orig' / 'foo' / 'bar.webp'
+	assert repo.created is not None
+	assert repo.created['fingerprint'] == compute_fingerprint(output_path)
+	assert 'invalid fingerprint detected' in caplog.text

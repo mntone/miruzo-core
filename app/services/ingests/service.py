@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from logging import getLogger
 from pathlib import Path
 from typing import final
 
@@ -6,13 +7,15 @@ from app.models.enums import IngestMode, VisibilityStatus
 from app.models.records import ExecutionEntry, IngestRecord
 from app.persist.ingests.protocol import IngestRepository
 from app.services.ingests.utils.file import copy_origin_file, delete_origin_file
-from app.services.ingests.utils.fingerprint import compute_fingerprint
+from app.services.ingests.utils.fingerprint import compute_fingerprint, normalize_fingerprint
 from app.services.ingests.utils.path import (
 	map_relative_to_output_path,
 	map_relative_to_pathstr,
 	map_relative_to_symlink_pathstr,
 	resolve_origin_absolute_path,
 )
+
+log = getLogger(__name__)
 
 
 @final
@@ -45,6 +48,11 @@ class IngestService:
 
 		if fingerprint is None:
 			fingerprint = compute_fingerprint(output_path)
+		else:
+			fingerprint = normalize_fingerprint(fingerprint)
+			if fingerprint is None:
+				log.warning('invalid fingerprint detected; recomputing for %s', origin_path)
+				fingerprint = compute_fingerprint(output_path)
 
 		current = datetime.now(timezone.utc)
 		try:
