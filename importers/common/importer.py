@@ -1,10 +1,11 @@
 import json
-from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
 from shutil import rmtree
 
 from sqlmodel import Session
+
+from importers.common.ingest_time import resolve_captured_at
 
 from app.config.environments import Settings
 from app.config.environments import env as global_env
@@ -145,26 +146,13 @@ def import_jsonl(
 					stats['missing'] += 1
 					continue
 
-				created_at_value = record.get('created_at')
-				if created_at_value:
-					try:
-						captured_at = datetime.fromisoformat(created_at_value)
-					except Exception:
-						captured_at = datetime.fromtimestamp(src_path.stat().st_mtime, tz=timezone.utc)
-						stats['fallback'] += 1
-						if not warned_created_at_fallback:
-							log.warning(
-								'invalid created_at detected; falling back to file mtime for subsequent entries',
-							)
-							warned_created_at_fallback = True
-				else:
-					captured_at = datetime.fromtimestamp(src_path.stat().st_mtime, tz=timezone.utc)
+				captured_at, used_fallback, warned_created_at_fallback = resolve_captured_at(
+					created_at_value=record.get('created_at'),
+					src_path=src_path,
+					warned_fallback=warned_created_at_fallback,
+				)
+				if used_fallback:
 					stats['fallback'] += 1
-					if not warned_created_at_fallback:
-						log.warning(
-							'missing created_at detected; falling back to file mtime for subsequent entries',
-						)
-						warned_created_at_fallback = True
 
 				ingest_record = ingest.ingest(
 					origin_path=origin_relative_path,
