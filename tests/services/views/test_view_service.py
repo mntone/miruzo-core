@@ -8,7 +8,6 @@ from tests.stubs.stats import StubStatsRepository
 from app.config.constants import VIEW_MILESTONES
 from app.config.environments import env
 from app.models.enums import ActionKind
-from app.services.images.query_service import ImageQueryService
 from app.services.views.context import ContextService
 
 
@@ -19,14 +18,9 @@ def test_get_context_returns_none_when_record_missing() -> None:
 	session = StubSession()
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
-		action=action_repo,
-		image_query=ImageQueryService(
-			session=session,  # pyright: ignore[reportArgumentType]
-			repository=image_repo,
-			engaged_score_threshold=160,
-			variant_layers=env.variant_layers,
-		),
-		stats=stats_repo,  # pyright: ignore[reportArgumentType]
+		action_repo=action_repo,
+		image_repo=image_repo,
+		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
 		env=env,
 	)
 
@@ -52,14 +46,9 @@ def test_get_context_returns_summary_and_stats() -> None:
 
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
-		action=action_repo,
-		image_query=ImageQueryService(
-			session=session,  # pyright: ignore[reportArgumentType]
-			repository=image_repo,
-			engaged_score_threshold=160,
-			variant_layers=env.variant_layers,
-		),
-		stats=stats_repo,  # pyright: ignore[reportArgumentType]
+		action_repo=action_repo,
+		image_repo=image_repo,
+		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
 		env=env,
 	)
 
@@ -97,14 +86,9 @@ def test_get_context_updates_view_milestone() -> None:
 
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
-		action=action_repo,
-		image_query=ImageQueryService(
-			session=session,  # pyright: ignore[reportArgumentType]
-			repository=image_repo,
-			engaged_score_threshold=160,
-			variant_layers=env.variant_layers,
-		),
-		stats=stats_repo,  # pyright: ignore[reportArgumentType]
+		action_repo=action_repo,
+		image_repo=image_repo,
+		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
 		env=env,
 	)
 

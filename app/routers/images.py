@@ -13,6 +13,7 @@ from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
 from app.persist.actions.factory import create_action_repository
 from app.persist.images.factory import create_image_repository
+from app.persist.images.protocol import ImageRepository
 from app.persist.stats.factory import create_stats_repository
 from app.services.activities.love import LoveRunner
 from app.services.activities.love_cancel import LoveCancelRunner
@@ -21,12 +22,19 @@ from app.services.views.context import ContextService
 from app.utils.http.reponse_builder import build_response
 
 
+def _get_image_repository(
+	session: Annotated[Session, Depends(get_session)],
+) -> ImageRepository:
+	return create_image_repository(session)
+
+
 def _get_image_query_service(
 	session: Annotated[Session, Depends(get_session)],
+	image_repo: Annotated[ImageRepository, Depends(_get_image_repository)],
 ) -> ImageQueryService:
 	return ImageQueryService(
 		session=session,
-		repository=create_image_repository(session),
+		repository=image_repo,
 		engaged_score_threshold=env.score.engaged_score_threshold,
 		variant_layers=env.variant_layers,
 	)
@@ -34,14 +42,13 @@ def _get_image_query_service(
 
 def _get_context_service(
 	session: Annotated[Session, Depends(get_session)],
-	image_query: Annotated[ImageQueryService, Depends(_get_image_query_service)],
+	image_repo: Annotated[ImageRepository, Depends(_get_image_repository)],
 ) -> ContextService:
-	action_repo = create_action_repository(session)
 	return ContextService(
 		session,
-		action=action_repo,
-		image_query=image_query,
-		stats=create_stats_repository(session),
+		action_repo=create_action_repository(session),
+		image_repo=image_repo,
+		stats_repo=create_stats_repository(session),
 		env=env,
 	)
 

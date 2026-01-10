@@ -218,10 +218,3 @@ class ImageQueryService:
 		)
 
 		return response
-
-	def get_by_ingest_id(self, ingest_id: int) -> ImageRecord | None:
-		"""Return a single image record by ingest id."""
-
-		record = self._repository.select_by_ingest_id(ingest_id)
-
-		return record

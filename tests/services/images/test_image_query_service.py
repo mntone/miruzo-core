@@ -232,19 +232,3 @@ def test_get_engaged_orders_by_score_evaluated(session: Session) -> None:
 	assert next_response.cursor is None
 	assert next_response.items is not None
 	assert [item.id for item in next_response.items] == [second.ingest_id]
-
-
-def test_get_by_ingest_id(session: Session) -> None:
-	now = datetime.now(timezone.utc)
-	image = add_image_record(session, 10, captured_at=now)
-
-	service = ImageQueryService(
-		session=session,
-		repository=BaseImageRepository(session),
-		engaged_score_threshold=160,
-		variant_layers=env.variant_layers,
-	)
-
-	response = service.get_by_ingest_id(image.ingest_id)
-	assert response is not None
-	assert response.ingest_id == image.ingest_id

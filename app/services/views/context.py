@@ -11,10 +11,10 @@ from app.models.api.activities.stats import StatsModel
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.summary import SummaryModel
 from app.persist.actions.protocol import ActionRepository
+from app.persist.images.protocol import ImageRepository
 from app.persist.stats.protocol import StatsRepository
 from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.stats.score_factory import make_score_context
-from app.services.images.query_service import ImageQueryService
 
 
 @final
@@ -23,16 +23,16 @@ class ContextService:
 		self,
 		session: Session,
 		*,
-		action: ActionRepository,
-		image_query: ImageQueryService,
-		stats: StatsRepository,
+		action_repo: ActionRepository,
+		image_repo: ImageRepository,
+		stats_repo: StatsRepository,
 		env: Settings,
 	) -> None:
 		self._session = session
-		self._action = action
-		self._action_persist = ActionCreator(action)
-		self._image = image_query
-		self._stats = stats
+		self._action_repo = action_repo
+		self._action_persist = ActionCreator(action_repo)
+		self._image_repo = image_repo
+		self._stats_repo = stats_repo
 		self._score_calc = ScoreCalculator(env.score)
 		self._daily_reset_at = env.time.daily_reset_at
 		self._base_timezone = env.base_timezone
@@ -49,7 +49,7 @@ class ContextService:
 		"""
 
 		with self._session.begin():
-			image = self._image.get_by_ingest_id(ingest_id)
+			image = self._image_repo.select_by_ingest_id(ingest_id)
 			if image is None:
 				return None
 
@@ -59,7 +59,7 @@ class ContextService:
 				occurred_at=current,
 			)
 
-			stats = self._stats.get_or_create(
+			stats = self._stats_repo.get_or_create(
 				ingest_id,
 				initial_score=self._score_calc.config.initial_score,
 			)
@@ -87,7 +87,7 @@ class ContextService:
 						stats.view_milestone_count = milestone
 						stats.view_milestone_archived_at = current
 
-		actions = self._action.select_by_ingest_id(ingest_id)
+		actions = self._action_repo.select_by_ingest_id(ingest_id)
 
 		response = ContextResponse.from_record(
 			image=SummaryModel.from_record(image),
