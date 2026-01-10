@@ -78,6 +78,7 @@ class ImageIngestService:
 						original=original,
 						fallback=None,
 						variants=list(variants),
+						ingest=ingest,
 					)
 
 					self._image_repo.insert(image)
