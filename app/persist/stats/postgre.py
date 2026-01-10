@@ -10,8 +10,8 @@ from sqlalchemy.dialects.postgresql import insert as postgre_insert
 from sqlmodel import SQLModel
 
 from app.models.records import StatsRecord
+from app.persist.mixins.postgre import PostgreSQLUniqueViolationMixin
 from app.persist.stats.base import BaseStatsRepository
-from app.utils.database.postgre import PostgreSQLUniqueViolationMixin
 
 
 class PostgreSQLStatsRepository(PostgreSQLUniqueViolationMixin, BaseStatsRepository):
