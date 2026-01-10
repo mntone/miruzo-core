@@ -26,11 +26,12 @@ class PostgreSQLStatsRepository(PostgreSQLUniqueViolationMixin, BaseStatsReposit
 		insert_statement = (
 			# INSERT INTO stats
 			postgre_insert(stats_table)
-			# (ingest_id, score)
-			# VALUES (:ingest_id, :initial_score)
+			# (ingest_id, score, score_evaluated)
+			# VALUES (:ingest_id, :initial_score, :initial_score)
 			.values(
 				ingest_id=ingest_id,
 				score=initial_score,
+				score_evaluated=initial_score,
 			)
 			# ON CONFLICT (ingest_id)
 			# DO NOTHING

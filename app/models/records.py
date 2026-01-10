@@ -98,7 +98,6 @@ class StatsRecord(SQLModel, table=True):
 		sa_column=Column(
 			SmallInteger,
 			autoincrement=False,
-			default=env.score.initial_score,
 			nullable=False,
 		),
 	)
@@ -107,7 +106,6 @@ class StatsRecord(SQLModel, table=True):
 		sa_column=Column(
 			SmallInteger,
 			autoincrement=False,
-			default=env.score.initial_score,
 			nullable=False,
 		),
 	)

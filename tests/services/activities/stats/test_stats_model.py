@@ -7,6 +7,7 @@ def test_from_record_clamps_score_to_minimum() -> None:
 	stats = StatsRecord(
 		ingest_id=1,
 		score=-10,
+		score_evaluated=100,
 		view_count=0,
 		last_viewed_at=None,
 	)

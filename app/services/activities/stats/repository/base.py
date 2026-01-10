@@ -45,6 +45,7 @@ class BaseStatsRepository(ABC):
 		stats = StatsRecord(
 			ingest_id=ingest_id,
 			score=initial_score,
+			score_evaluated=initial_score,
 		)
 		self._session.add(stats)
 
