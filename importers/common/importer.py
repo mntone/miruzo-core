@@ -1,11 +1,11 @@
-import json
-from logging import getLogger
 from pathlib import Path
 from shutil import rmtree
 
 from sqlmodel import Session
 
 from importers.common.ingest_time import resolve_captured_at
+from importers.common.origin import OriginResolver
+from importers.common.readers.jsonl import JsonlReader
 
 from app.config.environments import Settings
 from app.config.environments import env as global_env
@@ -17,8 +17,6 @@ from app.persist.ingests.factory import create_ingest_repository
 from app.services.images.ingest import ImageIngestService
 from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
 from app.services.ingests.bootstrap import ensure_ingest_layout
-
-log = getLogger(__name__)
 
 
 def confirm_overwrite(path: Path, *, force: bool) -> None:
@@ -87,7 +85,6 @@ def import_jsonl(
 ) -> None:
 	"""Read gataku JSONL data, populate the database, and copy/symlink assets plus thumbnails."""
 
-	gataku_root = env.gataku_root
 	gataku_assets_root = env.gataku_assets_root
 
 	ensure_ingest_layout(env)
@@ -117,58 +114,51 @@ def import_jsonl(
 		'fallback': 0,
 	}
 	warned_created_at_fallback = False
+	reader = JsonlReader(Path(jsonl_path))
+	resolver = OriginResolver(
+		gataku_root=env.gataku_root,
+		gataku_assets_root=gataku_assets_root,
+	)
 
 	with session:
-		with open(jsonl_path, 'r') as f:
-			for i, line in enumerate(f):
-				if i >= limit:
-					break
+		for row in reader.read(limit=limit):
+			stats['read'] += 1
 
-				stats['read'] += 1
+			if row is None:
+				stats['invalid'] += 1
+				continue  # skip invalid JSON
 
-				try:
-					record = json.loads(line)
-				except Exception:
-					stats['invalid'] += 1
-					continue  # skip invalid JSON
+			resolution = resolver.resolve(row)
+			if resolution is None:
+				stats['missing'] += 1
+				continue  # image not found or invalid path
 
-				raw_path = Path(record['filepath'])
-				src_path = raw_path if raw_path.is_absolute() else gataku_root / raw_path
-				if not src_path.exists():
-					log.warning(f'missing file: {src_path}')
-					stats['missing'] += 1
-					continue  # image not found, skip entry
+			src_path = resolution.src_path
+			origin_relative_path = resolution.origin_relative_path
 
-				try:
-					origin_relative_path = src_path.relative_to(gataku_assets_root)
-				except ValueError:
-					log.warning(f'file outside assets root: {src_path}')
-					stats['missing'] += 1
-					continue
+			captured_at, used_fallback, warned_created_at_fallback = resolve_captured_at(
+				created_at_value=row.created_at,
+				src_path=src_path,
+				warned_fallback=warned_created_at_fallback,
+			)
+			if used_fallback:
+				stats['fallback'] += 1
 
-				captured_at, used_fallback, warned_created_at_fallback = resolve_captured_at(
-					created_at_value=record.get('created_at'),
-					src_path=src_path,
-					warned_fallback=warned_created_at_fallback,
+			ingest_record = ingest.ingest(
+				origin_path=origin_relative_path,
+				fingerprint=row.sha256,
+				captured_at=captured_at,
+				ingest_mode=mode,
+			)
+			stats['ingested'] += 1
+
+			if report_variants:
+				print_variant_report(ingest_record)
+
+			if stats['read'] % 10 == 0 or stats['read'] == limit:
+				print(
+					f'[importer] progress: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
 				)
-				if used_fallback:
-					stats['fallback'] += 1
-
-				ingest_record = ingest.ingest(
-					origin_path=origin_relative_path,
-					fingerprint=record['sha256'],
-					captured_at=captured_at,
-					ingest_mode=mode,
-				)
-				stats['ingested'] += 1
-
-				if report_variants:
-					print_variant_report(ingest_record)
-
-				if stats['read'] % 10 == 0 or stats['read'] == limit:
-					print(
-						f'[importer] progress: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
-					)
 
 	print(
 		f'[importer] summary: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
