@@ -1,0 +1,107 @@
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any
+
+import pytest
+
+import app.services.images.list as list_service
+from app.config.environments import env
+from app.services.images.list import ImageListService
+
+
+@dataclass(frozen=True)
+class _ImageStub:
+	ingest_id: int
+	ingested_at: datetime
+
+
+def _build_repository(select_name: str, rows: Any) -> Any:
+	class _Repository:
+		def __init__(self, rows: Any) -> None:
+			self.rows = rows
+			self.cursor = None
+			self.limit = None
+
+		def _select(self, *, cursor: Any, limit: int) -> Any:
+			self.cursor = cursor
+			self.limit = limit
+			return self.rows
+
+	repository = _Repository(rows)
+	setattr(repository, select_name, repository._select)
+	return repository
+
+
+def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) -> None:
+	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
+	images = [_ImageStub(1, now), _ImageStub(2, now)]
+	repository = _build_repository('select_latest', images)
+
+	calls: dict[str, Any] = {}
+
+	def fake_slice(rows: Any, limit: int) -> tuple[Any, Any]:
+		calls['slice'] = (rows, limit)
+		return rows[:limit], now
+
+	def fake_map(items: Any, *, next_cursor: Any, exclude_formats: Any, variant_layers: Any) -> str:
+		calls['map'] = (items, next_cursor, exclude_formats, variant_layers)
+		return 'response'
+
+	monkeypatch.setattr(list_service.paginator, 'slice_with_cursor_latest', fake_slice)
+	monkeypatch.setattr(list_service, 'map_image_records_to_list_response', fake_map)
+
+	service = ImageListService(repository=repository, variant_layers=env.variant_layers)
+
+	response = service.get_latest(cursor=None, limit=1, exclude_formats=('avif',))
+
+	assert repository.cursor is None
+	assert repository.limit == 2
+	assert calls['slice'] == (images, 1)
+	assert calls['map'] == ([images[0]], now, ('avif',), env.variant_layers)
+	assert response == 'response'
+
+
+@pytest.mark.parametrize(
+	'method_name, select_name, cursor_value, row_cursor',
+	[
+		('get_chronological', 'select_chronological', datetime(2024, 1, 2, tzinfo=timezone.utc), datetime(2024, 1, 2, tzinfo=timezone.utc)),
+		('get_recently', 'select_recently', datetime(2024, 1, 3, tzinfo=timezone.utc), datetime(2024, 1, 3, tzinfo=timezone.utc)),
+		('get_first_love', 'select_first_love', datetime(2024, 1, 4, tzinfo=timezone.utc), datetime(2024, 1, 4, tzinfo=timezone.utc)),
+		('get_hall_of_fame', 'select_hall_of_fame', datetime(2024, 1, 5, tzinfo=timezone.utc), datetime(2024, 1, 5, tzinfo=timezone.utc)),
+		('get_engaged', 'select_engaged', 180, 200),
+	],
+)
+def test_list_methods_use_tuple_paginator(
+	monkeypatch: pytest.MonkeyPatch,
+	method_name: str,
+	select_name: str,
+	cursor_value: datetime | int,
+	row_cursor: datetime | int,
+) -> None:
+	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
+	images = [_ImageStub(1, now)]
+	rows = [(images[0], row_cursor)]
+	repository = _build_repository(select_name, rows)
+
+	calls: dict[str, Any] = {}
+
+	def fake_slice(rows_arg: Any, limit_arg: int) -> tuple[Any, Any]:
+		calls['slice'] = (rows_arg, limit_arg)
+		return [rows_arg[0][0]], 'next'
+
+	def fake_map(items: Any, *, next_cursor: Any, exclude_formats: Any, variant_layers: Any) -> str:
+		calls['map'] = (items, next_cursor, exclude_formats, variant_layers)
+		return 'response'
+
+	monkeypatch.setattr(list_service.paginator, 'slice_with_tuple_cursor', fake_slice)
+	monkeypatch.setattr(list_service, 'map_image_records_to_list_response', fake_map)
+
+	service = ImageListService(repository=repository, variant_layers=env.variant_layers)
+	method = getattr(service, method_name)
+	response = method(cursor=cursor_value, limit=3, exclude_formats=())
+
+	assert repository.cursor == cursor_value
+	assert repository.limit == 4
+	assert calls['slice'] == (rows, 3)
+	assert calls['map'] == ([images[0]], 'next', (), env.variant_layers)
+	assert response == 'response'
