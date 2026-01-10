@@ -8,13 +8,16 @@ from app.config.environments import Settings
 from app.domain.score.calculator import ScoreCalculator
 from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
+from app.models.api.context.query import ContextQuery
 from app.models.api.context.responses import ContextResponse
-from app.models.api.images.summary import SummaryModel
+from app.models.api.images.context import ImageRichModel, ImageSummaryModel
 from app.persist.actions.protocol import ActionRepository
 from app.persist.images.protocol import ImageRepository
 from app.persist.stats.protocol import StatsRepository
 from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.stats.score_factory import make_score_context
+from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
+from app.services.images.variants.mapper import map_variants_to_layers
 
 
 @final
@@ -36,10 +39,13 @@ class ContextService:
 		self._score_calc = ScoreCalculator(env.score)
 		self._daily_reset_at = env.time.daily_reset_at
 		self._base_timezone = env.base_timezone
+		self._variant_layers = env.variant_layers
 
 	def get_context(
 		self,
 		ingest_id: int,
+		*,
+		query: ContextQuery,
 	) -> ContextResponse | None:
 		"""
 		Return a single image detail payload.
@@ -89,8 +95,18 @@ class ContextService:
 
 		actions = self._action_repo.select_by_ingest_id(ingest_id)
 
+		image_response: ImageSummaryModel | ImageRichModel
+		match query.level:
+			case 'default':
+				image_response = ImageSummaryModel.from_record(image)
+			case 'rich':
+				layers = map_variants_to_layers(image.variants, spec=self._variant_layers)
+				allowed_formats = compute_allowed_formats(query.exclude_formats)
+				normalized_layers = normalize_variants_for_format(layers, allowed_formats)
+				image_response = ImageRichModel.from_record(image, normalized_layers)
+
 		response = ContextResponse.from_record(
-			image=SummaryModel.from_record(image),
+			image=image_response,
 			actions=[ActionModel.from_record(action) for action in actions],
 			stats=StatsModel.from_record(stats),
 		)

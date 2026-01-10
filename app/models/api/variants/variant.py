@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -84,3 +85,35 @@ class VariantModel(BaseModel):
 			w=variant['width'],
 			h=variant['height'],
 		)
+
+
+class VariantLayersModelBase(BaseModel):
+	"""Common variant-layer fields used by list and context responses."""
+
+	original: Annotated[
+		VariantModel,
+		Field(
+			title='Original variant',
+			description='canonical full-resolution variant that all other renditions derive from',
+		),
+	]
+	"""canonical full-resolution variant that all other renditions derive from"""
+
+	fallback: Annotated[
+		VariantModel | None,
+		Field(
+			title='Fallback variant',
+			description="optional compatibility rendition used when layered variants can't be served",
+		),
+	] = None
+	"""optional compatibility rendition used when layered variants can't be served"""
+
+	variants: Annotated[
+		Sequence[Sequence[VariantModel]],
+		Field(
+			title='Variant layers',
+			description='layered list (e.g. primary/secondary) of alternative renditions organized by size',
+			min_length=1,
+		),
+	]
+	"""layered list (e.g. primary/secondary) of alternative renditions organized by size"""

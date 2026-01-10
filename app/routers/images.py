@@ -8,6 +8,7 @@ from starlette.responses import Response
 from app.config.environments import env
 from app.database import get_session
 from app.models.api.activities.responses import LoveStatsResponse
+from app.models.api.context.query import ContextQuery
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
@@ -147,9 +148,10 @@ def get_engaged(
 @router.get('/{ingest_id}', response_model=ContextResponse)
 def get_context(
 	ingest_id: int,
+	query: Annotated[ContextQuery, Depends()],
 	service: Annotated[ContextService, Depends(_get_context_service)],
 ) -> Response:
-	response = service.get_context(ingest_id)
+	response = service.get_context(ingest_id, query=query)
 
 	if response is None:
 		raise HTTPException(404)

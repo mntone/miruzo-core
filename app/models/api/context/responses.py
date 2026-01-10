@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
-from app.models.api.images.summary import SummaryModel
+from app.models.api.images.context import ImageRichModel, ImageSummaryModel
 
 
 @final
@@ -19,13 +19,13 @@ class ContextResponse(BaseModel):
 	)
 
 	image: Annotated[
-		SummaryModel,
+		ImageSummaryModel | ImageRichModel,
 		Field(
-			title='Image summary',
-			description='basic metadata for the requested image',
+			title='Image summary or rich',
+			description='metadata for the requested image',
 		),
 	]
-	"""basic metadata for the requested image"""
+	"""metadata for the requested image"""
 
 	actions: Annotated[
 		Sequence[ActionModel],
@@ -50,7 +50,7 @@ class ContextResponse(BaseModel):
 	@classmethod
 	def from_record(
 		cls,
-		image: SummaryModel,
+		image: ImageSummaryModel | ImageRichModel,
 		actions: Sequence[ActionModel],
 		stats: StatsModel,
 	) -> 'ContextResponse':

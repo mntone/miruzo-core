@@ -1,15 +1,15 @@
 from collections.abc import Sequence
 from typing import Annotated, final
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
-from app.models.api.images.variant import VariantModel
+from app.models.api.variants.variant import VariantLayersModelBase, VariantModel
 from app.models.records import ImageRecord
 from app.models.types import VariantEntry
 
 
 @final
-class ImageListModel(BaseModel):
+class ImageListModel(VariantLayersModelBase):
 	"""Summary metadata emitted by the list API."""
 
 	model_config = ConfigDict(
@@ -23,34 +23,6 @@ class ImageListModel(BaseModel):
 		Field(title='Image identifier', description='numeric primary key assigned in the database.'),
 	]
 	"""numeric primary key assigned in the database."""
-
-	original: Annotated[
-		VariantModel,
-		Field(
-			title='Original variant',
-			description='canonical full-resolution variant that all other renditions derive from',
-		),
-	]
-	"""canonical full-resolution variant that all other renditions derive from"""
-
-	fallback: Annotated[
-		VariantModel | None,
-		Field(
-			title='Fallback variant',
-			description="optional compatibility rendition used when layered variants can't be served",
-		),
-	] = None
-	"""optional compatibility rendition used when layered variants can't be served"""
-
-	variants: Annotated[
-		Sequence[Sequence[VariantModel]],
-		Field(
-			title='Variant layers',
-			description='layered list (e.g. primary/secondary) of alternative renditions organized by size',
-			min_length=1,
-		),
-	]
-	"""layered list (e.g. primary/secondary) of alternative renditions organized by size"""
 
 	@classmethod
 	def from_record(
