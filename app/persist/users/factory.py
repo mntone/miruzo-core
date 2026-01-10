@@ -1,14 +1,14 @@
 from sqlmodel import Session
 
 from app.config.environments import DatabaseBackend, env
-from app.services.jobs.repository.postgre import PostgreSQLJobRepository
-from app.services.jobs.repository.protocol import JobRepository
-from app.services.jobs.repository.sqlite import SQLiteJobRepository
+from app.persist.users.postgre import PostgreSQLUserRepository
+from app.persist.users.protocol import UserRepository
+from app.persist.users.sqlite import SQLiteUserRepository
 
 
-def create_job_repository(session: Session) -> JobRepository:
+def create_user_repository(session: Session) -> UserRepository:
 	"""
-	Build a job repository implementation for the configured backend.
+	Build a user repository implementation for the configured backend.
 
 	Args:
 		session: SQLModel session bound to the current database engine.
@@ -21,8 +21,8 @@ def create_job_repository(session: Session) -> JobRepository:
 	"""
 
 	if env.database_backend == DatabaseBackend.SQLITE:
-		return SQLiteJobRepository(session)
+		return SQLiteUserRepository(session)
 	elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
-		return PostgreSQLJobRepository(session)
+		return PostgreSQLUserRepository(session)
 	else:
 		raise ValueError(f'Unsupported database type: {env.database_backend}')

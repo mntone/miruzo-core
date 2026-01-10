@@ -11,10 +11,10 @@ from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
+from app.persist.stats.factory import create_stats_repository
 from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.love import LoveRunner
 from app.services.activities.love_cancel import LoveCancelRunner
-from app.services.activities.stats.repository.factory import create_stats_repository
 from app.services.images.query_service import ImageQueryService
 from app.services.images.repository import ImageRepository
 from app.services.views.context import ContextService

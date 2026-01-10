@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.services.jobs.repository.sqlite import SQLiteJobRepository
+from app.persist.jobs.sqlite import SQLiteJobRepository
 
 
 @pytest.fixture()

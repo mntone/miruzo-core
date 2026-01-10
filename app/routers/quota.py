@@ -7,8 +7,8 @@ from starlette.responses import Response
 from app.config.environments import env
 from app.database import get_session
 from app.models.api.quota import QuotaResponse
+from app.persist.users.factory import create_user_repository
 from app.services.users.query_service import UserQueryService
-from app.services.users.repository.factory import create_user_repository
 from app.utils.http.reponse_builder import build_response
 
 

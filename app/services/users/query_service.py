@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from app.domain.activities.daily_period import resolve_daily_period_start
 from app.models.api.quota import QuotaItem, QuotaResponse
-from app.services.users.repository.protocol import UserRepository
+from app.persist.users.protocol import UserRepository
 
 
 @final

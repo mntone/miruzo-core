@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import insert as postgre_insert
 from sqlmodel import SQLModel
 
 from app.models.records import StatsRecord
-from app.services.activities.stats.repository.base import BaseStatsRepository
+from app.persist.stats.base import BaseStatsRepository
 from app.utils.database.postgre import PostgreSQLUniqueViolationMixin
 
 

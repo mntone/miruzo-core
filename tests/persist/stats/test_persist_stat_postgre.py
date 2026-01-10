@@ -12,7 +12,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from tests.services.images.utils import add_image_record
 
-from app.services.activities.stats.repository.postgre import PostgreSQLStatsRepository
+from app.persist.stats.postgre import PostgreSQLStatsRepository
 
 POSTGRES_IMAGE = 'postgres:18-alpine'
 POSTGRES_DB = 'miruzo'

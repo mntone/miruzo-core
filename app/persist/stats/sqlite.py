@@ -6,7 +6,7 @@ from sqlalchemy.dialects.sqlite import Insert as SQLiteInsert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlmodel import SQLModel
 
-from app.services.activities.stats.repository.base import BaseStatsRepository
+from app.persist.stats.base import BaseStatsRepository
 from app.utils.database.sqlite import SQLiteUniqueViolationMixin
 
 

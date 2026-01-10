@@ -5,7 +5,7 @@ from sqlmodel import Session
 
 from app.jobs.protocol import Job
 from app.models.records import JobRecord
-from app.services.jobs.repository.protocol import JobRepository
+from app.persist.jobs.protocol import JobRepository
 
 
 class JobManager:

@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.services.users.repository.sqlite import SQLiteUserRepository
+from app.persist.users.sqlite import SQLiteUserRepository
 
 
 @pytest.fixture()

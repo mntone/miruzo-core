@@ -9,9 +9,9 @@ from tests.services.images.utils import add_ingest_record
 
 from app.config.score import ScoreConfig
 from app.errors import InvalidStateError, QuotaExceededError
+from app.persist.stats.sqlite import SQLiteStatsRepository
+from app.persist.users.sqlite import SQLiteUserRepository
 from app.services.activities.love import LoveRunner
-from app.services.activities.stats.repository.sqlite import SQLiteStatsRepository
-from app.services.users.repository.sqlite import SQLiteUserRepository
 
 
 @pytest.fixture()

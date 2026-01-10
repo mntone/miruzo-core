@@ -5,11 +5,11 @@ from zoneinfo import ZoneInfo
 from sqlmodel import Session
 
 from app.domain.score.calculator import ScoreCalculator
+from app.persist.stats.factory import create_stats_repository
+from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.decay_creator import DecayActionCreator
 from app.services.activities.actions.repository import ActionRepository
-from app.services.activities.stats.repository.factory import create_stats_repository
 from app.services.activities.stats.score_factory import make_score_context
-from app.services.users.repository.factory import create_user_repository
 
 
 @final

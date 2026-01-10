@@ -4,9 +4,9 @@ import pytest
 from sqlmodel import Session, create_engine
 
 from app.config.environments import DatabaseBackend, env
-from app.services.jobs.repository.factory import create_job_repository
-from app.services.jobs.repository.postgre import PostgreSQLJobRepository
-from app.services.jobs.repository.sqlite import SQLiteJobRepository
+from app.persist.users.factory import create_user_repository
+from app.persist.users.postgre import PostgreSQLUserRepository
+from app.persist.users.sqlite import SQLiteUserRepository
 
 
 @pytest.fixture()
@@ -19,27 +19,27 @@ def session() -> Generator[Session, Any, None]:
 		yield session
 
 
-def test_create_job_repository_uses_sqlite(session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_user_repository_uses_sqlite(session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
 	monkeypatch.setattr(env, 'database_backend', DatabaseBackend.SQLITE)
 
-	repo = create_job_repository(session)
+	repo = create_user_repository(session)
 
-	assert isinstance(repo, SQLiteJobRepository)
+	assert isinstance(repo, SQLiteUserRepository)
 
 
-def test_create_job_repository_uses_postgres(session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_user_repository_uses_postgres(session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
 	monkeypatch.setattr(env, 'database_backend', DatabaseBackend.POSTGRE_SQL)
 
-	repo = create_job_repository(session)
+	repo = create_user_repository(session)
 
-	assert isinstance(repo, PostgreSQLJobRepository)
+	assert isinstance(repo, PostgreSQLUserRepository)
 
 
-def test_create_job_repository_rejects_unknown_backend(
+def test_create_user_repository_rejects_unknown_backend(
 	session: Session,
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	monkeypatch.setattr(env, 'database_backend', 'mysql')
 
 	with pytest.raises(ValueError, match='Unsupported database type'):
-		create_job_repository(session)
+		create_user_repository(session)

@@ -10,11 +10,11 @@ from app.errors import InvalidStateError
 from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.activities.stats import LoveStatsModel
 from app.models.enums import ActionKind
+from app.persist.stats.factory import create_stats_repository
+from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.actions.repository import ActionRepository
-from app.services.activities.stats.repository.factory import create_stats_repository
 from app.services.activities.stats.score_factory import make_score_context
-from app.services.users.repository.factory import create_user_repository
 
 
 class LoveCancelRunner:

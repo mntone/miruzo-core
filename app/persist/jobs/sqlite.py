@@ -1,4 +1,4 @@
-from app.services.jobs.repository.base import BaseJobRepository
+from app.persist.jobs.base import BaseJobRepository
 from app.utils.database.sqlite import SQLiteUniqueViolationMixin
 
 

@@ -10,10 +10,10 @@ from tests.services.images.utils import add_ingest_record
 from app.config.score import ScoreConfig
 from app.errors import InvalidStateError
 from app.models.enums import ActionKind
+from app.persist.stats.sqlite import SQLiteStatsRepository
+from app.persist.users.sqlite import SQLiteUserRepository
 from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.love_cancel import LoveCancelRunner
-from app.services.activities.stats.repository.sqlite import SQLiteStatsRepository
-from app.services.users.repository.sqlite import SQLiteUserRepository
 
 
 @pytest.fixture()

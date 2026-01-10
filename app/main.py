@@ -14,13 +14,13 @@ from app.domain.score.calculator import ScoreCalculator
 from app.infrastructures.api.exception_handlers import register_exception_handlers
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
 from app.jobs.daily_decay import DailyDecayJob
+from app.persist.jobs.factory import create_job_repository
 from app.routers.health import router as health
 from app.routers.images import router as images
 from app.routers.quota import router as quota
 from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.ingests.bootstrap import ensure_ingest_layout
 from app.services.jobs.manager import JobManager
-from app.services.jobs.repository.factory import create_job_repository
 
 log = getLogger('uvicorn.error')
 

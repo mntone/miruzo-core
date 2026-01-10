@@ -1,14 +1,14 @@
 from sqlmodel import Session
 
 from app.config.environments import DatabaseBackend, env
-from app.services.users.repository.postgre import PostgreSQLUserRepository
-from app.services.users.repository.protocol import UserRepository
-from app.services.users.repository.sqlite import SQLiteUserRepository
+from app.persist.stats.postgre import PostgreSQLStatsRepository
+from app.persist.stats.protocol import StatsRepository
+from app.persist.stats.sqlite import SQLiteStatsRepository
 
 
-def create_user_repository(session: Session) -> UserRepository:
+def create_stats_repository(session: Session) -> StatsRepository:
 	"""
-	Build a user repository implementation for the configured backend.
+	Build an image repository implementation for the configured backend.
 
 	Args:
 		session: SQLModel session bound to the current database engine.
@@ -19,10 +19,9 @@ def create_user_repository(session: Session) -> UserRepository:
 	Raises:
 		ValueError: if the configured backend is unsupported.
 	"""
-
 	if env.database_backend == DatabaseBackend.SQLITE:
-		return SQLiteUserRepository(session)
+		return SQLiteStatsRepository(session)
 	elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
-		return PostgreSQLUserRepository(session)
+		return PostgreSQLStatsRepository(session)
 	else:
 		raise ValueError(f'Unsupported database type: {env.database_backend}')

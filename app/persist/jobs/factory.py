@@ -1,14 +1,14 @@
 from sqlmodel import Session
 
 from app.config.environments import DatabaseBackend, env
-from app.services.activities.stats.repository.postgre import PostgreSQLStatsRepository
-from app.services.activities.stats.repository.protocol import StatsRepository
-from app.services.activities.stats.repository.sqlite import SQLiteStatsRepository
+from app.persist.jobs.postgre import PostgreSQLJobRepository
+from app.persist.jobs.protocol import JobRepository
+from app.persist.jobs.sqlite import SQLiteJobRepository
 
 
-def create_stats_repository(session: Session) -> StatsRepository:
+def create_job_repository(session: Session) -> JobRepository:
 	"""
-	Build an image repository implementation for the configured backend.
+	Build a job repository implementation for the configured backend.
 
 	Args:
 		session: SQLModel session bound to the current database engine.
@@ -19,9 +19,10 @@ def create_stats_repository(session: Session) -> StatsRepository:
 	Raises:
 		ValueError: if the configured backend is unsupported.
 	"""
+
 	if env.database_backend == DatabaseBackend.SQLITE:
-		return SQLiteStatsRepository(session)
+		return SQLiteJobRepository(session)
 	elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
-		return PostgreSQLStatsRepository(session)
+		return PostgreSQLJobRepository(session)
 	else:
 		raise ValueError(f'Unsupported database type: {env.database_backend}')

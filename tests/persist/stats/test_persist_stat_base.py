@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from tests.services.images.utils import add_image_record, add_ingest_record
 
-from app.services.activities.stats.repository.sqlite import SQLiteStatsRepository
+from app.persist.stats.sqlite import SQLiteStatsRepository
 
 
 @pytest.fixture()

@@ -10,9 +10,9 @@ from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.summary import SummaryModel
+from app.persist.stats.protocol import StatsRepository
 from app.services.activities.actions.creator import ActionCreator
 from app.services.activities.actions.repository import ActionRepository
-from app.services.activities.stats.repository.protocol import StatsRepository
 from app.services.activities.stats.score_factory import make_score_context
 from app.services.images.query_service import ImageQueryService
 
