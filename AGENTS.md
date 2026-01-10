@@ -41,6 +41,8 @@ who is executing them.
 
 - HTTP handlers live under `app/routers/*` and should delegate to services; do
   not perform DB/variant logic in routers
+- Repository protocols and factories live under `app/persist/*`; services should
+  depend on those protocols rather than embedding SQL directly
 - Service classes (e.g., `ImageService`) should depend only on repository
   interfaces and pure helpers (`variants.py`, etc.)
 - Repositories should inherit from the relevant base repository class and
@@ -52,6 +54,9 @@ who is executing them.
   that module
 - Importers in `importers/common/*` must log all destructive actions and honor
   the `force` flag before deleting files
+- List APIs must use `ImageListService` + `ImageListRepository` and apply
+  `limit + 1` pagination with `paginator.slice_with_cursor_latest` for latest
+  and `paginator.slice_with_tuple_cursor` for the other list endpoints
 
 ## Commits
 
@@ -76,6 +81,8 @@ who is executing them.
   already committed (do not hand-roll `docker run` invocations)
 - Use in-memory SQLite for unit tests unless the code path explicitly requires
   a different backend
+- Repository SQL tests live under `tests/persist/*`; service-level list tests
+  should be thin wiring tests that stub the repository and mapper
 - Pure helper functions (variant parsing, query splitting, etc.) must be
   covered by unit tests; impure logic should be split into testable pieces
 - Avoid network access during tests; mock external calls or use local fixtures
