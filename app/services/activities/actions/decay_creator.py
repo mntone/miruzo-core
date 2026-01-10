@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from app.domain.activities.daily_period import resolve_daily_period_range
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
-from app.services.activities.actions.repository import ActionRepository
+from app.persist.actions.protocol import ActionRepository
 
 
 @final

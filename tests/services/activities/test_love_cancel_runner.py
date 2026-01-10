@@ -10,9 +10,9 @@ from tests.services.images.utils import add_ingest_record
 from app.config.score import ScoreConfig
 from app.errors import InvalidStateError
 from app.models.enums import ActionKind
+from app.persist.actions.base import BaseActionRepository
 from app.persist.stats.sqlite import SQLiteStatsRepository
 from app.persist.users.sqlite import SQLiteUserRepository
-from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.love_cancel import LoveCancelRunner
 
 
@@ -28,7 +28,7 @@ def session() -> Generator[Session, Any, None]:
 
 
 def test_run_restores_previous_love(session: Session) -> None:
-	action_repo = ActionRepository(session)
+	action_repo = BaseActionRepository(session)
 	stats_repo = SQLiteStatsRepository(session)
 	user_repo = SQLiteUserRepository(session)
 

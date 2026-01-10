@@ -10,10 +10,11 @@ from app.errors import InvalidStateError
 from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.activities.stats import LoveStatsModel
 from app.models.enums import ActionKind
+from app.persist.actions.factory import create_action_repository
+from app.persist.actions.protocol import ActionRepository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.creator import ActionCreator
-from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.score_factory import make_score_context
 
 
@@ -83,7 +84,7 @@ class LoveCancelRunner:
 			raise InvalidStateError('first_loved_at is missing')
 
 		# --- insert action ---
-		action_repo = ActionRepository(session)
+		action_repo = create_action_repository(session)
 		action_creator = ActionCreator(action_repo)
 		new_action = action_creator.cancel_love(
 			ingest_id,

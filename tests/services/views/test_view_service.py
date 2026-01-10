@@ -19,10 +19,10 @@ def test_get_context_returns_none_when_record_missing() -> None:
 	session = StubSession()
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
-		action=action_repo,  # pyright: ignore[reportArgumentType]
+		action=action_repo,
 		image_query=ImageQueryService(
 			session=session,  # pyright: ignore[reportArgumentType]
-			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			repository=image_repo,
 			engaged_score_threshold=160,
 			variant_layers=env.variant_layers,
 		),
@@ -52,10 +52,10 @@ def test_get_context_returns_summary_and_stats() -> None:
 
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
-		action=action_repo,  # pyright: ignore[reportArgumentType]
+		action=action_repo,
 		image_query=ImageQueryService(
 			session=session,  # pyright: ignore[reportArgumentType]
-			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			repository=image_repo,
 			engaged_score_threshold=160,
 			variant_layers=env.variant_layers,
 		),
@@ -97,10 +97,10 @@ def test_get_context_updates_view_milestone() -> None:
 
 	service = ContextService(
 		session,  # pyright: ignore[reportArgumentType]
-		action=action_repo,  # pyright: ignore[reportArgumentType]
+		action=action_repo,
 		image_query=ImageQueryService(
 			session=session,  # pyright: ignore[reportArgumentType]
-			repository=image_repo,  # pyright: ignore[reportArgumentType]
+			repository=image_repo,
 			engaged_score_threshold=160,
 			variant_layers=env.variant_layers,
 		),

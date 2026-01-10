@@ -13,7 +13,7 @@ from app.models.records import ActionRecord
 
 
 @final
-class ActionRepository:
+class BaseActionRepository:
 	def __init__(self, session: Session) -> None:
 		self._session = session
 

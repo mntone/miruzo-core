@@ -11,11 +11,11 @@ from app.config.environments import env as global_env
 from app.database import engine, init_database
 from app.models.enums import IngestMode
 from app.models.records import IngestRecord
+from app.persist.images.factory import create_image_repository
+from app.persist.ingests.factory import create_ingest_repository
 from app.services.images.ingest import ImageIngestService
-from app.services.images.repository import ImageRepository
 from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
 from app.services.ingests.bootstrap import ensure_ingest_layout
-from app.services.ingests.repository.base import IngestRepository
 
 log = getLogger(__name__)
 
@@ -100,8 +100,8 @@ def import_jsonl(
 	init_database()
 
 	session = Session(engine)
-	image_repo = ImageRepository(session)
-	ingest_repo = IngestRepository(session)
+	image_repo = create_image_repository(session)
+	ingest_repo = create_ingest_repository(session)
 	ingest = ImageIngestService(
 		image_repo=image_repo,
 		ingest_repo=ingest_repo,

@@ -8,7 +8,7 @@ from app.models.enums import ExecutionStatus, ProcessStatus, VisibilityStatus
 from app.models.records import ExecutionEntry, IngestRecord
 
 
-class IngestRepository:
+class BaseIngestRepository:
 	def __init__(self, session: Session) -> None:
 		self._session = session
 
@@ -31,7 +31,7 @@ class IngestRepository:
 		)
 
 		self._session.add(ingest)
-		self._session.commit()
+		self._session.flush()
 		self._session.refresh(ingest)
 
 		return ingest
@@ -42,7 +42,11 @@ class IngestRepository:
 
 		return ingest
 
-	def append_execution(self, ingest_id: int, execution: ExecutionEntry) -> IngestRecord | None:
+	def append_execution(
+		self,
+		ingest_id: int,
+		execution: ExecutionEntry,
+	) -> IngestRecord | None:
 		"""Append an execution entry and return the updated record."""
 		ingest = self._session.get(IngestRecord, ingest_id)
 		if ingest is None:
@@ -63,12 +67,16 @@ class IngestRepository:
 		ingest.executions = executions[-EXECUTION_MAXIMUM:]
 		ingest.updated_at = datetime.now(timezone.utc)
 
-		self._session.commit()
+		self._session.flush()
 		self._session.refresh(ingest)
 
 		return ingest
 
-	def set_visibility(self, ingest_id: int, visibility: VisibilityStatus) -> IngestRecord | None:
+	def set_visibility(
+		self,
+		ingest_id: int,
+		visibility: VisibilityStatus,
+	) -> IngestRecord | None:
 		"""Update the ingest visibility flag."""
 		ingest = self._session.get(IngestRecord, ingest_id)
 		if ingest is None:
@@ -76,7 +84,7 @@ class IngestRepository:
 
 		ingest.visibility = visibility
 
-		self._session.commit()
+		self._session.flush()
 		self._session.refresh(ingest)
 
 		return ingest

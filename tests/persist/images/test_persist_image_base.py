@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, Generator
 
 import pytest
@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from tests.services.images.utils import add_image_record
 
-from app.services.images.repository import ImageRepository
+from app.persist.images.base import BaseImageRepository
 
 
 @pytest.fixture()
@@ -21,7 +21,7 @@ def session() -> Generator[Session, Any, None]:
 
 
 def test_select_by_ingest_id(session: Session) -> None:
-	repo = ImageRepository(session)
+	repo = BaseImageRepository(session)
 	now = datetime.now(timezone.utc)
 	image = add_image_record(session, 10, captured_at=now)
 

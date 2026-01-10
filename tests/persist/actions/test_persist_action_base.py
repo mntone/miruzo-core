@@ -9,7 +9,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from tests.services.images.utils import add_ingest_record
 
 from app.models.enums import ActionKind
-from app.services.activities.actions.repository import ActionRepository
+from app.persist.actions.base import BaseActionRepository
 
 
 @pytest.fixture()
@@ -25,7 +25,7 @@ def session() -> Generator[Session, Any, None]:
 
 def test_select_by_ingest_id_orders_by_occurred_at(session: Session) -> None:
 	ingest = add_ingest_record(session, 1)
-	repo = ActionRepository(session)
+	repo = BaseActionRepository(session)
 
 	repo.insert(
 		ingest.id,
@@ -48,7 +48,7 @@ def test_select_by_ingest_id_orders_by_occurred_at(session: Session) -> None:
 
 def test_select_by_ingest_id_returns_empty_when_missing(session: Session) -> None:
 	ingest = add_ingest_record(session, 1)
-	repo = ActionRepository(session)
+	repo = BaseActionRepository(session)
 
 	items = repo.select_by_ingest_id(ingest.id)
 
@@ -57,7 +57,7 @@ def test_select_by_ingest_id_returns_empty_when_missing(session: Session) -> Non
 
 def test_select_latest_one_respects_time_window(session: Session) -> None:
 	ingest = add_ingest_record(session, 1)
-	repo = ActionRepository(session)
+	repo = BaseActionRepository(session)
 
 	since = datetime(2026, 1, 1, tzinfo=timezone.utc)
 	until = datetime(2026, 1, 2, tzinfo=timezone.utc)
@@ -99,7 +99,7 @@ def test_select_latest_one_respects_time_window(session: Session) -> None:
 
 def test_select_latest_one_returns_none_when_missing(session: Session) -> None:
 	ingest = add_ingest_record(session, 1)
-	repo = ActionRepository(session)
+	repo = BaseActionRepository(session)
 
 	since = datetime(2024, 1, 1, tzinfo=timezone.utc)
 	until = datetime(2024, 1, 2, tzinfo=timezone.utc)
@@ -115,7 +115,7 @@ def test_select_latest_one_returns_none_when_missing(session: Session) -> None:
 
 def test_select_latest_one_raises_when_require_unique(session: Session) -> None:
 	ingest = add_ingest_record(session, 1)
-	repo = ActionRepository(session)
+	repo = BaseActionRepository(session)
 
 	at_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
 	repo.insert(
@@ -140,7 +140,7 @@ def test_select_latest_one_raises_when_require_unique(session: Session) -> None:
 
 def test_select_latest_one_prefers_latest_id_on_tie(session: Session) -> None:
 	ingest = add_ingest_record(session, 1)
-	repo = ActionRepository(session)
+	repo = BaseActionRepository(session)
 
 	at_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
 	first = repo.insert(

@@ -7,7 +7,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.config.constants import EXECUTION_MAXIMUM
 from app.models.enums import ExecutionStatus
 from app.models.types import ExecutionEntry
-from app.services.ingests.repository.base import IngestRepository
+from app.persist.ingests.base import BaseIngestRepository
 
 
 @pytest.fixture()
@@ -39,7 +39,7 @@ def _build_execution(status: ExecutionStatus, *, offset: int = 0) -> ExecutionEn
 
 
 def test_append_execution_replaces_previous_success(session: Session) -> None:
-	repo = IngestRepository(session)
+	repo = BaseIngestRepository(session)
 	now = datetime.now(timezone.utc)
 	ingest = repo.create_ingest(
 		relative_path='l0orig/foo.webp',
@@ -71,7 +71,7 @@ def test_append_execution_replaces_previous_success(session: Session) -> None:
 
 
 def test_append_execution_trims_to_maximum(session: Session) -> None:
-	repo = IngestRepository(session)
+	repo = BaseIngestRepository(session)
 	now = datetime.now(timezone.utc)
 	ingest = repo.create_ingest(
 		relative_path='l0orig/foo.webp',
@@ -108,7 +108,7 @@ def test_append_execution_trims_to_maximum(session: Session) -> None:
 
 
 def test_append_execution_returns_none_for_missing_ingest(session: Session) -> None:
-	repo = IngestRepository(session)
+	repo = BaseIngestRepository(session)
 
 	result = repo.append_execution(999, _build_execution(ExecutionStatus.SUCCESS))
 

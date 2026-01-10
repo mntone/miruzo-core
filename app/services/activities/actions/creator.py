@@ -3,7 +3,7 @@ from typing import final
 
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
-from app.services.activities.actions.repository import ActionRepository
+from app.persist.actions.protocol import ActionRepository
 
 
 @final

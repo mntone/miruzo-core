@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import final
@@ -13,8 +13,8 @@ from app.models.records import ActionRecord
 @final
 class _StubActionRepository_SelectOneArgs:
 	ingest_id: int
-	kind: ActionKind
-	since_occurred_at: datetime
+	kinds: Collection[ActionKind]
+	since_occurred_at: datetime | None
 	until_occurred_at: datetime | None
 	require_unique: bool
 
@@ -49,9 +49,26 @@ class StubActionRepository:
 		until_occurred_at: datetime | None = None,
 		require_unique: bool = False,
 	) -> ActionRecord | None:
+		return self.select_latest_one_by_multiple_kinds(
+			ingest_id,
+			kinds=(kind,),
+			since_occurred_at=since_occurred_at,
+			until_occurred_at=until_occurred_at,
+			require_unique=require_unique,
+		)
+
+	def select_latest_one_by_multiple_kinds(
+		self,
+		ingest_id: int,
+		*,
+		kinds: Collection[ActionKind],
+		since_occurred_at: datetime | None = None,
+		until_occurred_at: datetime | None = None,
+		require_unique: bool = False,
+	) -> ActionRecord | None:
 		self.select_one_called_with = _StubActionRepository_SelectOneArgs(
 			ingest_id=ingest_id,
-			kind=kind,
+			kinds=kinds,
 			since_occurred_at=since_occurred_at,
 			until_occurred_at=until_occurred_at,
 			require_unique=require_unique,
@@ -62,10 +79,10 @@ class StubActionRepository:
 			if action.ingest_id != ingest_id:
 				continue
 
-			if action.kind != kind:
+			if action.kind not in kinds:
 				continue
 
-			if since_occurred_at > action.occurred_at:
+			if since_occurred_at and action.occurred_at < since_occurred_at:
 				continue
 
 			if until_occurred_at and action.occurred_at >= until_occurred_at:

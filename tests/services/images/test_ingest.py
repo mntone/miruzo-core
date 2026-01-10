@@ -125,7 +125,7 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 
 	image_repo = StubImageRepository()
 	service = ImageIngestService(
-		image_repo=image_repo,  # pyright: ignore[reportArgumentType]
+		image_repo=image_repo,
 		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
 		policy=policy,
 	)
@@ -183,7 +183,7 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 
 	image_repo = StubImageRepository()
 	service = ImageIngestService(
-		image_repo=image_repo,  # pyright: ignore[reportArgumentType]
+		image_repo=image_repo,
 		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
 		policy=policy,
 	)

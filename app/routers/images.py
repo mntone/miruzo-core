@@ -11,12 +11,12 @@ from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
+from app.persist.actions.factory import create_action_repository
+from app.persist.images.factory import create_image_repository
 from app.persist.stats.factory import create_stats_repository
-from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.love import LoveRunner
 from app.services.activities.love_cancel import LoveCancelRunner
 from app.services.images.query_service import ImageQueryService
-from app.services.images.repository import ImageRepository
 from app.services.views.context import ContextService
 from app.utils.http.reponse_builder import build_response
 
@@ -26,7 +26,7 @@ def _get_image_query_service(
 ) -> ImageQueryService:
 	return ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=create_image_repository(session),
 		engaged_score_threshold=env.score.engaged_score_threshold,
 		variant_layers=env.variant_layers,
 	)
@@ -36,7 +36,7 @@ def _get_context_service(
 	session: Annotated[Session, Depends(get_session)],
 	image_query: Annotated[ImageQueryService, Depends(_get_image_query_service)],
 ) -> ContextService:
-	action_repo = ActionRepository(session)
+	action_repo = create_action_repository(session)
 	return ContextService(
 		session,
 		action=action_repo,

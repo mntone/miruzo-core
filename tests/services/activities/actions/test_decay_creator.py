@@ -14,7 +14,7 @@ def test_create_returns_action_when_missing() -> None:
 	repo = StubActionRepository()
 
 	creator = DecayActionCreator(
-		repository=repo,  # pyright: ignore[reportArgumentType]
+		repository=repo,
 		daily_reset_at=time(5, 0),
 		base_timezone=ZoneInfo('UTC'),
 	)
@@ -33,7 +33,7 @@ def test_create_returns_action_when_missing() -> None:
 	)
 	assert repo.select_one_called_with is not None
 	assert repo.select_one_called_with.ingest_id == 1
-	assert repo.select_one_called_with.kind == ActionKind.DECAY
+	assert repo.select_one_called_with.kinds == (ActionKind.DECAY,)
 	assert repo.select_one_called_with.since_occurred_at == expected_since
 	assert repo.select_one_called_with.until_occurred_at == expected_until
 
@@ -50,7 +50,7 @@ def test_create_returns_none_when_existing() -> None:
 	repo.actions = [existing]
 
 	creator = DecayActionCreator(
-		repository=repo,  # pyright: ignore[reportArgumentType]
+		repository=repo,
 		daily_reset_at=time(5, 0),
 		base_timezone=ZoneInfo('UTC'),
 	)

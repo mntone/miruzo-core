@@ -6,7 +6,7 @@ from app.models.records import ImageRecord
 
 
 @final
-class ImageRepository:
+class BaseImageRepository:
 	def __init__(self, session: Session) -> None:
 		self._session = session
 
@@ -20,5 +20,5 @@ class ImageRepository:
 
 	def insert(self, image: ImageRecord) -> None:
 		self._session.add(image)
-		self._session.commit()
+		self._session.flush()
 		self._session.refresh(image)

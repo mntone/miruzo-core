@@ -8,9 +8,9 @@ import app.services.images.paginator as paginator
 from app.config.variant import VariantLayerSpec
 from app.models.api.images.responses import ImageListResponse
 from app.models.records import ImageRecord
+from app.persist.images.protocol import ImageRepository
 from app.services.images.mapper import map_image_records_to_list_response
 from app.services.images.query_executor import ImageListQueryExecutor
-from app.services.images.repository import ImageRepository
 
 
 @final

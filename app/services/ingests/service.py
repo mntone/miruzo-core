@@ -4,7 +4,7 @@ from typing import final
 
 from app.models.enums import IngestMode, VisibilityStatus
 from app.models.records import ExecutionEntry, IngestRecord
-from app.services.ingests.repository.base import IngestRepository
+from app.persist.ingests.protocol import IngestRepository
 from app.services.ingests.utils.file import copy_origin_file, delete_origin_file
 from app.services.ingests.utils.fingerprint import compute_fingerprint
 from app.services.ingests.utils.path import (

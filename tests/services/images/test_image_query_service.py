@@ -8,8 +8,8 @@ from tests.services.activities.stats.factory import add_stats_record
 from tests.services.images.utils import add_image_record
 
 from app.config.environments import env
+from app.persist.images.base import BaseImageRepository
 from app.services.images.query_service import ImageQueryService
-from app.services.images.repository import ImageRepository
 
 
 @pytest.fixture()
@@ -31,7 +31,7 @@ def test_get_latest_orders_desc_and_sets_cursor(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)
@@ -54,7 +54,7 @@ def test_get_chronological_orders_by_captured_at(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)
@@ -90,7 +90,7 @@ def test_get_recently_orders_by_last_viewed_at(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)
@@ -126,7 +126,7 @@ def test_get_first_love_orders_by_first_loved_at(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)
@@ -162,7 +162,7 @@ def test_get_hall_of_fame_orders_by_hall_of_fame_at(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)
@@ -218,7 +218,7 @@ def test_get_engaged_orders_by_score_evaluated(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)
@@ -240,7 +240,7 @@ def test_get_by_ingest_id(session: Session) -> None:
 
 	service = ImageQueryService(
 		session=session,
-		repository=ImageRepository(session),
+		repository=BaseImageRepository(session),
 		engaged_score_threshold=160,
 		variant_layers=env.variant_layers,
 	)

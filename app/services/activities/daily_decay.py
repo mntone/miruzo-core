@@ -5,10 +5,10 @@ from zoneinfo import ZoneInfo
 from sqlmodel import Session
 
 from app.domain.score.calculator import ScoreCalculator
+from app.persist.actions.factory import create_action_repository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.decay_creator import DecayActionCreator
-from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.score_factory import make_score_context
 
 
@@ -30,7 +30,7 @@ class DailyDecayRunner:
 	def apply_daily_decay(self, session: Session, *, evaluated_at: datetime) -> None:
 		stats_repo = create_stats_repository(session)
 		decay_creator = DecayActionCreator(
-			repository=ActionRepository(session),
+			repository=create_action_repository(session),
 			daily_reset_at=self._daily_reset_at,
 			base_timezone=self._base_timezone,
 		)

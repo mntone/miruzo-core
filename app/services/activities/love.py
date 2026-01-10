@@ -9,10 +9,10 @@ from app.domain.score.calculator import ScoreCalculator
 from app.errors import InvalidStateError, QuotaExceededError
 from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.activities.stats import LoveStatsModel
+from app.persist.actions.factory import create_action_repository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.creator import ActionCreator
-from app.services.activities.actions.repository import ActionRepository
 from app.services.activities.stats.score_factory import make_score_context
 
 
@@ -58,7 +58,7 @@ class LoveRunner:
 			raise QuotaExceededError()
 
 		# --- insert action ---
-		action_creator = ActionCreator(ActionRepository(session))
+		action_creator = ActionCreator(create_action_repository(session))
 		new_action = action_creator.love(
 			ingest_id,
 			occurred_at=evaluated_at,

@@ -5,7 +5,8 @@ from typing import final
 from app.config.environments import env
 from app.models.enums import IngestMode
 from app.models.records import ImageRecord, IngestRecord
-from app.services.images.repository import ImageRepository
+from app.persist.images.protocol import ImageRepository
+from app.persist.ingests.protocol import IngestRepository
 from app.services.images.variants.executors.local import LocalVariantExecutor
 from app.services.images.variants.mapper import (
 	map_commit_results_to_variants,
@@ -16,7 +17,6 @@ from app.services.images.variants.pipeline import VariantPipeline
 from app.services.images.variants.pipeline_execution import VariantPipelineExecutionSession
 from app.services.images.variants.types import FileInfo, OriginalFile, VariantPolicy
 from app.services.images.variants.utils import get_image_info_from_file
-from app.services.ingests.repository.base import IngestRepository
 from app.services.ingests.service import IngestService
 
 
