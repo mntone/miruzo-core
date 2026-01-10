@@ -6,12 +6,12 @@ from sqlmodel import Session
 from importers.common.ingest_time import resolve_captured_at
 from importers.common.origin import OriginResolver
 from importers.common.readers.jsonl import JsonlReader
+from importers.common.report import ImportStats, ProgressReporter
 
 from app.config.environments import Settings
 from app.config.environments import env as global_env
 from app.database import engine, init_database
 from app.models.enums import IngestMode
-from app.models.records import IngestRecord
 from app.persist.images.factory import create_image_repository
 from app.persist.ingests.factory import create_ingest_repository
 from app.services.images.ingest import ImageIngestService
@@ -106,14 +106,9 @@ def import_jsonl(
 		policy=DEFAULT_VARIANT_POLICY,
 	)
 
-	stats = {
-		'read': 0,
-		'ingested': 0,
-		'invalid': 0,
-		'missing': 0,
-		'fallback': 0,
-	}
+	stats = ImportStats()
 	warned_created_at_fallback = False
+	reporter = ProgressReporter(report_variants=report_variants)
 	reader = JsonlReader(Path(jsonl_path))
 	resolver = OriginResolver(
 		gataku_root=env.gataku_root,
@@ -122,15 +117,15 @@ def import_jsonl(
 
 	with session:
 		for row in reader.read(limit=limit):
-			stats['read'] += 1
+			stats.read += 1
 
 			if row is None:
-				stats['invalid'] += 1
+				stats.invalid += 1
 				continue  # skip invalid JSON
 
 			resolution = resolver.resolve(row)
 			if resolution is None:
-				stats['missing'] += 1
+				stats.missing += 1
 				continue  # image not found or invalid path
 
 			src_path = resolution.src_path
@@ -142,7 +137,7 @@ def import_jsonl(
 				warned_fallback=warned_created_at_fallback,
 			)
 			if used_fallback:
-				stats['fallback'] += 1
+				stats.fallback += 1
 
 			ingest_record = ingest.ingest(
 				origin_path=origin_relative_path,
@@ -150,72 +145,9 @@ def import_jsonl(
 				captured_at=captured_at,
 				ingest_mode=mode,
 			)
-			stats['ingested'] += 1
+			stats.ingested += 1
 
-			if report_variants:
-				print_variant_report(ingest_record)
+			reporter.maybe_report_variants(ingest_record)
+			reporter.report_progress(stats, force=stats.read == limit)
 
-			if stats['read'] % 10 == 0 or stats['read'] == limit:
-				print(
-					f'[importer] progress: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
-				)
-
-	print(
-		f'[importer] summary: read={stats["read"]}, ingested={stats["ingested"]}, invalid={stats["invalid"]}, missing={stats["missing"]}, fallback={stats["fallback"]}',
-	)
-
-
-def _format_bytes(size: int) -> str:
-	"""Convert a size in bytes into a human-friendly string."""
-
-	thresholds = [
-		(1024**4, 'TB'),
-		(1024**3, 'GB'),
-		(1024**2, 'MB'),
-		(1024, 'KB'),
-	]
-	for factor, suffix in thresholds:
-		if size >= factor:
-			value = size / factor
-			if value < 10:
-				return f'{value:.2f} {suffix}'
-			return f'{value:.1f} {suffix}'
-	return f'{size} B'
-
-
-def print_variant_report(record: IngestRecord) -> None:
-	image = record.image
-	if image is None:
-		return
-
-	print(f'[importer] variant report ({record.relative_path}):')
-	header = f'{"Label":<10} {"Resolution":<12} {"Size":>10} {"Ratio":<12}'
-	print(header)
-	print('-' * len(header))
-
-	original = image.original
-	original_width = original['width']
-	original_height = original['height']
-	original_resolution = f'{original_width}x{original_height}'
-	original_size = original['bytes']
-	print(
-		f'{"l0orig":<10} {original_resolution:<12} {_format_bytes(original_size):>10} {"n/a":<12}',
-	)
-
-	for variant in image.variants:
-		label = 'l' + variant['layer_id'].__str__() + 'w' + variant['width'].__str__()
-		width = variant['width']
-		height = variant['height']
-
-		size = variant['bytes']
-		size_str = _format_bytes(size or 0)
-
-		delta = size - original_size
-		delta_str = _format_bytes(abs(delta))
-
-		ratio = (size / original_size) * 100
-		ratio_sign = '+' if delta >= 0 else '-'
-		ratio_str = f'{ratio:.1f}% ({ratio_sign}{delta_str})'
-
-		resolution = f'{width}x{height}'
-		print(f'{label:<10} {resolution:<12} {size_str:>10} {ratio_str:<12}')
+	reporter.report_summary(stats)
