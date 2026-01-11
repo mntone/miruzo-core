@@ -20,11 +20,11 @@
 			"jinja": true
 		},
 		{
-			"name": "score_decay cli debug",
+			"name": "daily_decay cli debug",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}",
 			"request": "launch",
-			"module": "scripts.score_decay",
+			"module": "scripts.daily_decay",
 			"jinja": true
 		},
 		{

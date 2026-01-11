@@ -5,9 +5,9 @@ from app.config.environments import env
 from app.database import create_session, init_database
 from app.domain.score.calculator import ScoreCalculator
 from app.jobs.daily_decay import DailyDecayJob
+from app.persist.jobs.factory import create_job_repository
 from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.jobs.manager import JobManager
-from app.services.jobs.repository.factory import create_job_repository
 
 
 def parse_args() -> argparse.Namespace:
