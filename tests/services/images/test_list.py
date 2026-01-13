@@ -39,6 +39,9 @@ def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) 
 
 	calls: dict[str, Any] = {}
 
+	def fake_fetch(repo: Any, cursor: Any, limit: int) -> Any:
+		return repo.select_latest(cursor=cursor, limit=limit)
+
 	def fake_slice(rows: Any, limit: int) -> tuple[Any, Any]:
 		calls['slice'] = (rows, limit)
 		return rows[:limit], now
@@ -47,7 +50,11 @@ def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) 
 		calls['map'] = (items, next_cursor, exclude_formats, variant_layers)
 		return 'response'
 
-	monkeypatch.setattr(list_service.paginator, 'slice_with_cursor_latest', fake_slice)
+	monkeypatch.setattr(
+		list_service.spec,
+		'LATEST_SPEC',
+		list_service.ImageListSpec(fetch=fake_fetch, slice=fake_slice),
+	)
 	monkeypatch.setattr(list_service, 'map_image_records_to_list_response', fake_map)
 
 	service = ImageListService(repository=repository, variant_layers=env.variant_layers)
@@ -62,18 +69,43 @@ def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) 
 
 
 @pytest.mark.parametrize(
-	'method_name, select_name, cursor_value, row_cursor',
+	'method_name, spec_name, select_name, cursor_value, row_cursor',
 	[
-		('get_chronological', 'select_chronological', datetime(2024, 1, 2, tzinfo=timezone.utc), datetime(2024, 1, 2, tzinfo=timezone.utc)),
-		('get_recently', 'select_recently', datetime(2024, 1, 3, tzinfo=timezone.utc), datetime(2024, 1, 3, tzinfo=timezone.utc)),
-		('get_first_love', 'select_first_love', datetime(2024, 1, 4, tzinfo=timezone.utc), datetime(2024, 1, 4, tzinfo=timezone.utc)),
-		('get_hall_of_fame', 'select_hall_of_fame', datetime(2024, 1, 5, tzinfo=timezone.utc), datetime(2024, 1, 5, tzinfo=timezone.utc)),
-		('get_engaged', 'select_engaged', 180, 200),
+		(
+			'get_chronological',
+			'CHRONOLOGICAL_SPEC',
+			'select_chronological',
+			datetime(2024, 1, 2, tzinfo=timezone.utc),
+			datetime(2024, 1, 2, tzinfo=timezone.utc),
+		),
+		(
+			'get_recently',
+			'RECENTLY_SPEC',
+			'select_recently',
+			datetime(2024, 1, 3, tzinfo=timezone.utc),
+			datetime(2024, 1, 3, tzinfo=timezone.utc),
+		),
+		(
+			'get_first_love',
+			'FIRST_LOVE_SPEC',
+			'select_first_love',
+			datetime(2024, 1, 4, tzinfo=timezone.utc),
+			datetime(2024, 1, 4, tzinfo=timezone.utc),
+		),
+		(
+			'get_hall_of_fame',
+			'HALL_OF_FAME_SPEC',
+			'select_hall_of_fame',
+			datetime(2024, 1, 5, tzinfo=timezone.utc),
+			datetime(2024, 1, 5, tzinfo=timezone.utc),
+		),
+		('get_engaged', 'ENGAGED_SPEC', 'select_engaged', 180, 200),
 	],
 )
 def test_list_methods_use_tuple_paginator(
 	monkeypatch: pytest.MonkeyPatch,
 	method_name: str,
+	spec_name: str,
 	select_name: str,
 	cursor_value: datetime | int,
 	row_cursor: datetime | int,
@@ -85,6 +117,9 @@ def test_list_methods_use_tuple_paginator(
 
 	calls: dict[str, Any] = {}
 
+	def fake_fetch(repo: Any, cursor: Any, limit: int) -> Any:
+		return getattr(repo, select_name)(cursor=cursor, limit=limit)
+
 	def fake_slice(rows_arg: Any, limit_arg: int) -> tuple[Any, Any]:
 		calls['slice'] = (rows_arg, limit_arg)
 		return [rows_arg[0][0]], 'next'
@@ -93,7 +128,11 @@ def test_list_methods_use_tuple_paginator(
 		calls['map'] = (items, next_cursor, exclude_formats, variant_layers)
 		return 'response'
 
-	monkeypatch.setattr(list_service.paginator, 'slice_with_tuple_cursor', fake_slice)
+	monkeypatch.setattr(
+		list_service.spec,
+		spec_name,
+		list_service.ImageListSpec(fetch=fake_fetch, slice=fake_slice),
+	)
 	monkeypatch.setattr(list_service, 'map_image_records_to_list_response', fake_map)
 
 	service = ImageListService(repository=repository, variant_layers=env.variant_layers)

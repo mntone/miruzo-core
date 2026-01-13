@@ -2,10 +2,12 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import final
 
-import app.services.images.paginator as paginator
+import app.services.images.list_spec as spec
 from app.config.variant import VariantLayerSpec
 from app.models.api.images.responses import ImageListResponse
 from app.persist.images.list.protocol import ImageListRepository
+from app.services.images.list_spec import ImageListSpec, TRow
+from app.services.images.list_types import TCursor
 from app.services.images.mapper import map_image_records_to_list_response
 
 
@@ -22,6 +24,27 @@ class ImageListService:
 		self._repository = repository
 		self._variant_layers = variant_layers
 
+	def _get_list(
+		self,
+		list_spec: ImageListSpec[TRow, TCursor],
+		*,
+		cursor: TCursor | None,
+		limit: int,
+		exclude_formats: tuple[str, ...],
+	) -> ImageListResponse[TCursor]:
+		rows = list_spec.fetch(self._repository, cursor, limit + 1)
+
+		items, next_cursor = list_spec.slice(rows, limit)
+
+		response = map_image_records_to_list_response(
+			items,
+			next_cursor=next_cursor,
+			exclude_formats=exclude_formats,
+			variant_layers=self._variant_layers,
+		)
+
+		return response
+
 	def get_latest(
 		self,
 		*,
@@ -34,18 +57,12 @@ class ImageListService:
 		Includes variant normalization using allowed_formats.
 		"""
 
-		rows = self._repository.select_latest(cursor=cursor, limit=limit + 1)
-
-		items, next_cursor = paginator.slice_with_cursor_latest(rows, limit)
-
-		response = map_image_records_to_list_response(
-			items,
-			next_cursor=next_cursor,
+		return self._get_list(
+			spec.LATEST_SPEC,
+			cursor=cursor,
+			limit=limit,
 			exclude_formats=exclude_formats,
-			variant_layers=self._variant_layers,
 		)
-
-		return response
 
 	def get_chronological(
 		self,
@@ -59,18 +76,12 @@ class ImageListService:
 		Includes variant normalization using allowed_formats.
 		"""
 
-		rows = self._repository.select_chronological(cursor=cursor, limit=limit + 1)
-
-		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
-
-		response = map_image_records_to_list_response(
-			items,
-			next_cursor=next_cursor,
+		return self._get_list(
+			spec.CHRONOLOGICAL_SPEC,
+			cursor=cursor,
+			limit=limit,
 			exclude_formats=exclude_formats,
-			variant_layers=self._variant_layers,
 		)
-
-		return response
 
 	def get_recently(
 		self,
@@ -84,18 +95,12 @@ class ImageListService:
 		Includes variant normalization using allowed_formats.
 		"""
 
-		rows = self._repository.select_recently(cursor=cursor, limit=limit + 1)
-
-		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
-
-		response = map_image_records_to_list_response(
-			items,
-			next_cursor=next_cursor,
+		return self._get_list(
+			spec.RECENTLY_SPEC,
+			cursor=cursor,
+			limit=limit,
 			exclude_formats=exclude_formats,
-			variant_layers=self._variant_layers,
 		)
-
-		return response
 
 	def get_first_love(
 		self,
@@ -109,18 +114,12 @@ class ImageListService:
 		Includes variant normalization using allowed_formats.
 		"""
 
-		rows = self._repository.select_first_love(cursor=cursor, limit=limit + 1)
-
-		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
-
-		response = map_image_records_to_list_response(
-			items,
-			next_cursor=next_cursor,
+		return self._get_list(
+			spec.FIRST_LOVE_SPEC,
+			cursor=cursor,
+			limit=limit,
 			exclude_formats=exclude_formats,
-			variant_layers=self._variant_layers,
 		)
-
-		return response
 
 	def get_hall_of_fame(
 		self,
@@ -134,18 +133,12 @@ class ImageListService:
 		Includes variant normalization using allowed_formats.
 		"""
 
-		rows = self._repository.select_hall_of_fame(cursor=cursor, limit=limit + 1)
-
-		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
-
-		response = map_image_records_to_list_response(
-			items,
-			next_cursor=next_cursor,
+		return self._get_list(
+			spec.HALL_OF_FAME_SPEC,
+			cursor=cursor,
+			limit=limit,
 			exclude_formats=exclude_formats,
-			variant_layers=self._variant_layers,
 		)
-
-		return response
 
 	def get_engaged(
 		self,
@@ -159,15 +152,9 @@ class ImageListService:
 		Includes variant normalization using allowed_formats.
 		"""
 
-		rows = self._repository.select_engaged(cursor=cursor, limit=limit + 1)
-
-		items, next_cursor = paginator.slice_with_tuple_cursor(rows, limit)
-
-		response = map_image_records_to_list_response(
-			items,
-			next_cursor=next_cursor,
+		return self._get_list(
+			spec.ENGAGED_SPEC,
+			cursor=cursor,
+			limit=limit,
 			exclude_formats=exclude_formats,
-			variant_layers=self._variant_layers,
 		)
-
-		return response

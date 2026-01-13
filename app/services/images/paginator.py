@@ -1,13 +1,11 @@
 from collections.abc import Sequence
 from datetime import datetime
-from typing import TypeVar
 
 from app.models.records import ImageRecord
+from app.services.images.list_types import TCursor
 
-TCursor = TypeVar('TCursor')
 
-
-def slice_with_cursor_latest(
+def slice_with_latest_cursor(
 	rows: Sequence[ImageRecord],
 	limit: int,
 ) -> tuple[Sequence[ImageRecord], datetime | None]:

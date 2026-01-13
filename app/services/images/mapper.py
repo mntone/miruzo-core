@@ -1,14 +1,12 @@
 from collections.abc import Sequence
-from typing import TypeVar
 
 from app.config.variant import VariantLayerSpec
 from app.models.api.images.list import ImageListModel
 from app.models.api.images.responses import ImageListResponse
 from app.models.records import ImageRecord
+from app.services.images.list_types import TCursor
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 from app.services.images.variants.mapper import map_variants_to_layers
-
-TCursor = TypeVar('TCursor')
 
 
 def map_image_records_to_list_response(
