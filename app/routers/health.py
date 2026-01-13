@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from starlette.responses import Response
 
 from app.models.api.health import HealthResponse
-from app.utils.http.reponse_builder import build_response
+from app.utils.http.response_builder import build_response
 from app.version import __version__
 
 router = APIRouter()

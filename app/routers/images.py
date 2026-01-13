@@ -20,7 +20,7 @@ from app.services.activities.love import LoveRunner
 from app.services.activities.love_cancel import LoveCancelRunner
 from app.services.images.list import ImageListService
 from app.services.views.context import ContextService
-from app.utils.http.reponse_builder import build_response
+from app.utils.http.response_builder import build_response
 
 
 def _get_image_list_service(

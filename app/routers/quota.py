@@ -9,7 +9,7 @@ from app.database import get_session
 from app.models.api.quota import QuotaResponse
 from app.persist.users.factory import create_user_repository
 from app.services.users.query_service import UserQueryService
-from app.utils.http.reponse_builder import build_response
+from app.utils.http.response_builder import build_response
 
 
 def _get_user_query_service(
