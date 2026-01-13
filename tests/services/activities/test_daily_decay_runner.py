@@ -7,11 +7,12 @@ import pytest
 from tests.services.activities.stats.factory import build_stats_record
 from tests.stubs.score import StubScoreCalculator
 from tests.stubs.session import StubSession
-from tests.stubs.stats import StubStatsRepository
+from tests.stubs.stats import StubStatsRepository, create_stub_stats_repository_factory
 from tests.stubs.user import StubUserRepository
 
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
+from app.persist.users.protocol import UserRepository
 from app.services.activities.daily_decay import DailyDecayRunner
 
 
@@ -47,9 +48,6 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 	user = user_repo.get_or_create_singleton()
 	user.daily_love_used = 3
 
-	def _create_stats_repository(_: StubSession) -> StubStatsRepository:
-		return stats_repo
-
 	def _create_user_repository(_: StubSession) -> StubUserRepository:
 		return user_repo
 
@@ -62,7 +60,7 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.create_stats_repository',
-		_create_stats_repository,
+		create_stub_stats_repository_factory(stats_repo),
 	)
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.create_user_repository',
@@ -120,10 +118,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 	user = user_repo.get_or_create_singleton()
 	user.daily_love_used = 2
 
-	def _create_stats_repository(_: StubSession) -> StubStatsRepository:
-		return stats_repo
-
-	def _create_user_repository(_: StubSession) -> StubUserRepository:
+	def _create_user_repository(_: StubSession) -> UserRepository:
 		return user_repo
 
 	class _DecayCreatorFactory:
@@ -141,7 +136,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.create_stats_repository',
-		_create_stats_repository,
+		create_stub_stats_repository_factory(stats_repo),
 	)
 	monkeypatch.setattr(
 		'app.services.activities.daily_decay.create_user_repository',

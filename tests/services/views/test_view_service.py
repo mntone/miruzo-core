@@ -22,7 +22,7 @@ def test_get_context_returns_none_when_record_missing() -> None:
 		session,  # pyright: ignore[reportArgumentType]
 		action_repo=action_repo,
 		image_repo=image_repo,
-		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
 		env=env,
 	)
 
@@ -42,7 +42,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 
 	stats = build_stats_record(image.ingest_id)
 	stats_repo = StubStatsRepository()
-	stats_repo.stats_response = stats
+	stats_repo.stats_list_response = [stats]
 	action_repo = StubActionRepository()
 	session = StubSession()
 
@@ -50,7 +50,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 		session,  # pyright: ignore[reportArgumentType]
 		action_repo=action_repo,
 		image_repo=image_repo,
-		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
 		env=env,
 	)
 
@@ -79,7 +79,7 @@ def test_get_context_returns_rich_when_requested() -> None:
 
 	stats = build_stats_record(image.ingest_id)
 	stats_repo = StubStatsRepository()
-	stats_repo.stats_response = stats
+	stats_repo.stats_list_response = [stats]
 	action_repo = StubActionRepository()
 	session = StubSession()
 
@@ -87,7 +87,7 @@ def test_get_context_returns_rich_when_requested() -> None:
 		session,  # pyright: ignore[reportArgumentType]
 		action_repo=action_repo,
 		image_repo=image_repo,
-		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
 		env=env,
 	)
 
@@ -111,7 +111,7 @@ def test_get_context_updates_view_milestone() -> None:
 		view_count=milestone - 1,
 	)
 	stats_repo = StubStatsRepository()
-	stats_repo.stats_response = stats
+	stats_repo.stats_list_response = [stats]
 	action_repo = StubActionRepository()
 	session = StubSession()
 
@@ -119,7 +119,7 @@ def test_get_context_updates_view_milestone() -> None:
 		session,  # pyright: ignore[reportArgumentType]
 		action_repo=action_repo,
 		image_repo=image_repo,
-		stats_repo=stats_repo,  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
 		env=env,
 	)
 
