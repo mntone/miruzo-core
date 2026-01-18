@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Annotated, final
+from typing import Annotated, Literal, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -62,6 +62,15 @@ class ImageRichModel(ImageSummaryModel, VariantLayersModelBase):
 		frozen=True,
 	)
 
+	level: Annotated[
+		Literal['rich'],
+		Field(
+			title='Response level',
+			description='response detail level for this context payload',
+		),
+	]
+	"""response detail level for this context payload"""
+
 	@classmethod
 	def from_record(  # pyright: ignore[reportIncompatibleMethodOverride]
 		cls,
@@ -70,6 +79,7 @@ class ImageRichModel(ImageSummaryModel, VariantLayersModelBase):
 	) -> 'ImageRichModel':
 		# fmt: off
 		return cls(
+			level='rich',
 			id=image.ingest_id,
 			ingested_at=image.ingested_at,
 			kind=image.kind,
