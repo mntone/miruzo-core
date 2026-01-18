@@ -3,6 +3,7 @@ from typing import Annotated, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.config.constants import MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH
 from app.config.environments import env
 from app.models.api.utils.units import bytes_to_manbytes
 from app.models.types import VariantEntry
@@ -61,6 +62,7 @@ class VariantModel(BaseModel):
 			title='Variant width',
 			description='width of this rendition in pixels; guaranteed to be a positive integer',
 			gt=0,
+			le=MAX_IMAGE_WIDTH,
 		),
 	]
 	"""width of this rendition in pixels; guaranteed to be a positive integer"""
@@ -71,6 +73,7 @@ class VariantModel(BaseModel):
 			title='Variant height',
 			description='height of this rendition in pixels; guaranteed to be a positive integer',
 			gt=0,
+			le=MAX_IMAGE_HEIGHT,
 		),
 	]
 	"""height of this rendition in pixels; guaranteed to be a positive integer"""

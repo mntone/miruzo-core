@@ -15,6 +15,7 @@ from app.models.enums import IngestMode
 from app.persist.images.factory import create_image_repository
 from app.persist.ingests.factory import create_ingest_repository
 from app.services.images.ingest import ImageIngestService
+from app.services.images.variants.bootstrap import configure_pillow
 from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
 from app.services.ingests.bootstrap import ensure_ingest_layout
 
@@ -87,6 +88,7 @@ def import_jsonl(
 
 	gataku_assets_root = env.gataku_assets_root
 
+	configure_pillow()
 	ensure_ingest_layout(env)
 	prepare_original_directory(
 		media_root=env.media_root,

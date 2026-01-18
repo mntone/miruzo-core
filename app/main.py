@@ -19,6 +19,7 @@ from app.routers.health import router as health
 from app.routers.images import router as images
 from app.routers.quota import router as quota
 from app.services.activities.daily_decay import DailyDecayRunner
+from app.services.images.variants.bootstrap import configure_pillow
 from app.services.ingests.bootstrap import ensure_ingest_layout
 from app.services.jobs.manager import JobManager
 
@@ -59,6 +60,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 	yield
 	scheduler.shutdown(wait=False)  # pyright: ignore[reportUnknownMemberType]
 
+
+configure_pillow()
 
 app = FastAPI(title='miruzo API', lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=9)

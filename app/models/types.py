@@ -6,6 +6,7 @@ from pydantic import Field
 from sqlalchemy import DateTime
 from sqlalchemy.types import JSON, TypeDecorator
 
+from app.config.constants import MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH
 from app.models.enums import ExecutionStatus
 
 # @final
@@ -175,6 +176,6 @@ class VariantEntry(TypedDict):
 	format: Annotated[str, Field(ge=3, le=8)]
 	codecs: Annotated[str | None, Field(default=None)]
 	bytes: Annotated[int, Field(ge=1)]
-	width: Annotated[int, Field(ge=1, le=10240)]
-	height: Annotated[int, Field(ge=1, le=10240)]
+	width: Annotated[int, Field(ge=1, le=MAX_IMAGE_WIDTH)]
+	height: Annotated[int, Field(ge=1, le=MAX_IMAGE_HEIGHT)]
 	quality: Annotated[int | None, Field(default=None, ge=1, le=100)]
