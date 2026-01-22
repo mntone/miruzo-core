@@ -4,6 +4,7 @@ from typing import Annotated, Literal, final
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.config.constants import INGEST_ID_MAXIMUM, INGEST_ID_MINIMUM
 from app.models.api.variants.variant import VariantLayersModelBase, VariantModel
 from app.models.enums import ImageKind
 from app.models.records import ImageRecord
@@ -21,7 +22,12 @@ class ImageSummaryModel(BaseModel):
 
 	id: Annotated[
 		int,
-		Field(title='Ingest identifier', description='numeric primary key assigned in the database.'),
+		Field(
+			title='Ingest identifier',
+			description='numeric primary key assigned in the database.',
+			ge=INGEST_ID_MINIMUM,
+			le=INGEST_ID_MAXIMUM,
+		),
 	]
 	"""numeric primary key assigned in the database."""
 

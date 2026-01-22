@@ -3,6 +3,7 @@ from typing import Annotated, final
 
 from pydantic import ConfigDict, Field
 
+from app.config.constants import INGEST_ID_MAXIMUM, INGEST_ID_MINIMUM
 from app.models.api.variants.variant import VariantLayersModelBase, VariantModel
 from app.models.records import ImageRecord
 from app.models.types import VariantEntry
@@ -20,7 +21,12 @@ class ImageListModel(VariantLayersModelBase):
 
 	id: Annotated[
 		int,
-		Field(title='Image identifier', description='numeric primary key assigned in the database.'),
+		Field(
+			title='Ingest identifier',
+			description='numeric primary key assigned in the database.',
+			ge=INGEST_ID_MINIMUM,
+			le=INGEST_ID_MAXIMUM,
+		),
 	]
 	"""numeric primary key assigned in the database."""
 

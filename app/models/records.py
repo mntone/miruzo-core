@@ -9,7 +9,7 @@ from sqlalchemy import JSON, Column, Integer, SmallInteger
 from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
-from app.config.constants import EXECUTION_MAXIMUM
+from app.config.constants import EXECUTION_MAXIMUM, INGEST_ID_MAXIMUM, INGEST_ID_MINIMUM
 from app.config.environments import env
 from app.models.enums import ActionKind, ImageKind, ProcessStatus, VisibilityStatus
 from app.models.types import ExecutionEntry, ExecutionsJSON, UTCDateTime, VariantEntry
@@ -19,7 +19,13 @@ from app.models.types import ExecutionEntry, ExecutionsJSON, UTCDateTime, Varian
 class IngestRecord(SQLModel, table=True):
 	__tablename__ = 'ingests'
 
-	id: int = SQLField(default=None, primary_key=True, nullable=False)
+	id: int = SQLField(
+		default=None,
+		ge=INGEST_ID_MINIMUM,
+		le=INGEST_ID_MAXIMUM,
+		primary_key=True,
+		nullable=False,
+	)
 	process: ProcessStatus = SQLField(
 		default=ProcessStatus.PROCESSING,
 		sa_column=Column(
