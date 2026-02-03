@@ -10,6 +10,7 @@ from tests.stubs.session import StubSession
 from tests.stubs.stats import StubStatsRepository, create_stub_stats_repository_factory
 from tests.stubs.user import StubUserRepository
 
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
 from app.persist.users.protocol import UserRepository
@@ -73,9 +74,11 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 
 	session = StubSession()
 	runner = DailyDecayRunner(
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(5, 0),
+		),
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
 	)
 
 	runner.apply_daily_decay(
@@ -149,9 +152,11 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 
 	session = StubSession()
 	runner = DailyDecayRunner(
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(5, 0),
+		),
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
 	)
 
 	runner.apply_daily_decay(

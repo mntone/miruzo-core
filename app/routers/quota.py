@@ -6,6 +6,7 @@ from starlette.responses import Response
 
 from app.config.environments import env
 from app.database import get_session
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.api.quota import QuotaResponse
 from app.persist.users.factory import create_user_repository
 from app.services.users.query_service import UserQueryService
@@ -18,8 +19,10 @@ def _get_user_query_service(
 	return UserQueryService(
 		create_user_repository(session),
 		daily_love_limit=env.quota.daily_love_limit,
-		daily_reset_at=env.time.daily_reset_at,
-		base_timezone=env.base_timezone,
+		period_resolver=DailyPeriodResolver(
+			base_timezone=env.base_timezone,
+			daily_reset_at=env.time.daily_reset_at,
+		),
 	)
 
 

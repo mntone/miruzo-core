@@ -8,6 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from tests.services.images.utils import add_ingest_record
 
 from app.config.score import ScoreConfig
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.errors import InvalidStateError
 from app.models.enums import ActionKind
 from app.persist.actions.base import BaseActionRepository
@@ -50,8 +51,10 @@ def test_run_restores_previous_love(session: Session) -> None:
 		)
 
 	runner = LoveCancelRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 
@@ -81,8 +84,10 @@ def test_run_clears_first_loved_at_when_no_previous_love(session: Session) -> No
 		stats.last_loved_at = evaluated_at
 
 	runner = LoveCancelRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 
@@ -105,8 +110,10 @@ def test_run_raises_when_no_love_in_period(session: Session) -> None:
 		stats.last_loved_at = datetime(2024, 1, 1, 23, 0, tzinfo=timezone.utc)
 
 	runner = LoveCancelRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 
@@ -130,8 +137,10 @@ def test_run_raises_when_first_loved_at_missing(session: Session) -> None:
 		stats.last_loved_at = datetime(2024, 1, 2, 0, 30, tzinfo=timezone.utc)
 
 	runner = LoveCancelRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 

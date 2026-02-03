@@ -8,6 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from tests.services.images.utils import add_ingest_record
 
 from app.config.score import ScoreConfig
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.errors import InvalidStateError, QuotaExceededError
 from app.persist.stats.sqlite import SQLiteStatsRepository
 from app.persist.users.sqlite import SQLiteUserRepository
@@ -33,9 +34,11 @@ def test_run_updates_stats_and_user(session: Session) -> None:
 		stats_repo.get_or_create(ingest.id, initial_score=100)
 
 	runner = LoveRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
 		daily_love_limit=3,
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 
@@ -66,9 +69,11 @@ def test_run_raises_when_already_loved_today(session: Session) -> None:
 		stats.last_loved_at = existing
 
 	runner = LoveRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
 		daily_love_limit=3,
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 
@@ -96,9 +101,11 @@ def test_run_raises_when_quota_exceeded(session: Session) -> None:
 		stats_repo.get_or_create(ingest.id, initial_score=100)
 
 	runner = LoveRunner(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
 		daily_love_limit=1,
+		period_resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(0, 0),
+		),
 		score_config=ScoreConfig(),
 	)
 

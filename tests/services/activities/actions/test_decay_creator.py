@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 from tests.stubs.action import StubActionRepository
 
-from app.domain.activities.daily_period import resolve_daily_period_range
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
 from app.services.activities.actions.decay_creator import DecayActionCreator
@@ -13,10 +13,13 @@ def test_create_returns_action_when_missing() -> None:
 	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
 	repo = StubActionRepository()
 
+	resolver = DailyPeriodResolver(
+		base_timezone=ZoneInfo('UTC'),
+		daily_reset_at=time(5, 0),
+	)
 	creator = DecayActionCreator(
 		repository=repo,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
+		period_resolver=resolver,
 	)
 
 	result = creator.create(1, occurred_at=evaluated_at)
@@ -26,11 +29,7 @@ def test_create_returns_action_when_missing() -> None:
 	assert repo.insert_called_with[0].kind == result.kind
 	assert repo.insert_called_with[0].occurred_at == result.occurred_at
 
-	expected_since, expected_until = resolve_daily_period_range(
-		evaluated_at,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
-	)
+	expected_since, expected_until = resolver.resolve_period_range(evaluated_at)
 	assert repo.select_one_called_with is not None
 	assert repo.select_one_called_with.ingest_id == 1
 	assert repo.select_one_called_with.kinds == (ActionKind.DECAY,)
@@ -49,10 +48,13 @@ def test_create_returns_none_when_existing() -> None:
 	repo = StubActionRepository()
 	repo.actions = [existing]
 
+	resolver = DailyPeriodResolver(
+		base_timezone=ZoneInfo('UTC'),
+		daily_reset_at=time(5, 0),
+	)
 	creator = DecayActionCreator(
 		repository=repo,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
+		period_resolver=resolver,
 	)
 
 	result = creator.create(1, occurred_at=evaluated_at)

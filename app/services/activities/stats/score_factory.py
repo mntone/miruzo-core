@@ -1,7 +1,6 @@
-from datetime import datetime, time
-from zoneinfo import ZoneInfo
+from datetime import datetime
 
-from app.domain.activities.daily_period import is_since_daily_period_start
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.context import ScoreContext
 from app.errors import InvariantViolationError
 from app.models.records import StatsRecord
@@ -11,8 +10,7 @@ def make_score_context(
 	*,
 	stats: StatsRecord,
 	evaluated_at: datetime,
-	daily_reset_at: time,
-	base_timezone: ZoneInfo | None,
+	resolver: DailyPeriodResolver,
 ) -> ScoreContext:
 	last_viewed_at = stats.last_viewed_at
 
@@ -25,11 +23,9 @@ def make_score_context(
 	else:
 		days_since_last_view = (evaluated_at - last_viewed_at).days
 
-	has_view_today = is_since_daily_period_start(
+	has_view_today = resolver.is_since_period_start(
 		stats.last_viewed_at,
 		evaluated_at=evaluated_at,
-		daily_reset_at=daily_reset_at,
-		base_timezone=base_timezone,
 	)
 
 	context = ScoreContext(

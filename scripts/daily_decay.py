@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from app.config.environments import env
 from app.database import create_session, init_database
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.jobs.daily_decay import DailyDecayJob
 from app.persist.jobs.factory import create_job_repository
@@ -36,9 +37,11 @@ def main() -> None:
 
 	job = DailyDecayJob(
 		DailyDecayRunner(
+			period_resolver=DailyPeriodResolver(
+				base_timezone=env.base_timezone,
+				daily_reset_at=env.time.daily_reset_at,
+			),
 			score_calculator=ScoreCalculator(env.score),
-			daily_reset_at=env.time.daily_reset_at,
-			base_timezone=env.base_timezone,
 		),
 		session_factory=create_session,
 	)

@@ -7,6 +7,7 @@ from starlette.responses import Response
 
 from app.config.environments import env
 from app.database import get_session
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.context.query import ContextQuery
 from app.models.api.context.responses import ContextResponse
@@ -47,19 +48,28 @@ def _get_context_service(
 	)
 
 
-def _get_love_runner() -> LoveRunner:
-	return LoveRunner(
+def _get_daily_period_resolver() -> DailyPeriodResolver:
+	return DailyPeriodResolver(
 		base_timezone=env.base_timezone,
 		daily_reset_at=env.time.daily_reset_at,
+	)
+
+
+def _get_love_runner(
+	resolver: Annotated[DailyPeriodResolver, Depends(_get_daily_period_resolver)],
+) -> LoveRunner:
+	return LoveRunner(
+		period_resolver=resolver,
 		daily_love_limit=env.quota.daily_love_limit,
 		score_config=env.score,
 	)
 
 
-def _get_love_cancel_runner() -> LoveCancelRunner:
+def _get_love_cancel_runner(
+	resolver: Annotated[DailyPeriodResolver, Depends(_get_daily_period_resolver)],
+) -> LoveCancelRunner:
 	return LoveCancelRunner(
-		base_timezone=env.base_timezone,
-		daily_reset_at=env.time.daily_reset_at,
+		period_resolver=resolver,
 		score_config=env.score,
 	)
 

@@ -5,6 +5,7 @@ import pytest
 
 from tests.services.activities.stats.factory import build_stats_record
 
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.errors import InvariantViolationError
 from app.services.activities.stats.score_factory import make_score_context
 
@@ -16,8 +17,10 @@ def test_make_score_context_without_last_view() -> None:
 	context = make_score_context(
 		stats=stats,
 		evaluated_at=evaluated_at,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
+		resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(5, 0),
+		),
 	)
 
 	assert context.last_viewed_at is None
@@ -35,8 +38,10 @@ def test_make_score_context_marks_view_within_period() -> None:
 	context = make_score_context(
 		stats=stats,
 		evaluated_at=evaluated_at,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
+		resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(5, 0),
+		),
 	)
 
 	assert context.has_view_today is True
@@ -53,8 +58,10 @@ def test_make_score_context_marks_view_before_period() -> None:
 	context = make_score_context(
 		stats=stats,
 		evaluated_at=evaluated_at,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
+		resolver=DailyPeriodResolver(
+			base_timezone=ZoneInfo('UTC'),
+			daily_reset_at=time(5, 0),
+		),
 	)
 
 	assert context.has_view_today is False
@@ -69,6 +76,8 @@ def test_make_score_context_raises_for_future_last_view() -> None:
 		make_score_context(
 			stats=stats,
 			evaluated_at=evaluated_at,
-			daily_reset_at=time(5, 0),
-			base_timezone=ZoneInfo('UTC'),
+			resolver=DailyPeriodResolver(
+				base_timezone=ZoneInfo('UTC'),
+				daily_reset_at=time(5, 0),
+			),
 		)

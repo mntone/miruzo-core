@@ -1,10 +1,9 @@
-from datetime import datetime, time
-from zoneinfo import ZoneInfo
+from datetime import datetime
 
 from sqlmodel import Session
 
 from app.config.score import ScoreConfig
-from app.domain.activities.daily_period import resolve_daily_period_start
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.errors import InvalidStateError, QuotaExceededError
 from app.models.api.activities.responses import LoveStatsResponse
@@ -20,23 +19,17 @@ class LoveRunner:
 	def __init__(
 		self,
 		*,
-		base_timezone: ZoneInfo | None,
-		daily_reset_at: time,
 		daily_love_limit: int,
+		period_resolver: DailyPeriodResolver,
 		score_config: ScoreConfig,
 	) -> None:
-		self._base_timezone = base_timezone
-		self._daily_reset_at = daily_reset_at
 		self._daily_love_limit = daily_love_limit
+		self._period_resolver = period_resolver
 		self._score_calc = ScoreCalculator(score_config)
 
 	def run(self, session: Session, *, ingest_id: int, evaluated_at: datetime) -> LoveStatsResponse:
 		# --- resolve period start ---
-		period_start = resolve_daily_period_start(
-			evaluated_at,
-			daily_reset_at=self._daily_reset_at,
-			base_timezone=self._base_timezone,
-		)
+		period_start = self._period_resolver.resolve_period_start(evaluated_at)
 
 		# --- try stats update ---
 		stats_repo = create_stats_repository(session)
@@ -68,8 +61,7 @@ class LoveRunner:
 		context = make_score_context(
 			stats=stats,
 			evaluated_at=evaluated_at,
-			daily_reset_at=self._daily_reset_at,
-			base_timezone=self._base_timezone,
+			resolver=self._period_resolver,
 		)
 
 		new_score = self._score_calc.apply(

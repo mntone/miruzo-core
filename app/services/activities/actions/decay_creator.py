@@ -1,8 +1,7 @@
-from datetime import datetime, time
+from datetime import datetime
 from typing import final
-from zoneinfo import ZoneInfo
 
-from app.domain.activities.daily_period import resolve_daily_period_range
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.enums import ActionKind
 from app.models.records import ActionRecord
 from app.persist.actions.protocol import ActionRepository
@@ -16,12 +15,10 @@ class DecayActionCreator:
 		self,
 		*,
 		repository: ActionRepository,
-		daily_reset_at: time,
-		base_timezone: ZoneInfo | None,
+		period_resolver: DailyPeriodResolver,
 	) -> None:
 		self._repository = repository
-		self._daily_reset_at = daily_reset_at
-		self._base_timezone = base_timezone
+		self._period_resolver = period_resolver
 
 	def create(
 		self,
@@ -30,11 +27,7 @@ class DecayActionCreator:
 		occurred_at: datetime,
 	) -> ActionRecord | None:
 		# --- get period_start ---
-		period_start, period_end = resolve_daily_period_range(
-			occurred_at,
-			daily_reset_at=self._daily_reset_at,
-			base_timezone=self._base_timezone,
-		)
+		period_start, period_end = self._period_resolver.resolve_period_range(occurred_at)
 
 		# --- get decay action ---
 		action = self._repository.select_latest_one(

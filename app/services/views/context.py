@@ -5,6 +5,7 @@ from sqlmodel import Session
 
 from app.config.constants import VIEW_MILESTONES
 from app.config.environments import Settings
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
@@ -37,8 +38,10 @@ class ContextService:
 		self._image_repo = image_repo
 		self._stats_repo = stats_repo
 		self._score_calc = ScoreCalculator(env.score)
-		self._daily_reset_at = env.time.daily_reset_at
-		self._base_timezone = env.base_timezone
+		self._period_resolver = DailyPeriodResolver(
+			base_timezone=env.base_timezone,
+			daily_reset_at=env.time.daily_reset_at,
+		)
 		self._variant_layers = env.variant_layers
 
 	def get_context(
@@ -73,8 +76,7 @@ class ContextService:
 			context = make_score_context(
 				stats=stats,
 				evaluated_at=current,
-				daily_reset_at=self._daily_reset_at,
-				base_timezone=self._base_timezone,
+				resolver=self._period_resolver,
 			)
 
 			new_score = self._score_calc.apply(

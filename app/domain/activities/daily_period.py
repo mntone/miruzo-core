@@ -78,3 +78,46 @@ def is_since_daily_period_start(
 	is_since_period = target >= period_start
 
 	return is_since_period
+
+
+class DailyPeriodResolver:
+	"""Resolve daily-period boundaries with a fixed base timezone."""
+
+	_base_timezone: ZoneInfo | None
+	_daily_reset_at: time
+
+	def __init__(
+		self,
+		*,
+		base_timezone: ZoneInfo | None,
+		daily_reset_at: time,
+	) -> None:
+		self._base_timezone = base_timezone
+		self._daily_reset_at = daily_reset_at
+
+	def resolve_period_start(self, evaluated_at: datetime) -> datetime:
+		return resolve_daily_period_start(
+			evaluated_at=evaluated_at,
+			daily_reset_at=self._daily_reset_at,
+			base_timezone=self._base_timezone,
+		)
+
+	def resolve_period_range(self, evaluated_at: datetime) -> tuple[datetime, datetime]:
+		return resolve_daily_period_range(
+			evaluated_at=evaluated_at,
+			daily_reset_at=self._daily_reset_at,
+			base_timezone=self._base_timezone,
+		)
+
+	def is_since_period_start(
+		self,
+		target: datetime | None,
+		*,
+		evaluated_at: datetime,
+	) -> bool:
+		return is_since_daily_period_start(
+			target,
+			evaluated_at=evaluated_at,
+			daily_reset_at=self._daily_reset_at,
+			base_timezone=self._base_timezone,
+		)

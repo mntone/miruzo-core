@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config.environments import env
 from app.database import create_session, init_database
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.infrastructures.api.exception_handlers import register_exception_handlers
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
@@ -42,9 +43,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
 	score_decay = DailyDecayJob(
 		DailyDecayRunner(
+			period_resolver=DailyPeriodResolver(
+				base_timezone=env.base_timezone,
+				daily_reset_at=env.time.daily_reset_at,
+			),
 			score_calculator=ScoreCalculator(env.score),
-			daily_reset_at=env.time.daily_reset_at,
-			base_timezone=env.base_timezone,
 		),
 		session_factory=create_session,
 	)
