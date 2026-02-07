@@ -111,6 +111,43 @@ class BaseActionRepository:
 
 		return row
 
+	def select_latest_effective_love(
+		self,
+		ingest_id: int,
+		*,
+		since_occurred_at: datetime | None = None,
+		until_occurred_at: datetime | None = None,
+	) -> ActionRecord | None:
+		"""
+		Return the latest LOVE action after applying LOVE_CANCELED actions.
+		Time range is interpreted as [since_occurred_at, until_occurred_at).
+		"""
+
+		pending_cancels = 0
+		cutoff = until_occurred_at
+
+		while True:
+			action = self.select_latest_one_by_multiple_kinds(
+				ingest_id,
+				kinds=(ActionKind.LOVE, ActionKind.LOVE_CANCELED),
+				since_occurred_at=since_occurred_at,
+				until_occurred_at=cutoff,
+			)
+			if action is None:
+				return None
+
+			if action.kind == ActionKind.LOVE_CANCELED:
+				pending_cancels += 1
+				cutoff = action.occurred_at
+				continue
+
+			if pending_cancels > 0:
+				pending_cancels -= 1
+				cutoff = action.occurred_at
+				continue
+
+			return action
+
 	def insert(
 		self,
 		ingest_id: int,

@@ -163,3 +163,70 @@ def test_select_latest_one_prefers_latest_id_on_tie(session: Session) -> None:
 	assert first.id is not None
 	assert second.id is not None
 	assert result.id == max(first.id, second.id)
+
+
+def test_select_latest_effective_love_returns_none_when_missing(session: Session) -> None:
+	ingest = add_ingest_record(session, 1)
+	repo = BaseActionRepository(session)
+
+	result = repo.select_latest_effective_love(ingest.id)
+
+	assert result is None
+
+
+def test_select_latest_effective_love_skips_canceled_latest(session: Session) -> None:
+	ingest = add_ingest_record(session, 1)
+	repo = BaseActionRepository(session)
+
+	first = datetime(2026, 1, 1, tzinfo=timezone.utc)
+	second = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+	cancel = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.LOVE,
+		occurred_at=first,
+	)
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.LOVE,
+		occurred_at=second,
+	)
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.LOVE_CANCELED,
+		occurred_at=cancel,
+	)
+
+	result = repo.select_latest_effective_love(ingest.id)
+
+	assert result is not None
+	assert result.occurred_at == first
+
+
+def test_select_latest_effective_love_respects_until_boundary(session: Session) -> None:
+	ingest = add_ingest_record(session, 1)
+	repo = BaseActionRepository(session)
+
+	period_start = datetime(2026, 1, 2, tzinfo=timezone.utc)
+	before = datetime(2026, 1, 1, 22, 0, tzinfo=timezone.utc)
+	after = datetime(2026, 1, 2, 1, 0, tzinfo=timezone.utc)
+
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.LOVE,
+		occurred_at=before,
+	)
+	repo.insert(
+		ingest.id,
+		kind=ActionKind.LOVE,
+		occurred_at=after,
+	)
+
+	result = repo.select_latest_effective_love(
+		ingest.id,
+		until_occurred_at=period_start,
+	)
+
+	assert result is not None
+	assert result.occurred_at == before

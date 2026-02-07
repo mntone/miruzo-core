@@ -8,9 +8,7 @@ from app.domain.score.calculator import ScoreCalculator
 from app.errors import InvalidStateError
 from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.activities.stats import LoveStatsModel
-from app.models.enums import ActionKind
 from app.persist.actions.factory import create_action_repository
-from app.persist.actions.protocol import ActionRepository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.creator import ActionCreator
@@ -26,37 +24,6 @@ class LoveCancelRunner:
 	) -> None:
 		self._period_resolver = period_resolver
 		self._score_calc = ScoreCalculator(score_config)
-
-	def _resolve_last_loved_at(
-		self,
-		action_repo: ActionRepository,
-		*,
-		ingest_id: int,
-		period_start: datetime,
-	) -> datetime | None:
-		pending_cancels = 0
-		cutoff = period_start
-
-		while True:
-			action = action_repo.select_latest_one_by_multiple_kinds(
-				ingest_id,
-				kinds=(ActionKind.LOVE, ActionKind.LOVE_CANCELED),
-				until_occurred_at=cutoff,
-			)
-			if action is None:
-				return None
-
-			if action.kind is ActionKind.LOVE_CANCELED:
-				pending_cancels += 1
-				cutoff = action.occurred_at
-				continue
-
-			if pending_cancels > 0:
-				pending_cancels -= 1
-				cutoff = action.occurred_at
-				continue
-
-			return action.occurred_at
 
 	def run(self, session: Session, *, ingest_id: int, evaluated_at: datetime) -> LoveStatsResponse:
 		# --- resolve period start ---
@@ -100,16 +67,16 @@ class LoveCancelRunner:
 		stats.score = new_score
 
 		# --- update loved_at ---
-		last_loved_at = self._resolve_last_loved_at(
-			action_repo,
-			ingest_id=ingest_id,
-			period_start=period_start,
+		last_loved_action = action_repo.select_latest_effective_love(
+			ingest_id,
+			since_occurred_at=stats.first_loved_at,
+			until_occurred_at=period_start,
 		)
-		if last_loved_at is not None:
-			stats.last_loved_at = last_loved_at
+		if last_loved_action is not None:
+			stats.last_loved_at = last_loved_action.occurred_at
 
-			if stats.first_loved_at > last_loved_at:
-				stats.first_loved_at = last_loved_at
+			if stats.first_loved_at > last_loved_action.occurred_at:
+				stats.first_loved_at = last_loved_action.occurred_at
 		else:
 			stats.first_loved_at = None
 

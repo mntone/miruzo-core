@@ -29,6 +29,14 @@ class ActionRepository(Protocol):
 		require_unique: bool = False,
 	) -> ActionRecord | None: ...
 
+	def select_latest_effective_love(
+		self,
+		ingest_id: int,
+		*,
+		since_occurred_at: datetime | None = None,
+		until_occurred_at: datetime | None = None,
+	) -> ActionRecord | None: ...
+
 	def insert(
 		self,
 		ingest_id: int,
