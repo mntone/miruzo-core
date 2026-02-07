@@ -1,4 +1,5 @@
 # pyright: reportAttributeAccessIssue=false
+# pyright: reportArgumentType=false
 # pyright: reportUnknownArgumentType=false
 # pyright: reportUnknownMemberType=false
 
@@ -6,6 +7,7 @@ from collections.abc import Collection, Sequence
 from datetime import datetime
 from typing import final
 
+from sqlalchemy import case, func
 from sqlmodel import Session, select
 
 from app.models.enums import ActionKind
@@ -123,30 +125,61 @@ class BaseActionRepository:
 		Time range is interpreted as [since_occurred_at, until_occurred_at).
 		"""
 
-		pending_cancels = 0
-		cutoff = until_occurred_at
+		balance = func.sum(
+			case(
+				(ActionRecord.kind == ActionKind.LOVE_CANCELED, 1),
+				(ActionRecord.kind == ActionKind.LOVE, -1),
+				else_=0,
+			),
+		).over(
+			partition_by=ActionRecord.ingest_id,
+			order_by=(
+				ActionRecord.occurred_at.desc(),
+				ActionRecord.id.desc(),
+			),
+		)
 
-		while True:
-			action = self.select_latest_one_by_multiple_kinds(
-				ingest_id,
-				kinds=(ActionKind.LOVE, ActionKind.LOVE_CANCELED),
-				since_occurred_at=since_occurred_at,
-				until_occurred_at=cutoff,
+		statement = select(
+			ActionRecord.id,
+			ActionRecord.kind,
+			ActionRecord.occurred_at,
+			balance.label('balance'),
+		).where(
+			ActionRecord.ingest_id == ingest_id,
+			ActionRecord.kind.in_((ActionKind.LOVE, ActionKind.LOVE_CANCELED)),
+		)
+
+		if since_occurred_at is not None:
+			statement = statement.where(
+				ActionRecord.occurred_at >= since_occurred_at,
 			)
-			if action is None:
-				return None
 
-			if action.kind == ActionKind.LOVE_CANCELED:
-				pending_cancels += 1
-				cutoff = action.occurred_at
-				continue
+		if until_occurred_at is not None:
+			statement = statement.where(
+				ActionRecord.occurred_at < until_occurred_at,
+			)
 
-			if pending_cancels > 0:
-				pending_cancels -= 1
-				cutoff = action.occurred_at
-				continue
+		subquery = statement.subquery()
 
-			return action
+		action_id_statement = (
+			select(subquery.c.id)
+			.where(
+				subquery.c.kind == ActionKind.LOVE,
+				subquery.c.balance < 0,
+			)
+			.order_by(
+				subquery.c.occurred_at.desc(),
+				subquery.c.id.desc(),
+			)
+			.limit(1)
+			.scalar_subquery()
+		)
+
+		action = self._session.exec(
+			select(ActionRecord).where(ActionRecord.id == action_id_statement),
+		).one_or_none()
+
+		return action
 
 	def insert(
 		self,
