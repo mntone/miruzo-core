@@ -16,7 +16,7 @@ from app.persist.actions.protocol import ActionRepository
 from app.persist.images.protocol import ImageRepository
 from app.persist.stats.protocol import StatsRepository
 from app.services.activities.actions.creator import ActionCreator
-from app.services.activities.stats.score_factory import make_score_context
+from app.services.activities.stats.score_updater import update_score_from_action
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 from app.services.images.variants.mapper import map_variants_to_layers
 
@@ -73,19 +73,13 @@ class ContextService:
 				initial_score=self._score_calc.config.initial_score,
 			)
 
-			context = make_score_context(
+			update_score_from_action(
 				stats=stats,
+				action=new_action,
 				evaluated_at=current,
 				resolver=self._period_resolver,
+				score_calculator=self._score_calc,
 			)
-
-			new_score = self._score_calc.apply(
-				action=new_action,
-				score=stats.score,
-				context=context,
-			)
-
-			stats.score = new_score
 			stats.view_count += 1
 			stats.last_viewed_at = current
 

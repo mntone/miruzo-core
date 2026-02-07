@@ -12,7 +12,7 @@ from app.persist.actions.factory import create_action_repository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.creator import ActionCreator
-from app.services.activities.stats.score_factory import make_score_context
+from app.services.activities.stats.score_updater import update_score_from_action
 
 
 class LoveCancelRunner:
@@ -52,19 +52,13 @@ class LoveCancelRunner:
 		)
 
 		# --- update score ---
-		context = make_score_context(
+		update_score_from_action(
 			stats=stats,
+			action=new_action,
 			evaluated_at=evaluated_at,
 			resolver=self._period_resolver,
+			score_calculator=self._score_calc,
 		)
-
-		new_score = self._score_calc.apply(
-			action=new_action,
-			score=stats.score,
-			context=context,
-		)
-
-		stats.score = new_score
 
 		# --- update loved_at ---
 		last_loved_action = action_repo.select_latest_effective_love(

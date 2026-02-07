@@ -9,7 +9,7 @@ from app.persist.actions.factory import create_action_repository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.decay_creator import DecayActionCreator
-from app.services.activities.stats.score_factory import make_score_context
+from app.services.activities.stats.score_updater import update_score_from_action
 
 
 @final
@@ -43,21 +43,14 @@ class DailyDecayRunner:
 			if new_action is None:
 				continue
 
-			context = make_score_context(
+			update_score_from_action(
 				stats=stats,
+				action=new_action,
 				evaluated_at=evaluated_at,
 				resolver=self._period_resolver,
+				score_calculator=self._score_calculator,
+				update_evaluated=True,
 			)
-
-			new_score = self._score_calculator.apply(
-				action=new_action,
-				score=stats.score,
-				context=context,
-			)
-
-			stats.score = new_score
-			stats.score_evaluated = new_score
-			stats.score_evaluated_at = evaluated_at
 
 		user_repo = create_user_repository(session)
 		user = user_repo.get_or_create_singleton()
