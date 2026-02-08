@@ -75,9 +75,11 @@ def test_run_restores_previous_love(session: Session) -> None:
 
 def test_run_clears_first_loved_at_when_no_previous_love(session: Session) -> None:
 	stats_repo = SQLiteStatsRepository(session)
+	user_repo = SQLiteUserRepository(session)
 
 	evaluated_at = datetime(2024, 1, 2, 1, 0, tzinfo=timezone.utc)
 	with session.begin():
+		user_repo.create_singleton_if_missing()
 		ingest = add_ingest_record(session, 1)
 		stats = stats_repo.get_or_create(ingest.id, initial_score=100)
 		stats.first_loved_at = evaluated_at

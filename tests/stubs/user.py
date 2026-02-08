@@ -22,8 +22,14 @@ class StubUserRepository:
 
 		return user_record
 
+	def get_singleton(self) -> UserRecord:
+		return self.users[1]
+
+	def create_singleton_if_missing(self) -> UserRecord:
+		return self.get_or_create_singleton()
+
 	def try_increment_daily_love_used(self, *, limit: int) -> bool:
-		user_record = self.get_or_create_singleton()
+		user_record = self.get_singleton()
 		if user_record.daily_love_used >= limit:
 			return False
 
@@ -31,7 +37,7 @@ class StubUserRepository:
 		return True
 
 	def try_decrement_daily_love_used(self) -> bool:
-		user_record = self.get_or_create_singleton()
+		user_record = self.get_singleton()
 		if user_record.daily_love_used <= 0:
 			return False
 
@@ -39,5 +45,5 @@ class StubUserRepository:
 		return True
 
 	def reset_daily_love_used(self) -> None:
-		user_record = self.get_or_create_singleton()
+		user_record = self.get_singleton()
 		user_record.daily_love_used = 0

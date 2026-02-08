@@ -28,8 +28,10 @@ def session() -> Generator[Session, Any, None]:
 
 def test_run_updates_stats_and_user(session: Session) -> None:
 	stats_repo = SQLiteStatsRepository(session)
+	user_repo = SQLiteUserRepository(session)
 
 	with session.begin():
+		user_repo.create_singleton_if_missing()
 		ingest = add_ingest_record(session, 1)
 		stats_repo.get_or_create(ingest.id, initial_score=100)
 
