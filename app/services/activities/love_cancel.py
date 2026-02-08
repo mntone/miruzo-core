@@ -76,9 +76,7 @@ class LoveCancelRunner:
 
 		# --- update usage ---
 		user_repo = create_user_repository(session)
-		user = user_repo.get_or_create_singleton()
-		if user.daily_love_used > 0:
-			user.daily_love_used -= 1
+		user_repo.try_decrement_daily_love_used()
 
 		# --- create response ---
 		response = LoveStatsResponse(

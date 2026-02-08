@@ -46,8 +46,10 @@ class LoveRunner:
 
 		# --- check quota ---
 		user_repo = create_user_repository(session)
-		user = user_repo.get_or_create_singleton()
-		if user.daily_love_used >= self._daily_love_limit:
+		updated = user_repo.try_increment_daily_love_used(
+			limit=self._daily_love_limit,
+		)
+		if not updated:
 			raise QuotaExceededError()
 
 		# --- insert action ---
@@ -70,9 +72,6 @@ class LoveRunner:
 		if stats.first_loved_at is None:
 			stats.first_loved_at = evaluated_at
 		stats.last_loved_at = evaluated_at
-
-		# --- update usage ---
-		user.daily_love_used += 1
 
 		# --- create response ---
 		response = LoveStatsResponse(

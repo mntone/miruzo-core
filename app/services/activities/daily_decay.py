@@ -53,5 +53,4 @@ class DailyDecayRunner:
 			)
 
 		user_repo = create_user_repository(session)
-		user = user_repo.get_or_create_singleton()
-		user.daily_love_used = 0
+		user_repo.reset_daily_love_used()

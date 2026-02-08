@@ -21,3 +21,23 @@ class StubUserRepository:
 		user_record = self.get_or_create(1)
 
 		return user_record
+
+	def try_increment_daily_love_used(self, *, limit: int) -> bool:
+		user_record = self.get_or_create_singleton()
+		if user_record.daily_love_used >= limit:
+			return False
+
+		user_record.daily_love_used += 1
+		return True
+
+	def try_decrement_daily_love_used(self) -> bool:
+		user_record = self.get_or_create_singleton()
+		if user_record.daily_love_used <= 0:
+			return False
+
+		user_record.daily_love_used -= 1
+		return True
+
+	def reset_daily_love_used(self) -> None:
+		user_record = self.get_or_create_singleton()
+		user_record.daily_love_used = 0
