@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
 from app.config.environments import DatabaseBackend, env
+from app.utils.database.sqlite_version import verify_sqlite_supports_returning
 
 
 def _verify_schema_version(db_url: str, alembic_ini: str) -> None:
@@ -38,6 +39,11 @@ if env.database_backend == DatabaseBackend.SQLITE:
 	)
 
 	with engine.connect() as conn:
+		sqlite_version = conn.exec_driver_sql('SELECT sqlite_version();').scalar_one()
+		if not isinstance(sqlite_version, str):
+			raise RuntimeError('Failed to read SQLite version')
+		verify_sqlite_supports_returning(sqlite_version)
+
 		conn.exec_driver_sql('PRAGMA journal_mode=WAL;')
 		conn.exec_driver_sql('PRAGMA synchronous=NORMAL;')
 		conn.exec_driver_sql('PRAGMA wal_autocheckpoint=1000;')

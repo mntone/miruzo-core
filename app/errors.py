@@ -12,3 +12,7 @@ class InvariantViolationError(DomainError):
 
 class QuotaExceededError(DomainError):
 	"""Raised when quota exceeded"""
+
+
+class SingletonUserMissingError(InvariantViolationError):
+	"""Raised when singleton user row is missing."""

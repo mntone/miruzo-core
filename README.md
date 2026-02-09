@@ -42,6 +42,9 @@ Run miruzo-core locally by following these steps.
 - Python 3.13 (respect [`.python-version`](./.python-version); keep code 3.10+
   compatible)
 - Git
+- SQLite 3.35.0+ when using the SQLite backend (`RETURNING` support)
+  - verify Python-linked SQLite:
+    `python -c "import sqlite3; print(sqlite3.sqlite_version)"`
 - Docker (only if you need to run the PostgreSQL repository tests)
 
 ### Steps
@@ -90,7 +93,8 @@ All configuration flows through [`.env.development`](./.env.development) using
 
 ## 📦 Database support
 
-- **SQLite**: default development backend; in-memory mode used for most tests
+- **SQLite**: default development backend; requires SQLite 3.35.0+ for
+  `RETURNING`; in-memory mode used for most tests
 - **PostgreSQL**: optional backend for production; Docker test suite available
 
 

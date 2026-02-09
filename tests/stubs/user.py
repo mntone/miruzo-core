@@ -1,3 +1,4 @@
+from app.errors import SingletonUserMissingError
 from app.models.records import UserRecord
 
 
@@ -22,7 +23,11 @@ class StubUserRepository:
 
 	def get_singleton(self) -> UserRecord:
 		self.get_called_with.append(1)
-		return self.users[1]
+		user_record = self.users.get(1)
+		if user_record is None:
+			raise SingletonUserMissingError('singleton user row is missing')
+
+		return user_record
 
 	def increment_daily_love_used(self, *, limit: int) -> bool:
 		user_record = self.get_singleton()
