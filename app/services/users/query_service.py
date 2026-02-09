@@ -22,7 +22,7 @@ class UserQueryService:
 	def get_quota(self) -> QuotaResponse:
 		current = datetime.now(timezone.utc)
 
-		user_record = self._repository.get_or_create_singleton()
+		user_record = self._repository.get_singleton()
 
 		daily_love_limit = self._daily_love_limit
 		daily_love_remaining = max(0, daily_love_limit - user_record.daily_love_used)

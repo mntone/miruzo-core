@@ -46,7 +46,7 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 	decay_creator = _StubDecayCreator()
 	score_calculator = StubScoreCalculator()
 	user_repo = StubUserRepository()
-	user = user_repo.get_or_create_singleton()
+	user = user_repo.create_singleton_if_missing()
 	user.daily_love_used = 3
 
 	def _create_user_repository(_: StubSession) -> StubUserRepository:
@@ -118,7 +118,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 
 	score_calculator = StubScoreCalculator()
 	user_repo = StubUserRepository()
-	user = user_repo.get_or_create_singleton()
+	user = user_repo.create_singleton_if_missing()
 	user.daily_love_used = 2
 
 	def _create_user_repository(_: StubSession) -> UserRepository:

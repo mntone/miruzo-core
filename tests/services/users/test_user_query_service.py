@@ -42,11 +42,12 @@ def test_get_quota_returns_remaining_and_reset_at(monkeypatch: pytest.MonkeyPatc
 	assert response.love.remaining == 7
 
 
-def test_get_quota_uses_limit_when_user_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_get_quota_uses_limit_when_no_love_used(monkeypatch: pytest.MonkeyPatch) -> None:
 	current = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
 	monkeypatch.setattr(query_service, 'datetime', SimpleNamespace(now=lambda _: current))  # pyright: ignore[reportUnknownLambdaType]
 
 	user_repo = StubUserRepository()
+	user_repo.users[1] = UserRecord(id=1)
 
 	service = UserQueryService(
 		repository=user_repo,

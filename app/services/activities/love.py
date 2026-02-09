@@ -46,7 +46,7 @@ class LoveRunner:
 
 		# --- check quota ---
 		user_repo = create_user_repository(session)
-		updated = user_repo.try_increment_daily_love_used(
+		updated = user_repo.increment_daily_love_used(
 			limit=self._daily_love_limit,
 		)
 		if not updated:

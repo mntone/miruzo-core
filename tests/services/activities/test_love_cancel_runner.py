@@ -36,7 +36,7 @@ def test_run_restores_previous_love(session: Session) -> None:
 	period_start = datetime(2024, 1, 2, tzinfo=timezone.utc)
 	previous_love = datetime(2024, 1, 1, 23, 0, tzinfo=timezone.utc)
 	with session.begin():
-		user = user_repo.get_or_create_singleton()
+		user = user_repo.create_singleton_if_missing()
 		user.daily_love_used = 1
 
 		ingest = add_ingest_record(session, 1)
@@ -64,7 +64,7 @@ def test_run_restores_previous_love(session: Session) -> None:
 	assert response.stats.last_loved_at == previous_love
 	assert response.stats.score == 82
 
-	user = user_repo.get_or_create_singleton()
+	user = user_repo.get_singleton()
 	assert user.daily_love_used == 0
 
 	stats = stats_repo.get_one(ingest.id)

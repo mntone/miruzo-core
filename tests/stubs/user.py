@@ -6,7 +6,7 @@ class StubUserRepository:
 		self.users: dict[int, UserRecord] = {}
 		self.get_called_with: list[int] = []
 
-	def get_or_create(self, user_id: int) -> UserRecord:
+	def create_if_missing(self, user_id: int) -> UserRecord:
 		self.get_called_with.append(user_id)
 
 		user_record = self.users.get(user_id)
@@ -17,18 +17,14 @@ class StubUserRepository:
 		self.users[user_id] = user_record
 		return user_record
 
-	def get_or_create_singleton(self) -> UserRecord:
-		user_record = self.get_or_create(1)
-
-		return user_record
+	def create_singleton_if_missing(self) -> UserRecord:
+		return self.create_if_missing(1)
 
 	def get_singleton(self) -> UserRecord:
+		self.get_called_with.append(1)
 		return self.users[1]
 
-	def create_singleton_if_missing(self) -> UserRecord:
-		return self.get_or_create_singleton()
-
-	def try_increment_daily_love_used(self, *, limit: int) -> bool:
+	def increment_daily_love_used(self, *, limit: int) -> bool:
 		user_record = self.get_singleton()
 		if user_record.daily_love_used >= limit:
 			return False
@@ -36,7 +32,7 @@ class StubUserRepository:
 		user_record.daily_love_used += 1
 		return True
 
-	def try_decrement_daily_love_used(self) -> bool:
+	def decrement_daily_love_used(self) -> bool:
 		user_record = self.get_singleton()
 		if user_record.daily_love_used <= 0:
 			return False

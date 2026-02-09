@@ -21,7 +21,7 @@ class BaseUserRepository(ABC):
 	@abstractmethod
 	def _is_unique_violation(self, error: IntegrityError) -> bool: ...
 
-	def _get_or_create(self, user_id: int) -> UserRecord:
+	def _create_if_missing(self, user_id: int) -> UserRecord:
 		user = self._session.get(UserRecord, user_id)
 		if user is not None:
 			return user
@@ -39,19 +39,13 @@ class BaseUserRepository(ABC):
 
 		return user
 
+	def create_singleton_if_missing(self) -> UserRecord:
+		return self._create_if_missing(_UNIQUE_USER_ID)
+
 	def get_singleton(self) -> UserRecord:
 		return self._session.get_one(UserRecord, _UNIQUE_USER_ID)
 
-	def create_singleton_if_missing(self) -> UserRecord:
-		return self._get_or_create(_UNIQUE_USER_ID)
-
-	def get_or_create_singleton(self) -> UserRecord:
-		# Backward-compatible alias; prefer create_singleton_if_missing().
-		return self.create_singleton_if_missing()
-
-	def try_increment_daily_love_used(self, *, limit: int) -> bool:
-		self.get_singleton()
-
+	def increment_daily_love_used(self, *, limit: int) -> bool:
 		statement = (
 			update(UserRecord)
 			.where(
@@ -65,9 +59,7 @@ class BaseUserRepository(ABC):
 
 		return result.rowcount == 1
 
-	def try_decrement_daily_love_used(self) -> bool:
-		self.get_singleton()
-
+	def decrement_daily_love_used(self) -> bool:
 		statement = (
 			update(UserRecord)
 			.where(
@@ -82,8 +74,6 @@ class BaseUserRepository(ABC):
 		return result.rowcount == 1
 
 	def reset_daily_love_used(self) -> None:
-		self.get_singleton()
-
 		statement = update(UserRecord).where(UserRecord.id == _UNIQUE_USER_ID).values(daily_love_used=0)
 
 		self._session.exec(statement)

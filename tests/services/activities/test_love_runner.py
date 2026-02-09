@@ -51,7 +51,7 @@ def test_run_updates_stats_and_user(session: Session) -> None:
 	assert response.stats.last_loved_at == evaluated_at
 	assert response.stats.score == 120
 
-	user = SQLiteUserRepository(session).get_or_create_singleton()
+	user = SQLiteUserRepository(session).get_singleton()
 	assert user.daily_love_used == 1
 
 	stats = stats_repo.get_one(ingest.id)
@@ -96,7 +96,7 @@ def test_run_raises_when_quota_exceeded(session: Session) -> None:
 	user_repo = SQLiteUserRepository(session)
 
 	with session.begin():
-		user = user_repo.get_or_create_singleton()
+		user = user_repo.create_singleton_if_missing()
 		user.daily_love_used = 1
 
 		ingest = add_ingest_record(session, 1)
@@ -119,7 +119,7 @@ def test_run_raises_when_quota_exceeded(session: Session) -> None:
 				evaluated_at=datetime(2024, 1, 2, tzinfo=timezone.utc),
 			)
 
-	user = user_repo.get_or_create_singleton()
+	user = user_repo.get_singleton()
 	assert user.daily_love_used == 1
 
 	stats = stats_repo.get_one(ingest.id)
