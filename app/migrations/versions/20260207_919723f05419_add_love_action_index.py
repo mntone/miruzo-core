@@ -21,11 +21,29 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
 	"""Add love action index for effective love queries."""
 
-	op.execute("""
-		CREATE INDEX ix_actions_love
-		ON actions (ingest_id, kind, occurred_at DESC, id DESC);
-	""")
+	dialect_name = op.get_bind().dialect.name
+
+	if dialect_name == 'postgresql':
+		op.execute("""
+			CREATE INDEX ix_actions_love
+			ON actions (ingest_id, occurred_at DESC, id DESC)
+			INCLUDE (kind)
+			WHERE kind IN (13, 14);
+		""")
+	elif dialect_name == 'sqlite':
+		op.execute("""
+			CREATE INDEX ix_actions_love
+			ON actions (ingest_id, occurred_at DESC, id DESC)
+			WHERE kind IN (13, 14);
+		""")
+	else:
+		raise RuntimeError(f'Unsupported dialect for migration {revision}: {dialect_name}')
 
 
 def downgrade() -> None:
-	op.drop_index('ix_actions_love', table_name='actions')
+	dialect_name = op.get_bind().dialect.name
+
+	if dialect_name in {'postgresql', 'sqlite'}:
+		op.drop_index('ix_actions_love', table_name='actions')
+	else:
+		raise RuntimeError(f'Unsupported dialect for migration {revision}: {dialect_name}')
