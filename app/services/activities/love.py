@@ -33,24 +33,24 @@ class LoveRunner:
 
 		# --- try stats update ---
 		stats_repo = create_stats_repository(session)
-		updated = stats_repo.try_set_last_loved_at(
+		loved_updated = stats_repo.try_set_last_loved_at(
 			ingest_id,
 			last_loved_at=evaluated_at,
 			since_occurred_at=period_start,
 		)
-		if not updated:
+		if not loved_updated:
 			raise InvalidStateError('already loved today')
-
-		# --- load stats ---
-		stats = stats_repo.get_one(ingest_id)
 
 		# --- check quota ---
 		user_repo = create_user_repository(session)
-		updated = user_repo.increment_daily_love_used(
+		quota_updated = user_repo.increment_daily_love_used(
 			limit=self._daily_love_limit,
 		)
-		if not updated:
+		if not quota_updated:
 			raise QuotaExceededError()
+
+		# --- load stats ---
+		stats = stats_repo.get_one(ingest_id)
 
 		# --- insert action ---
 		action_creator = ActionCreator(create_action_repository(session))
