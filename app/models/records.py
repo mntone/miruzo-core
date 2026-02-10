@@ -9,7 +9,12 @@ from sqlalchemy import JSON, Column, Integer, SmallInteger
 from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
-from app.config.constants import EXECUTION_MAXIMUM, INGEST_ID_MAXIMUM, INGEST_ID_MINIMUM
+from app.config.constants import (
+	DAILY_LOVE_USED_MAXIMUM,
+	EXECUTION_MAXIMUM,
+	INGEST_ID_MAXIMUM,
+	INGEST_ID_MINIMUM,
+)
 from app.config.environments import env
 from app.models.enums import ActionKind, ImageKind, ProcessStatus, VisibilityStatus
 from app.models.types import ExecutionEntry, ExecutionsJSON, UTCDateTime, VariantEntry
@@ -145,7 +150,7 @@ class UserRecord(SQLModel, table=True):
 	daily_love_used: int = SQLField(
 		default=0,
 		ge=0,
-		le=10,
+		le=DAILY_LOVE_USED_MAXIMUM,
 		sa_column=Column(
 			SmallInteger,
 			autoincrement=False,

@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.config.constants import DAILY_LOVE_USED_MAXIMUM
 from app.config.quota import QuotaConfig
 from app.config.score import ScoreConfig
 from app.config.time import TimeConfig
@@ -101,6 +102,16 @@ class Settings(BaseSettings):
 			raise ValueError(info.field_name.__str__() + ' must be a path')
 
 		return path
+
+	@classmethod
+	@field_validator('quota')
+	def _validate_quota(cls, value: QuotaConfig) -> QuotaConfig:
+		if value.daily_love_limit > DAILY_LOVE_USED_MAXIMUM:
+			raise ValueError(
+				f'quota.daily_love_limit must be <= {DAILY_LOVE_USED_MAXIMUM}',
+			)
+
+		return value
 
 	@model_validator(mode='after')
 	def _normalize(self) -> 'Settings':
