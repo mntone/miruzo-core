@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
 from app.config.environments import DatabaseBackend, env
-from app.utils.database.sqlite_version import verify_sqlite_supports_returning
+from app.databases.sqlite_version import verify_sqlite_supports_returning
 
 
 def _verify_schema_version(db_url: str, alembic_ini: str) -> None:

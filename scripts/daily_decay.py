@@ -2,7 +2,7 @@ import argparse
 from datetime import timedelta
 
 from app.config.environments import env
-from app.database import create_session, init_database
+from app.databases import create_session, init_database
 from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.jobs.daily_decay import DailyDecayJob

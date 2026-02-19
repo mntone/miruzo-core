@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.database.sqlite_version import (
+from app.databases.sqlite_version import (
 	parse_sqlite_version,
 	verify_sqlite_supports_returning,
 )

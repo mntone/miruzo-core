@@ -5,7 +5,7 @@ from sqlmodel import Session
 from starlette.responses import Response
 
 from app.config.environments import env
-from app.database import get_session
+from app.databases import get_session
 from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.api.quota import QuotaResponse
 from app.persist.users.factory import create_user_repository

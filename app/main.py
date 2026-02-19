@@ -9,7 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config.environments import env
-from app.database import create_session, init_database
+from app.databases import create_session, init_database
 from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.infrastructures.api.exception_handlers import register_exception_handlers

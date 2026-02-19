@@ -1,4 +1,4 @@
-from app.persist.mixins.postgre import PostgreSQLUniqueViolationMixin
+from app.databases.mixins.postgre import PostgreSQLUniqueViolationMixin
 from app.persist.users.base import BaseUserRepository
 
 

@@ -10,7 +10,7 @@ from importers.common.report import ImportStats, ProgressReporter
 
 from app.config.environments import Settings
 from app.config.environments import env as global_env
-from app.database import engine, init_database
+from app.databases import engine, init_database
 from app.models.enums import IngestMode
 from app.persist.images.factory import create_image_repository
 from app.persist.ingests.factory import create_ingest_repository
