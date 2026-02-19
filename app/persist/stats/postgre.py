@@ -59,7 +59,7 @@ class PostgreSQLStatsRepository(PostgreSQLUniqueViolationMixin, BaseStatsReposit
 			.limit(1)
 		)
 
-		stats = self._session.exec(select(StatsRecord).from_statement(select_statement)).scalars().one()  # pyright: ignore[reportCallIssue]
+		stats = self._session.exec(select(StatsRecord).from_statement(select_statement)).scalar_one()  # pyright: ignore[reportCallIssue]
 
 		return stats
 
