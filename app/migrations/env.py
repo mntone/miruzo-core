@@ -19,12 +19,17 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = SQLModel.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-if not env.database_url:
-	raise RuntimeError('DATABASE_URL is not set')
-else:
+
+def _configure_database_url() -> None:
+	"""Apply runtime DATABASE_URL to Alembic config."""
+
+	if not env.database_url:
+		raise RuntimeError('DATABASE_URL is not set')
+
 	config.set_main_option('sqlalchemy.url', env.database_url)
+
+
+_configure_database_url()
 
 
 def run_migrations_offline() -> None:
