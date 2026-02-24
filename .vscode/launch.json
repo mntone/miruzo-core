@@ -29,7 +29,7 @@
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}",
 			"request": "launch",
-			"module": "importers.gataku_import",
+			"module": "scripts.gataku_import",
 			"args": [
 				"--limit",
 				"${input:limit}",

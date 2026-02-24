@@ -1,6 +1,6 @@
 import argparse
 
-from importers.common.importer import import_jsonl
+from scripts.importers.common.importer import import_jsonl
 
 from app.models.enums import IngestMode
 

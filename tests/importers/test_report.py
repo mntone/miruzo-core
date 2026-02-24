@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from importers.common.report import ImportStats, ProgressReporter, _format_bytes
+from scripts.importers.common.report import ImportStats, ProgressReporter, _format_bytes
 
 from app.models.records import ImageRecord, IngestRecord
 from app.models.types import VariantEntry

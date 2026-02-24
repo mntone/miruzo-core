@@ -2,7 +2,7 @@ import argparse
 
 import pytest
 
-from importers.gataku_import import parse_ingest_mode
+from scripts.gataku_import import parse_ingest_mode
 
 from app.models.enums import IngestMode
 

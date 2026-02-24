@@ -21,7 +21,7 @@ who is executing them.
   all config via `pydantic-settings`.
 - Start the API locally: `uvicorn app.main:app --reload`
 - Rebuild the SQLite database or run importers via
-  `python importers/gataku_import.py --help`
+  `python -m scripts.gataku_import --help`
 - Run format/lint (if configured): `ruff check app tests` and `ruff format`
 - Execute tests: `pytest` (see Testing section for Docker-backed suites)
 
@@ -55,8 +55,8 @@ who is executing them.
 - Enum/string settings should be normalized via validators in
   `app/config/environments.py`; avoid environment-specific branching outside
   that module
-- Importers in `importers/common/*` must log all destructive actions and honor
-  the `force` flag before deleting files
+- Importers in `scripts/importers/common/*` must log all destructive actions and
+  honor the `force` flag before deleting files
 - List APIs must use `ImageListService` + `ImageListRepository` and apply
   `limit + 1` pagination with `paginator.slice_with_cursor_latest` for latest
   and `paginator.slice_with_tuple_cursor` for the other list endpoints

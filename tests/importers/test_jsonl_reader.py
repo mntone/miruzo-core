@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from importers.common.readers.jsonl import JsonlReader
+from scripts.importers.common.readers.jsonl import JsonlReader
 
 
 def _write_jsonl(path: Path, lines: list[str]) -> None:

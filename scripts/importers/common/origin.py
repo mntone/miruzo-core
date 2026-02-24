@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from logging import getLogger
 from pathlib import Path
 
-from importers.common.models import GatakuImageRow
+from scripts.importers.common.models import GatakuImageRow
 
 log = getLogger(__name__)
 

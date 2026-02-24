@@ -2,7 +2,7 @@ import json
 from collections.abc import Iterator
 from pathlib import Path
 
-from importers.common.models import GatakuImageRow
+from scripts.importers.common.models import GatakuImageRow
 
 
 class JsonlReader:

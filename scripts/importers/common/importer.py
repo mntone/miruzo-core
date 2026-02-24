@@ -3,10 +3,10 @@ from shutil import rmtree
 
 from sqlmodel import Session
 
-from importers.common.ingest_time import resolve_captured_at
-from importers.common.origin import OriginResolver
-from importers.common.readers.jsonl import JsonlReader
-from importers.common.report import ImportStats, ProgressReporter
+from scripts.importers.common.ingest_time import resolve_captured_at
+from scripts.importers.common.origin import OriginResolver
+from scripts.importers.common.readers.jsonl import JsonlReader
+from scripts.importers.common.report import ImportStats, ProgressReporter
 
 from app.config.environments import Settings
 from app.config.environments import env as global_env

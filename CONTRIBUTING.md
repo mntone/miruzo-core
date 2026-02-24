@@ -52,7 +52,7 @@ propose changes. For day-to-day commands (install, dev server, tests) refer to
   truly incompatible.
 - For shared utilities (variant helpers, repository base classes, importer
   workflows), extend the existing modules in `app/services/images/` or
-  `importers/common/` instead of adding ad-hoc versions.
+  `scripts/importers/common/` instead of adding ad-hoc versions.
 
 ## 🧪 Testing
 

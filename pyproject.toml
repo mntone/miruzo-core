@@ -21,7 +21,7 @@ requires-python = ">=3.10"
 miruzo-api = "scripts.api:main"
 miruzo-api-dev = "scripts.api:main_dev"
 miruzo-decay = "scripts.daily_decay:main"
-miruzo-import-gataku = "importers.gataku_import:main"
+miruzo-import-gataku = "scripts.gataku_import:main"
 
 [project.urls]
 Repository = "https://github.com/mntone/miruzo-core"

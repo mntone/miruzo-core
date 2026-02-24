@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from importers.common.models import GatakuImageRow
-from importers.common.origin import OriginResolver
+from scripts.importers.common.models import GatakuImageRow
+from scripts.importers.common.origin import OriginResolver
 
 
 def test_origin_resolver_returns_resolution_for_existing_asset(tmp_path: Path) -> None:

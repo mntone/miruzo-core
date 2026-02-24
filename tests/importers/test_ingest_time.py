@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from importers.common.ingest_time import resolve_captured_at
+from scripts.importers.common.ingest_time import resolve_captured_at
 
 
 def test_resolve_captured_at_prefers_created_at(tmp_path: Path) -> None:
