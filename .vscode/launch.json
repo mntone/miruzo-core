@@ -2,20 +2,17 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "FastAPI debug",
+			"name": "miruzo API server debug",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}",
 			"request": "launch",
-			"module": "uvicorn",
+			"module": "scripts.api",
 			"args": [
-				"app.main:app",
-				"--env-file",
-				".env.development",
 				"--host",
-				"0.0.0.0",
+				"${input:host}",
 				"--port",
-				"1024",
-				"--reload"
+				"${input:port}",
+				"--dev",
 			],
 			"jinja": true
 		},
@@ -32,13 +29,37 @@
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}",
 			"request": "launch",
-			"module": "importers.import",
+			"module": "importers.gataku_import",
 			"args": [
 				"--limit",
-				"50",
+				"${input:limit}",
 				"--report-variants"
 			],
 			"jinja": true
+		}
+	],
+	"inputs": [
+		{
+			"id": "host",
+			"type": "pickString",
+			"description": "The host for miruzo API server",
+			"default": "0.0.0.0",
+			"options": [
+				"127.0.0.1",
+				"0.0.0.0"
+			]
+		},
+		{
+			"id": "port",
+			"type": "promptString",
+			"description": "The port number for miruzo API server",
+			"default": "1024"
+		},
+		{
+			"id": "limit",
+			"type": "promptString",
+			"description": "The limit for gataku-import",
+			"default": "50"
 		}
 	]
 }
