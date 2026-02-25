@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import final
 
 from app.config.score import ScoreConfig
