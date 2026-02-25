@@ -4,7 +4,7 @@
 		{
 			"name": "miruzo API server debug",
 			"type": "debugpy",
-			"cwd": "${workspaceFolder}",
+			"cwd": "${workspaceFolder}/miruzo-py",
 			"request": "launch",
 			"module": "scripts.api",
 			"args": [
@@ -19,7 +19,7 @@
 		{
 			"name": "daily_decay cli debug",
 			"type": "debugpy",
-			"cwd": "${workspaceFolder}",
+			"cwd": "${workspaceFolder}/miruzo-py",
 			"request": "launch",
 			"module": "scripts.daily_decay",
 			"jinja": true
@@ -27,7 +27,7 @@
 		{
 			"name": "gataku-import debug",
 			"type": "debugpy",
-			"cwd": "${workspaceFolder}",
+			"cwd": "${workspaceFolder}/miruzo-py",
 			"request": "launch",
 			"module": "scripts.gataku_import",
 			"args": [

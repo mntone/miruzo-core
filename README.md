@@ -7,6 +7,7 @@
 miruzo-core is the FastAPI/SQLModel backend that powers the miruzo photo
 archive. It serves REST APIs for image browsing, scoring, and love actions, and
 ships an importer pipeline that ingests gataku assets into SQLite or PostgreSQL.
+The Python implementation lives under [`miruzo-py/`](./miruzo-py/).
 
 
 ## ✨ Features
@@ -48,31 +49,34 @@ Run miruzo-core locally by following these steps.
 - Docker (only if you need to run the PostgreSQL repository tests)
 
 ### Steps
-1. Clone and install dependencies  
-   `git clone https://github.com/mntone/miruzo-core.git && cd miruzo-core && pip install -r requirements.txt`
-2. Copy the sample environment file  
+1. Clone the repository  
+   `git clone https://github.com/mntone/miruzo-core.git && cd miruzo-core/miruzo-py`
+2. Install dependencies  
+   `pip install -r requirements.txt`
+3. Copy the sample environment file  
    `cp .env.development .env` and adjust paths/DSNs (see [AGENTS.md](./AGENTS.md)).
-3. Start the API  
-   `uvicorn app.main:app --reload`
-4. (Optional) Run importer help to confirm configuration  
+4. Start the API  
+   `python -m scripts.api --dev`
+5. (Optional) Run importer help to confirm configuration  
    `python -m scripts.gataku_import --help`
 
 ### Common commands
-- `pytest`: Run the default test suite (SQLite, service, variants, etc.)
-- `pytest tests/services/images/repository/test_postgre.py`: Run Docker-backed
-  PostgreSQL repository tests (pulls `postgres:18-alpine`)
-- `ruff check app tests`: Lint the codebase
+- `cd miruzo-py && pytest`: Run the default test suite (SQLite, service,
+  variants, etc.)
+- `cd miruzo-py && pytest tests/services/images/repository/test_postgre.py`:
+  Run Docker-backed PostgreSQL repository tests (pulls `postgres:18-alpine`)
+- `cd miruzo-py && ruff check app tests`: Lint the codebase
 
 
 ## 🖱️ Usage
 
-1. Start the API (`uvicorn app.main:app --reload`).
+1. Start the API (`cd miruzo-py && python -m scripts.api --dev`).
 2. Point miruzo-web or other clients to the running host (default
    `http://127.0.0.1:1024/api`).
 3. Use importer commands to populate the database:
 
    ```bash
-   python -m scripts.gataku_import --jsonl path/to/data.jsonl
+   cd miruzo-py && python -m scripts.gataku_import --jsonl path/to/data.jsonl
    ```
 
 4. Hit `/api/i/latest` or `/api/i/{ingest_id}` to verify data is available.
@@ -80,8 +84,10 @@ Run miruzo-core locally by following these steps.
 
 ## ⚙️ Configuration
 
-All configuration flows through [`.env.development`](./.env.development) using
-`pydantic-settings`. Key variables include:
+All runtime configuration flows through `miruzo-py/.env` using
+`pydantic-settings`. A sample file is available at
+[`miruzo-py/.env.development`](./miruzo-py/.env.development). Key variables
+include:
 
 - `DATABASE_BACKEND`: `sqlite` (default) or `postgres`
 - `DATABASE_URL`: SQLAlchemy DSN (e.g., `sqlite:///var/miruzo.sqlite`,

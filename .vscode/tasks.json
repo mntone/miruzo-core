@@ -6,7 +6,7 @@
 			"type": "shell",
 			"command": "python -c \"from scripts.api import main_dev; main_dev()\"",
 			"options": {
-				"cwd": "${workspaceFolder}"
+				"cwd": "${workspaceFolder}/miruzo-py"
 			},
 			"problemMatcher": [],
 			"group": {

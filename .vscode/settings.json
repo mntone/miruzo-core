@@ -5,7 +5,7 @@
 	"python.analysis.autoImportCompletions": true,
 	"python.analysis.importFormat": "absolute",
 	"python.testing.pytestArgs": [
-		"tests"
+		"miruzo-py/tests"
 	],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,

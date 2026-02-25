@@ -1,9 +1,7 @@
 [project]
-name = "miruzo-core"
+name = "miruzo-py"
 dynamic = ["version"]
-readme = "README.md"
 license = "GPL-3.0-or-later"
-license-files = ["LICENSE"]
 classifiers = [
 	"Development Status :: 3 - Alpha",
 	"Framework :: FastAPI",
@@ -32,4 +30,4 @@ pythonpath = ["."]
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["var"]
+exclude = ["build", "tests"]

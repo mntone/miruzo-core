@@ -36,13 +36,13 @@ class Settings(BaseSettings):
 	base_timezone: ZoneInfo | None = None  # None=local timezone
 
 	database_backend: DatabaseBackend = DatabaseBackend.SQLITE
-	database_url: str = 'sqlite:///var/miruzo.sqlite'
+	database_url: str = 'sqlite:///../var/miruzo.sqlite'
 
-	media_root: Path = Path('./var/media')
+	media_root: Path = Path('../var/media')
 	public_media_root: str = '/media/'
 
-	gataku_root: Path = Path('../gataku')
-	gataku_assets_root: Path = Path('../gataku/out/downloads')
+	gataku_root: Path = Path('../../gataku')
+	gataku_assets_root: Path = Path('../../gataku/out/downloads')
 	gataku_symlink_dirname: str = 'gataku'
 
 	quota: QuotaConfig = QuotaConfig()
