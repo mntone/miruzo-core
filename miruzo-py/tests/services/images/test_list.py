@@ -6,6 +6,11 @@ import pytest
 
 import app.services.images.list as list_service
 from app.config.environments import env
+from app.domain.images.cursor import (
+	DatetimeImageListCursor,
+	ImageListCursorMode,
+	UInt8ImageListCursor,
+)
 from app.services.images.list import ImageListService
 
 
@@ -35,6 +40,11 @@ def _build_repository(select_name: str, rows: Any) -> Any:
 def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) -> None:
 	now = datetime(2024, 1, 2, tzinfo=timezone.utc)
 	images = [_ImageStub(1, now), _ImageStub(2, now)]
+	cursor = DatetimeImageListCursor(
+		mode=ImageListCursorMode.LATEST,
+		value=now,
+		ingest_id=images[0].ingest_id,
+	)
 	repository = _build_repository('select_latest', images)
 
 	calls: dict[str, Any] = {}
@@ -44,7 +54,7 @@ def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) 
 
 	def fake_slice(rows: Any, limit: int) -> tuple[Any, Any]:
 		calls['slice'] = (rows, limit)
-		return rows[:limit], now
+		return rows[:limit], cursor
 
 	def fake_map(items: Any, *, next_cursor: Any, exclude_formats: Any, variant_layers: Any) -> str:
 		calls['map'] = (items, next_cursor, exclude_formats, variant_layers)
@@ -64,7 +74,7 @@ def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) 
 	assert repository.cursor is None
 	assert repository.limit == 2
 	assert calls['slice'] == (images, 1)
-	assert calls['map'] == ([images[0]], now, ('avif',), env.variant_layers)
+	assert calls['map'] == ([images[0]], cursor, ('avif',), env.variant_layers)
 	assert response == 'response'
 
 
@@ -75,31 +85,57 @@ def test_get_latest_wires_paginator_and_mapper(monkeypatch: pytest.MonkeyPatch) 
 			'get_chronological',
 			'CHRONOLOGICAL_SPEC',
 			'select_chronological',
-			datetime(2024, 1, 2, tzinfo=timezone.utc),
+			DatetimeImageListCursor(
+				mode=ImageListCursorMode.CHRONOLOGICAL,
+				value=datetime(2024, 1, 2, tzinfo=timezone.utc),
+				ingest_id=1,
+			),
 			datetime(2024, 1, 2, tzinfo=timezone.utc),
 		),
 		(
 			'get_recently',
 			'RECENTLY_SPEC',
 			'select_recently',
-			datetime(2024, 1, 3, tzinfo=timezone.utc),
+			DatetimeImageListCursor(
+				mode=ImageListCursorMode.RECENTLY,
+				value=datetime(2024, 1, 3, tzinfo=timezone.utc),
+				ingest_id=2,
+			),
 			datetime(2024, 1, 3, tzinfo=timezone.utc),
 		),
 		(
 			'get_first_love',
 			'FIRST_LOVE_SPEC',
 			'select_first_love',
-			datetime(2024, 1, 4, tzinfo=timezone.utc),
+			DatetimeImageListCursor(
+				mode=ImageListCursorMode.FIRST_LOVE,
+				value=datetime(2024, 1, 4, tzinfo=timezone.utc),
+				ingest_id=3,
+			),
 			datetime(2024, 1, 4, tzinfo=timezone.utc),
 		),
 		(
 			'get_hall_of_fame',
 			'HALL_OF_FAME_SPEC',
 			'select_hall_of_fame',
-			datetime(2024, 1, 5, tzinfo=timezone.utc),
+			DatetimeImageListCursor(
+				mode=ImageListCursorMode.HALL_OF_FAME,
+				value=datetime(2024, 1, 5, tzinfo=timezone.utc),
+				ingest_id=4,
+			),
 			datetime(2024, 1, 5, tzinfo=timezone.utc),
 		),
-		('get_engaged', 'ENGAGED_SPEC', 'select_engaged', 180, 200),
+		(
+			'get_engaged',
+			'ENGAGED_SPEC',
+			'select_engaged',
+			UInt8ImageListCursor(
+				mode=ImageListCursorMode.ENGAGED,
+				value=180,
+				ingest_id=5,
+			),
+			200,
+		),
 	],
 )
 def test_list_methods_use_tuple_paginator(
@@ -107,7 +143,7 @@ def test_list_methods_use_tuple_paginator(
 	method_name: str,
 	spec_name: str,
 	select_name: str,
-	cursor_value: datetime | int,
+	cursor_value: DatetimeImageListCursor | UInt8ImageListCursor,
 	row_cursor: datetime | int,
 ) -> None:
 	now = datetime(2024, 1, 2, tzinfo=timezone.utc)

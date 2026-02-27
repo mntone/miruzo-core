@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Protocol
 
 from app.config.constants import DEFAULT_LIMIT
+from app.domain.images.cursor import DatetimeImageListCursor, UInt8ImageListCursor
 from app.models.records import ImageRecord
 
 
@@ -12,7 +13,7 @@ class ImageListRepository(Protocol):
 	def select_latest(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[ImageRecord]:
 		"""Return a paginated list of latest images."""
@@ -21,7 +22,7 @@ class ImageListRepository(Protocol):
 	def select_chronological(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		"""Return a paginated list of timeline images."""
@@ -30,7 +31,7 @@ class ImageListRepository(Protocol):
 	def select_recently(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		"""Return a paginated list of recently viewed images."""
@@ -39,7 +40,7 @@ class ImageListRepository(Protocol):
 	def select_first_love(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		"""Return a paginated list of first-loved images."""
@@ -48,7 +49,7 @@ class ImageListRepository(Protocol):
 	def select_hall_of_fame(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		"""Return a paginated list of hall-of-fame images."""
@@ -57,7 +58,7 @@ class ImageListRepository(Protocol):
 	def select_engaged(
 		self,
 		*,
-		cursor: int | None = None,
+		cursor: UInt8ImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, int]]:
 		"""Return a paginated list of engaged images."""

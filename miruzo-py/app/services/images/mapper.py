@@ -1,10 +1,10 @@
 from collections.abc import Sequence
 
 from app.config.variant import VariantLayerSpec
+from app.domain.images.cursor import TImageListCursor
 from app.models.api.images.list import ImageListModel
 from app.models.api.images.responses import ImageListResponse
 from app.models.records import ImageRecord
-from app.services.images.list_types import TCursor
 from app.services.images.variants.api import compute_allowed_formats, normalize_variants_for_format
 from app.services.images.variants.mapper import map_variants_to_layers
 
@@ -12,10 +12,10 @@ from app.services.images.variants.mapper import map_variants_to_layers
 def map_image_records_to_list_response(
 	images: Sequence[ImageRecord],
 	*,
-	next_cursor: TCursor | None,
+	next_cursor: TImageListCursor | None,
 	exclude_formats: tuple[str, ...],
 	variant_layers: Sequence[VariantLayerSpec],
-) -> ImageListResponse[TCursor]:
+) -> ImageListResponse[TImageListCursor]:
 	"""Build an ImageListResponse from records with normalized variants."""
 
 	allowed_formats = compute_allowed_formats(exclude_formats)

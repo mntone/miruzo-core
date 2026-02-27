@@ -8,6 +8,11 @@ from starlette.responses import Response
 from app.config.environments import env
 from app.databases import get_session
 from app.domain.activities.daily_period import DailyPeriodResolver
+from app.domain.images.cursor import (
+	DatetimeImageListCursor,
+	ImageListCursorMode,
+	UInt8ImageListCursor,
+)
 from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.context.query import ContextQuery
 from app.models.api.context.responses import ContextResponse
@@ -19,6 +24,12 @@ from app.persist.images.list.factory import create_image_list_repository
 from app.persist.stats.factory import create_stats_repository
 from app.services.activities.love import LoveRunner
 from app.services.activities.love_cancel import LoveCancelRunner
+from app.services.images.cursor_codec import (
+	CursorDecodeError,
+	decode_datetime_image_list_cursor,
+	decode_uint8_image_list_cursor,
+	encode_image_list_cursor,
+)
 from app.services.images.list import ImageListService
 from app.services.views.context import ContextService
 from app.utils.http.response_builder import build_response
@@ -74,85 +85,125 @@ def _get_love_cancel_runner(
 	)
 
 
+def _decode_datetime_cursor(
+	cursor: str | None,
+	*,
+	mode: ImageListCursorMode,
+) -> DatetimeImageListCursor | None:
+	if cursor is None:
+		return None
+
+	try:
+		return decode_datetime_image_list_cursor(cursor, expected_mode=mode)
+	except CursorDecodeError as exception:
+		raise HTTPException(400, detail='invalid cursor') from exception
+
+
+def _decode_uint8_cursor(
+	cursor: str | None,
+	*,
+	mode: ImageListCursorMode,
+) -> UInt8ImageListCursor | None:
+	if cursor is None:
+		return None
+
+	try:
+		return decode_uint8_image_list_cursor(cursor, expected_mode=mode)
+	except CursorDecodeError as exception:
+		raise HTTPException(400, detail='invalid cursor') from exception
+
+
+def _encode_list_response_cursor(
+	response: ImageListResponse[DatetimeImageListCursor] | ImageListResponse[UInt8ImageListCursor],
+) -> ImageListResponse:
+	return ImageListResponse(
+		items=response.items,
+		cursor=(encode_image_list_cursor(response.cursor) if response.cursor is not None else None),
+	)
+
+
 router = APIRouter(prefix='/i')
 
 
-@router.get('/latest', response_model=ImageListResponse[datetime])
+@router.get('/latest', response_model=ImageListResponse[str])
 def get_latest(
-	query: Annotated[ListQuery[datetime], Depends()],
+	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageListService, Depends(_get_image_list_service)],
 ) -> Response:
 	response = service.get_latest(
-		cursor=query.cursor,
+		cursor=_decode_datetime_cursor(query.cursor, mode=ImageListCursorMode.LATEST),
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,
 	)
-	return build_response(response)
+	return build_response(_encode_list_response_cursor(response))
 
 
-@router.get('/chronological', response_model=ImageListResponse[datetime])
+@router.get('/chronological', response_model=ImageListResponse[str])
 def get_chronological(
-	query: Annotated[ListQuery[datetime], Depends()],
+	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageListService, Depends(_get_image_list_service)],
 ) -> Response:
 	response = service.get_chronological(
-		cursor=query.cursor,
+		cursor=_decode_datetime_cursor(
+			query.cursor,
+			mode=ImageListCursorMode.CHRONOLOGICAL,
+		),
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,
 	)
-	return build_response(response)
+	return build_response(_encode_list_response_cursor(response))
 
 
-@router.get('/recently', response_model=ImageListResponse[datetime])
+@router.get('/recently', response_model=ImageListResponse[str])
 def get_recently(
-	query: Annotated[ListQuery[datetime], Depends()],
+	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageListService, Depends(_get_image_list_service)],
 ) -> Response:
 	response = service.get_recently(
-		cursor=query.cursor,
+		cursor=_decode_datetime_cursor(query.cursor, mode=ImageListCursorMode.RECENTLY),
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,
 	)
-	return build_response(response)
+	return build_response(_encode_list_response_cursor(response))
 
 
-@router.get('/first_love', response_model=ImageListResponse[datetime])
+@router.get('/first_love', response_model=ImageListResponse[str])
 def get_first_love(
-	query: Annotated[ListQuery[datetime], Depends()],
+	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageListService, Depends(_get_image_list_service)],
 ) -> Response:
 	response = service.get_first_love(
-		cursor=query.cursor,
+		cursor=_decode_datetime_cursor(query.cursor, mode=ImageListCursorMode.FIRST_LOVE),
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,
 	)
-	return build_response(response)
+	return build_response(_encode_list_response_cursor(response))
 
 
-@router.get('/hall_of_fame', response_model=ImageListResponse[datetime])
+@router.get('/hall_of_fame', response_model=ImageListResponse[str])
 def get_hall_of_fame(
-	query: Annotated[ListQuery[datetime], Depends()],
+	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageListService, Depends(_get_image_list_service)],
 ) -> Response:
 	response = service.get_hall_of_fame(
-		cursor=query.cursor,
+		cursor=_decode_datetime_cursor(query.cursor, mode=ImageListCursorMode.HALL_OF_FAME),
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,
 	)
-	return build_response(response)
+	return build_response(_encode_list_response_cursor(response))
 
 
-@router.get('/engaged', response_model=ImageListResponse[int])
+@router.get('/engaged', response_model=ImageListResponse[str])
 def get_engaged(
-	query: Annotated[ListQuery[int], Depends()],
+	query: Annotated[ListQuery, Depends()],
 	service: Annotated[ImageListService, Depends(_get_image_list_service)],
 ) -> Response:
 	response = service.get_engaged(
-		cursor=query.cursor,
+		cursor=_decode_uint8_cursor(query.cursor, mode=ImageListCursorMode.ENGAGED),
 		limit=query.limit,
 		exclude_formats=query.exclude_formats,
 	)
-	return build_response(response)
+	return build_response(_encode_list_response_cursor(response))
 
 
 @router.get('/{ingest_id}', response_model=ContextResponse)

@@ -1,13 +1,12 @@
 from collections.abc import Sequence
-from datetime import datetime
 from typing import final
 
 import app.services.images.list_spec as spec
 from app.config.variant import VariantLayerSpec
+from app.domain.images.cursor import DatetimeImageListCursor, TImageListCursor, UInt8ImageListCursor
 from app.models.api.images.responses import ImageListResponse
 from app.persist.images.list.protocol import ImageListRepository
 from app.services.images.list_spec import ImageListSpec, TRow
-from app.services.images.list_types import TCursor
 from app.services.images.mapper import map_image_records_to_list_response
 
 
@@ -26,12 +25,12 @@ class ImageListService:
 
 	def _get_list(
 		self,
-		list_spec: ImageListSpec[TRow, TCursor],
+		list_spec: ImageListSpec[TRow, TImageListCursor],
 		*,
-		cursor: TCursor | None,
+		cursor: TImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[TCursor]:
+	) -> ImageListResponse[TImageListCursor]:
 		rows = list_spec.fetch(self._repository, cursor, limit + 1)
 
 		items, next_cursor = list_spec.slice(rows, limit)
@@ -48,10 +47,10 @@ class ImageListService:
 	def get_latest(
 		self,
 		*,
-		cursor: datetime | None,
+		cursor: DatetimeImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[datetime]:
+	) -> ImageListResponse[DatetimeImageListCursor]:
 		"""
 		Return a paginated list of latest images.
 		Includes variant normalization using allowed_formats.
@@ -67,10 +66,10 @@ class ImageListService:
 	def get_chronological(
 		self,
 		*,
-		cursor: datetime | None,
+		cursor: DatetimeImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[datetime]:
+	) -> ImageListResponse[DatetimeImageListCursor]:
 		"""
 		Return a paginated list of timeline images.
 		Includes variant normalization using allowed_formats.
@@ -86,10 +85,10 @@ class ImageListService:
 	def get_recently(
 		self,
 		*,
-		cursor: datetime | None,
+		cursor: DatetimeImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[datetime]:
+	) -> ImageListResponse[DatetimeImageListCursor]:
 		"""
 		Return a paginated list of recently viewed images.
 		Includes variant normalization using allowed_formats.
@@ -105,10 +104,10 @@ class ImageListService:
 	def get_first_love(
 		self,
 		*,
-		cursor: datetime | None,
+		cursor: DatetimeImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[datetime]:
+	) -> ImageListResponse[DatetimeImageListCursor]:
 		"""
 		Return a paginated list of first-loved images.
 		Includes variant normalization using allowed_formats.
@@ -124,10 +123,10 @@ class ImageListService:
 	def get_hall_of_fame(
 		self,
 		*,
-		cursor: datetime | None,
+		cursor: DatetimeImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[datetime]:
+	) -> ImageListResponse[DatetimeImageListCursor]:
 		"""
 		Return a paginated list of hall-of-fame images.
 		Includes variant normalization using allowed_formats.
@@ -143,10 +142,10 @@ class ImageListService:
 	def get_engaged(
 		self,
 		*,
-		cursor: int | None,
+		cursor: UInt8ImageListCursor | None,
 		limit: int,
 		exclude_formats: tuple[str, ...],
-	) -> ImageListResponse[int]:
+	) -> ImageListResponse[UInt8ImageListCursor]:
 		"""
 		Return a paginated list of engaged images.
 		Includes variant normalization using allowed_formats.

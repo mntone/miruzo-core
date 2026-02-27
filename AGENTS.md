@@ -63,8 +63,11 @@ who is executing them.
 - Importers in `scripts/importers/common/*` must log all destructive actions and
   honor the `force` flag before deleting files
 - List APIs must use `ImageListService` + `ImageListRepository` and apply
-  `limit + 1` pagination with `paginator.slice_with_cursor_latest` for latest
-  and `paginator.slice_with_tuple_cursor` for the other list endpoints
+  `limit + 1` pagination with `paginator.slice_with_latest_cursor` for latest,
+  `paginator.slice_with_datetime_tuple_cursor` for datetime-key endpoints, and
+  `paginator.slice_with_uint8_tuple_cursor` for engaged endpoints
+- List API cursors must remain opaque base64url strings at the API boundary.
+  Encode/decode through `app/services/images/cursor_codec.py` in routers.
 
 ## Commits
 

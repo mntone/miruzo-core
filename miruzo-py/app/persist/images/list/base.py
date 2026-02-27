@@ -9,9 +9,10 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import cast, final
 
-from sqlmodel import Session, select
+from sqlmodel import Session, and_, or_, select
 
 from app.config.constants import DEFAULT_LIMIT
+from app.domain.images.cursor import DatetimeImageListCursor, UInt8ImageListCursor
 from app.models.records import ImageRecord, IngestRecord, StatsRecord
 
 
@@ -24,7 +25,7 @@ class BaseImageListRepository:
 	def select_latest(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[ImageRecord]:
 		statement = (
@@ -40,9 +41,15 @@ class BaseImageListRepository:
 		)
 
 		if cursor is not None:
-			# WHERE ingested_at < ?
+			# WHERE (ingested_at < ?) OR (ingested_at == ? AND ingest_id < ?)
 			statement = statement.where(
-				ImageRecord.ingested_at < cursor,
+				or_(
+					ImageRecord.ingested_at < cursor.value,
+					and_(
+						ImageRecord.ingested_at == cursor.value,
+						ImageRecord.ingest_id < cursor.ingest_id,
+					),
+				),
 			)
 
 		rows = self._session.exec(statement).all()
@@ -52,7 +59,7 @@ class BaseImageListRepository:
 	def select_chronological(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		statement = (
@@ -73,9 +80,15 @@ class BaseImageListRepository:
 		)
 
 		if cursor is not None:
-			# WHERE ingests.captured_at < ?
+			# WHERE (ingests.captured_at < ?) OR (ingests.captured_at == ? AND images.ingest_id < ?)
 			statement = statement.where(
-				IngestRecord.captured_at < cursor,
+				or_(
+					IngestRecord.captured_at < cursor.value,
+					and_(
+						IngestRecord.captured_at == cursor.value,
+						ImageRecord.ingest_id < cursor.ingest_id,
+					),
+				),
 			)
 
 		rows = self._session.exec(statement).all()
@@ -85,7 +98,7 @@ class BaseImageListRepository:
 	def select_recently(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		statement = (
@@ -108,9 +121,15 @@ class BaseImageListRepository:
 		)
 
 		if cursor is not None:
-			# WHERE stats.last_viewed_at < ?
+			# WHERE (stats.last_viewed_at < ?) OR (stats.last_viewed_at == ? AND images.ingest_id < ?)
 			statement = statement.where(
-				StatsRecord.last_viewed_at < cursor,
+				or_(
+					StatsRecord.last_viewed_at < cursor.value,
+					and_(
+						StatsRecord.last_viewed_at == cursor.value,
+						ImageRecord.ingest_id < cursor.ingest_id,
+					),
+				),
 			)
 
 		rows = self._session.exec(statement).all()
@@ -120,7 +139,7 @@ class BaseImageListRepository:
 	def select_first_love(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		statement = (
@@ -143,9 +162,15 @@ class BaseImageListRepository:
 		)
 
 		if cursor is not None:
-			# WHERE stats.first_loved_at < ?
+			# WHERE (stats.first_loved_at < ?) OR (stats.first_loved_at == ? AND images.ingest_id < ?)
 			statement = statement.where(
-				StatsRecord.first_loved_at < cursor,
+				or_(
+					StatsRecord.first_loved_at < cursor.value,
+					and_(
+						StatsRecord.first_loved_at == cursor.value,
+						ImageRecord.ingest_id < cursor.ingest_id,
+					),
+				),
 			)
 
 		rows = self._session.exec(statement).all()
@@ -155,7 +180,7 @@ class BaseImageListRepository:
 	def select_hall_of_fame(
 		self,
 		*,
-		cursor: datetime | None = None,
+		cursor: DatetimeImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, datetime]]:
 		statement = (
@@ -178,9 +203,15 @@ class BaseImageListRepository:
 		)
 
 		if cursor is not None:
-			# WHERE stats.hall_of_fame_at < ?
+			# WHERE (stats.hall_of_fame_at < ?) OR (stats.hall_of_fame_at == ? AND images.ingest_id < ?)
 			statement = statement.where(
-				StatsRecord.hall_of_fame_at < cursor,
+				or_(
+					StatsRecord.hall_of_fame_at < cursor.value,
+					and_(
+						StatsRecord.hall_of_fame_at == cursor.value,
+						ImageRecord.ingest_id < cursor.ingest_id,
+					),
+				),
 			)
 
 		rows = self._session.exec(statement).all()
@@ -190,7 +221,7 @@ class BaseImageListRepository:
 	def select_engaged(
 		self,
 		*,
-		cursor: int | None = None,
+		cursor: UInt8ImageListCursor | None = None,
 		limit: int = DEFAULT_LIMIT,
 	) -> Sequence[tuple[ImageRecord, int]]:
 		statement = (
@@ -216,9 +247,15 @@ class BaseImageListRepository:
 		)
 
 		if cursor is not None:
-			# WHERE stats.score_evaluated < ?
+			# WHERE (stats.score_evaluated < ?) OR (stats.score_evaluated == ? AND images.ingest_id < ?)
 			statement = statement.where(
-				StatsRecord.score_evaluated < cursor,
+				or_(
+					StatsRecord.score_evaluated < cursor.value,
+					and_(
+						StatsRecord.score_evaluated == cursor.value,
+						ImageRecord.ingest_id < cursor.ingest_id,
+					),
+				),
 			)
 
 		rows = self._session.exec(statement).all()
