@@ -1,6 +1,7 @@
 {
 	"recommendations": [
 		"charliermarsh.ruff",
+		"golang.go",
 		"qwtel.sqlite-viewer",
 		"redhat.vscode-yaml"
 	]

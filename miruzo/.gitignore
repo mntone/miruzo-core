@@ -1,0 +1,5 @@
+# Distribution / packaging
+bin/
+dist/
+internal/database/*/gen/
+tmp/

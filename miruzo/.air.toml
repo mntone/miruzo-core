@@ -1,0 +1,26 @@
+#:schema https://json.schemastore.org/any.json
+
+root = "./"
+tmp_dir = "./tmp"
+
+[build]
+args_bin = []
+cmd = "go build -gcflags='all=-N -l' -o ./bin/miruzo-api ./cmd/miruzo-api"
+delay = 1000
+entrypoint = ["./bin/miruzo-api"]
+exclude_dir = ["bin", "dist", "tmp"]
+exclude_file = []
+exclude_regex = ["_test.go"]
+exclude_unchanged = false
+follow_symlink = false
+include_dir = []
+include_ext = ["go"]
+include_file = []
+
+[log]
+main_only = false
+silent = false
+time = false
+
+[misc]
+clean_on_exit = false

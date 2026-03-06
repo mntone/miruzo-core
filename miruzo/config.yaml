@@ -1,0 +1,3 @@
+database:
+  backend: sqlite
+  dsn: "file:../var/miruzo.sqlite?_foreign_keys=on"

@@ -1,0 +1,39 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence"
+	m "github.com/mntone/miruzo-core/miruzo/internal/api/middleware"
+	"github.com/mntone/miruzo-core/miruzo/internal/app"
+	"github.com/mntone/miruzo-core/miruzo/internal/server"
+)
+
+func main() {
+	cfg, err := app.LoadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	factory, err := persistence.NewRepository(context.Background(), cfg.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer factory.Close()
+
+	mux := http.NewServeMux()
+	app.MountAPI(mux, factory, cfg)
+
+	// mux.HandleFunc("GET /api/i/{ingest_id}", handler.GetLatestImagesHandler)
+
+	httpServer := server.NewHTTPServer(
+		m.RequestLog(mux),
+		cfg.Server,
+	)
+	log.Printf("[miruzo-api] listening on %s", httpServer.Addr)
+	if err := server.Run(httpServer, cfg.Server.ShutdownTimeout); err != nil {
+		log.Fatal(err)
+	}
+}

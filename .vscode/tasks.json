@@ -2,7 +2,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "api: dev",
+			"label": "miruzo (Python): dev",
 			"type": "shell",
 			"command": "python -c \"from scripts.api import main_dev; main_dev()\"",
 			"options": {
@@ -18,6 +18,76 @@
 				"panel": "shared"
 			},
 			"isBackground": true
+		},
+		{
+			"label": "miruzo (Go): go build (Debug)",
+			"type": "shell",
+			"command": "go",
+			"options": {
+				"cwd": "${workspaceFolder}/miruzo"
+			},
+			"args": [
+				"build",
+				"-gcflags=all=-N -l",
+				"-o",
+				"./bin/miruzo-api",
+				"./cmd/miruzo-api",
+			],
+			"problemMatcher": "$go",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "silent",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "miruzo (Go): watch (air)",
+			"type": "shell",
+			"command": "air",
+			"options": {
+				"cwd": "${workspaceFolder}/miruzo"
+			},
+			"problemMatcher": [],
+			"group": "build",
+			"presentation": {
+				"reveal": "silent",
+				"panel": "shared"
+			},
+			"isBackground": true,
+			"runOptions": {
+				"runOn": "folderOpen"
+			}
+		},
+		{
+			"label": "miruzo (Go): sqlc generate",
+			"type": "shell",
+			"command": "sqlc",
+			"args": ["generate"],
+			"options": {
+				"cwd": "${workspaceFolder}/miruzo/internal/database"
+			},
+			"problemMatcher": [
+				{
+					"owner": "sqlc",
+					"fileLocation": ["relative", "${workspaceFolder}"],
+					"pattern": {
+						"regexp": "^(.+):(\\d+):(\\d+):\\s+(.*)$",
+						"file": 1,
+						"line": 2,
+						"column": 3,
+						"message": 4
+					},
+					"severity": "error"
+				}
+			],
+			"group": "build",
+			"presentation": {
+				"reveal": "silent",
+				"panel": "shared"
+			}
 		}
 	]
 }

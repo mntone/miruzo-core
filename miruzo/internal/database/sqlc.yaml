@@ -1,0 +1,32 @@
+version: "2"
+sql:
+  - engine: postgresql
+    queries: postgre/queries/
+    schema: postgre/migrations/0001_initial.up.sql
+    gen:
+      go:
+        package: gen
+        out: postgre/gen
+        sql_package: pgx/v5
+        emit_interface: false
+  - engine: sqlite
+    queries: sqlite/queries/
+    schema: sqlite/migrations/0001_initial.up.sql
+    gen:
+      go:
+        package: gen
+        out: sqlite/gen
+        emit_interface: false
+        overrides:
+        - column: "ingests.executions"
+          go_type:
+            type: "[]byte"
+        - column: "images.original"
+          go_type:
+            type: "[]byte"
+        - column: "images.fallback"
+          go_type:
+            type: "[]byte"
+        - column: "images.variants"
+          go_type:
+            type: "[]byte"

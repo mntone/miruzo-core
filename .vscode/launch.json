@@ -2,7 +2,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "miruzo API server debug",
+			"name": "miruzo (Python) API server debug",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}/miruzo-py",
 			"request": "launch",
@@ -36,6 +36,14 @@
 				"--report-variants"
 			],
 			"jinja": true
+		},
+		{
+			"name": "miruzo (Go) API server debug",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/miruzo/cmd/miruzo-api/main.go",
+			"cwd": "${workspaceFolder}/miruzo"
 		}
 	],
 	"inputs": [
