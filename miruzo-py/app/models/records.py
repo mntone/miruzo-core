@@ -113,6 +113,7 @@ class StatsRecord(SQLModel, table=True):
 
 	ingest_id: int = SQLField(primary_key=True, foreign_key='ingests.id', nullable=False)
 	score: int = SQLField(
+		ge=env.score.minimum_score,
 		le=env.score.maximum_score,
 		sa_column=Column(
 			SmallInteger,
@@ -121,6 +122,7 @@ class StatsRecord(SQLModel, table=True):
 		),
 	)
 	score_evaluated: int = SQLField(
+		ge=env.score.minimum_score,
 		le=env.score.maximum_score,
 		sa_column=Column(
 			SmallInteger,

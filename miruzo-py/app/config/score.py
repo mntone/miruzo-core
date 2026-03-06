@@ -12,7 +12,8 @@ class ScoreConfig:
 	"""
 
 	initial_score: int = 100
-	minimum_score: int = 0
+	minimum_score: int = -20000
+	public_minimum_score: int = 0
 	maximum_score: int = 200
 	engaged_score_threshold: int = 160
 

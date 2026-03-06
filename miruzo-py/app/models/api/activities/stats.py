@@ -21,8 +21,8 @@ class LoveStatsModel(BaseModel):
 		int,
 		Field(
 			title='Score',
-			description=f'user-tunable ranking value clamped between {env.score.minimum_score} and {env.score.maximum_score}',
-			ge=env.score.minimum_score,
+			description=f'user-tunable ranking value clamped between {env.score.public_minimum_score} and {env.score.maximum_score}',
+			ge=env.score.public_minimum_score,
 			le=env.score.maximum_score,
 		),
 	]
@@ -49,7 +49,9 @@ class LoveStatsModel(BaseModel):
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'LoveStatsModel':
 		return cls(
-			score=stats.score,
+			score=stats.score
+			if stats.score >= env.score.public_minimum_score
+			else env.score.public_minimum_score,
 			first_loved_at=stats.first_loved_at,
 			last_loved_at=stats.last_loved_at,
 		)
@@ -69,8 +71,8 @@ class StatsModel(BaseModel):
 		int,
 		Field(
 			title='Score',
-			description=f'user-tunable ranking value clamped between {env.score.minimum_score} and {env.score.maximum_score}',
-			ge=env.score.minimum_score,
+			description=f'user-tunable ranking value clamped between {env.score.public_minimum_score} and {env.score.maximum_score}',
+			ge=env.score.public_minimum_score,
 			le=env.score.maximum_score,
 		),
 	]
@@ -140,7 +142,9 @@ class StatsModel(BaseModel):
 	@classmethod
 	def from_record(cls, stats: StatsRecord) -> 'StatsModel':
 		return cls(
-			score=stats.score if stats.score >= env.score.minimum_score else env.score.minimum_score,
+			score=stats.score
+			if stats.score >= env.score.public_minimum_score
+			else env.score.public_minimum_score,
 			view_count=stats.view_count,
 			last_viewed_at=stats.last_viewed_at,
 			first_loved_at=stats.first_loved_at,
