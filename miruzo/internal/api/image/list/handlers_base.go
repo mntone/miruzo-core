@@ -19,7 +19,17 @@ func (hdl *handler) listBase(
 		params *imagelist.Params[time.Time],
 	) (imagelist.Result[time.Time], error),
 ) {
-	params, fieldErrors := buildTimeParamsFromQuery(req.URL.Query())
+	qry, fieldErrors := bindQueryWithTimeCursor(req.URL.Query())
+	if len(fieldErrors) != 0 {
+		response.WriteJSON(
+			responseWriter,
+			http.StatusBadRequest,
+			apierror.NewValidationError(fieldErrors),
+		)
+		return
+	}
+
+	params, fieldErrors := buildTimeParamsFromQuery(qry)
 	if len(fieldErrors) != 0 {
 		response.WriteJSON(
 			responseWriter,

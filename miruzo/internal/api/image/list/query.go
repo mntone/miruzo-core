@@ -15,7 +15,7 @@ type query[C persist.ImageListCursor] struct {
 	common.PaginationQuery[C]
 }
 
-func bindTimeQueryWithTimeCursor(qry url.Values) (query[time.Time], []apierror.FieldError) {
+func bindQueryWithTimeCursor(qry url.Values) (query[time.Time], []apierror.FieldError) {
 	limit, errs := bind.ParseUintQueryWithDefault(qry, "limit", defaultLimit)
 	if len(errs) != 0 {
 		return query[time.Time]{}, errs
@@ -34,7 +34,7 @@ func bindTimeQueryWithTimeCursor(qry url.Values) (query[time.Time], []apierror.F
 	}, nil
 }
 
-func bindIntQueryWithTimeCursor(qry url.Values) (query[int16], []apierror.FieldError) {
+func bindQueryWithInt16Cursor(qry url.Values) (query[int16], []apierror.FieldError) {
 	limit, errs := bind.ParseUintQueryWithDefault(qry, "limit", defaultLimit)
 	if len(errs) != 0 {
 		return query[int16]{}, errs
@@ -54,14 +54,9 @@ func bindIntQueryWithTimeCursor(qry url.Values) (query[int16], []apierror.FieldE
 }
 
 func buildTimeParamsFromQuery(
-	queryValues url.Values,
+	qry query[time.Time],
 ) (*imageListService.Params[time.Time], []apierror.FieldError) {
-	qry, errs := bindTimeQueryWithTimeCursor(queryValues)
-	if len(errs) != 0 {
-		return nil, errs
-	}
-
-	errs = common.ValidatePaginationQuery(
+	errs := common.ValidatePaginationQuery(
 		qry.PaginationQuery,
 		limitMinimum,
 		limitMaximum,
@@ -77,15 +72,10 @@ func buildTimeParamsFromQuery(
 	}, nil
 }
 
-func buildIntParamsFromQuery(
-	queryValues url.Values,
+func buildInt16ParamsFromQuery(
+	qry query[int16],
 ) (*imageListService.Params[int16], []apierror.FieldError) {
-	qry, errs := bindIntQueryWithTimeCursor(queryValues)
-	if len(errs) != 0 {
-		return nil, errs
-	}
-
-	errs = common.ValidatePaginationQuery(
+	errs := common.ValidatePaginationQuery(
 		qry.PaginationQuery,
 		limitMinimum,
 		limitMaximum,

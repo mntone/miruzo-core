@@ -12,7 +12,17 @@ func (hdl *handler) listEngaged(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {
-	params, fieldErrors := buildIntParamsFromQuery(req.URL.Query())
+	qry, fieldErrors := bindQueryWithInt16Cursor(req.URL.Query())
+	if len(fieldErrors) != 0 {
+		response.WriteJSON(
+			responseWriter,
+			http.StatusBadRequest,
+			apierror.NewValidationError(fieldErrors),
+		)
+		return
+	}
+
+	params, fieldErrors := buildInt16ParamsFromQuery(qry)
 	if len(fieldErrors) != 0 {
 		response.WriteJSON(
 			responseWriter,
