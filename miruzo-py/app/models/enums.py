@@ -25,9 +25,10 @@ class ExecutionStatus(int, Enum):
 
 
 class ImageKind(int, Enum):
-	PHOTO = 0
-	ILLUST = 1
-	GRAPHIC = 2
+	UNSPECIFIED = 0
+	PHOTO = 1
+	ILLUST = 2
+	GRAPHIC = 3
 
 
 class ActionKind(int, Enum):
