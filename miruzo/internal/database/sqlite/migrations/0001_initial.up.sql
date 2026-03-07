@@ -112,3 +112,17 @@ CREATE TABLE stats(
 	CONSTRAINT c_loved_at_order
 		CHECK (first_loved_at IS NULL OR first_loved_at <= last_loved_at)
 );
+
+-- Create users table
+CREATE TABLE users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT
+		CONSTRAINT c_id
+			NOT NULL
+			CHECK (id >= 1 AND id <= 32767),
+	daily_love_used SMALLINT
+		CONSTRAINT c_daily_love_used
+			NOT NULL
+			CHECK (daily_love_used >= 0 AND daily_love_used <= 32767)
+			DEFAULT 0
+);
+INSERT INTO users(id) VALUES(1);

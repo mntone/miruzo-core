@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	db "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -38,4 +39,8 @@ func (factory repositoryFactory) Close() error {
 
 func (factory repositoryFactory) NewImageList() persist.ImageListRepository {
 	return imagelist.NewRepository(factory.database)
+}
+
+func (factory repositoryFactory) NewUser() persist.UserRepository {
+	return user.NewRepository(factory.database)
 }

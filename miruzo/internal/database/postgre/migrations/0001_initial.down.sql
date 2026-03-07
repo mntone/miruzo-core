@@ -1,3 +1,6 @@
+-- Drop users table
+DROP TABLE users;
+
 -- Drop stats table
 DROP TABLE stats;
 

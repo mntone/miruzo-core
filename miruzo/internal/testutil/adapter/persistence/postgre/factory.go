@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
@@ -80,6 +81,11 @@ func (ste *SuiteFactory) Reset(ctx context.Context) error {
 		return fmt.Errorf("reset postgre database: %w", err)
 	}
 
+	_, err = ste.pool.Exec(ctx, "UPDATE users SET daily_love_used=0;")
+	if err != nil {
+		return fmt.Errorf("reset postgre database: %w", err)
+	}
+
 	return nil
 }
 
@@ -104,5 +110,18 @@ func (ste *SuiteFactory) NewImageList(
 		Context:    ctx,
 		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
 		Repository: imagelist.NewRepository(ste.pool),
+	}
+}
+
+func (ste *SuiteFactory) NewUser(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.UserSuite {
+	t.Helper()
+
+	return testutilPersistence.UserSuite{
+		Context:    ctx,
+		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
+		Repository: user.NewRepository(ste.pool),
 	}
 }
