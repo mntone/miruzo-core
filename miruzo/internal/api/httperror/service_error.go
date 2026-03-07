@@ -9,6 +9,14 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
+func WriteInternalServerError(responseWriter http.ResponseWriter) {
+	_ = response.WriteJSONText(
+		responseWriter,
+		http.StatusInternalServerError,
+		"{\"type\":\"internal_server_error\"}",
+	)
+}
+
 func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, context.Canceled):
@@ -43,10 +51,6 @@ func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 		)
 
 	default:
-		_ = response.WriteJSONText(
-			responseWriter,
-			http.StatusInternalServerError,
-			"{\"type\":\"internal_server_error\"}",
-		)
+		WriteInternalServerError(responseWriter)
 	}
 }
