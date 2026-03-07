@@ -26,7 +26,7 @@ class UserQueryService:
 
 		daily_love_limit = self._daily_love_limit
 		daily_love_remaining = max(0, daily_love_limit - user_record.daily_love_used)
-		daily_love_reset_at = self._period_resolver.resolve_period_start(current)
+		daily_love_reset_at = self._period_resolver.resolve_period_end(current).astimezone(timezone.utc)
 
 		response = QuotaResponse(
 			love=QuotaItem(

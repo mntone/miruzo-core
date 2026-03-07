@@ -102,6 +102,11 @@ class DailyPeriodResolver:
 			base_timezone=self._base_timezone,
 		)
 
+	def resolve_period_end(self, evaluated_at: datetime) -> datetime:
+		return self.resolve_period_start(
+			evaluated_at=evaluated_at,
+		) + timedelta(days=1)
+
 	def resolve_period_range(self, evaluated_at: datetime) -> tuple[datetime, datetime]:
 		return resolve_daily_period_range(
 			evaluated_at=evaluated_at,
