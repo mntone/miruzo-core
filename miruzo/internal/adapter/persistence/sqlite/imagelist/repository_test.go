@@ -3,19 +3,29 @@ package imagelist_test
 import (
 	"testing"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
-	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 	testutilSQLite "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/sqlite"
 )
 
-func TestImageListRepositoryRunSuite(t *testing.T) {
-	testutilPersistence.RunImageListSuite(t, func(t testing.TB) testutilPersistence.ImageListSetup {
-		setup := testutilSQLite.SetupOperations(t)
-		repo := imagelist.NewRepository(setup.DB)
-		return testutilPersistence.ImageListSetup{
-			Ctx:  setup.Ctx,
-			Ops:  setup.Ops,
-			Repo: repo,
-		}
-	})
+func TestImageListRepositoryListLatest(t *testing.T) {
+	testutilSQLite.NewImageListSuite(t).RunTestListLatest(t)
+}
+
+func TestImageListRepositoryListChronological(t *testing.T) {
+	testutilSQLite.NewImageListSuite(t).RunTestListChronological(t)
+}
+
+func TestImageListRepositoryListRecently(t *testing.T) {
+	testutilSQLite.NewImageListSuite(t).RunTestListRecently(t)
+}
+
+func TestImageListRepositoryListFirstLove(t *testing.T) {
+	testutilSQLite.NewImageListSuite(t).RunTestListFirstLove(t)
+}
+
+func TestImageListRepositoryListHallOfFame(t *testing.T) {
+	testutilSQLite.NewImageListSuite(t).RunTestListHallOfFame(t)
+}
+
+func TestImageListRepositoryListEngaged(t *testing.T) {
+	testutilSQLite.NewImageListSuite(t).RunTestListEngaged(t)
 }

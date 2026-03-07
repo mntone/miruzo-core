@@ -1,4 +1,4 @@
-package testutil
+package sqlite
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type repository struct {
 	queries *gen.Queries
 }
 
-func NewRepository(db *sql.DB) repository {
+func newRepository(db *sql.DB) repository {
 	return repository{
 		queries: gen.New(db),
 	}

@@ -1,4 +1,4 @@
-package testutil
+package postgre
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type repository struct {
 	queries *gen.Queries
 }
 
-func NewRepository(pool *pgxpool.Pool) repository {
+func newRepository(pool *pgxpool.Pool) repository {
 	return repository{
 		queries: gen.New(pool),
 	}

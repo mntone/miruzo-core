@@ -1,7 +1,6 @@
-package testutil
+package persistence
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -9,12 +8,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 	"github.com/samber/mo"
 )
-
-type ImageListSetup struct {
-	Ctx  context.Context
-	Ops  Operations
-	Repo persist.ImageListRepository
-}
 
 var suiteBaseTimeUTC = time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
 
@@ -74,203 +67,170 @@ func assertRowsExcludeIngestID[C persist.ImageListCursor](
 	}
 }
 
-func runListLatest(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Run("ListLatest", func(t *testing.T) {
-		setup := setupFn(t)
+type ImageListSuite SuiteBase[persist.ImageListRepository]
 
-		latest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC))
-		middle := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
-		oldest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+func (ste ImageListSuite) RunTestListLatest(t *testing.T) {
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
 
-		rows, err := setup.Repo.ListLatest(setup.Ctx, persist.ImageListSpec[time.Time]{
+	rows, err := ste.Repository.ListLatest(ste.Context, persist.ImageListSpec[time.Time]{
+		Limit: 2,
+	})
+	assert.NilError(t, "ListLatest() error", err)
+	assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+
+	nextCursor := assertLastRowTimeCursorEquals(t, rows, middle.IngestedAt)
+	nextRows, err := ste.Repository.ListLatest(ste.Context, persist.ImageListSpec[time.Time]{
+		Cursor: mo.Some(nextCursor),
+		Limit:  2,
+	})
+	assert.NilError(t, "ListLatest() error", err)
+	assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
+}
+
+func (ste ImageListSuite) RunTestListChronological(t *testing.T) {
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixtureWithCapturedAt(
+		4,
+		suiteBaseTimeUTC.Add(4*time.Hour),
+		suiteBaseTimeUTC.Add(-1*time.Hour),
+	))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*time.Hour)))
+
+	rows, err := ste.Repository.ListChronological(ste.Context, persist.ImageListSpec[time.Time]{
+		Limit: 2,
+	})
+	assert.NilError(t, "ListChronological() error", err)
+	assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+
+	nextCursor := assertLastRowTimeCursorEquals(t, rows, middle.CapturedAt)
+	nextRows, err := ste.Repository.ListChronological(ste.Context, persist.ImageListSpec[time.Time]{
+		Cursor: mo.Some(nextCursor),
+		Limit:  2,
+	})
+	assert.NilError(t, "ListChronological() error", err)
+	assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
+}
+
+func (ste ImageListSuite) RunTestListRecently(t *testing.T) {
+	withoutLastViewedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, NewStatFixture(withoutLastViewedAt.ID))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(latest.ID, 1, suiteBaseTimeUTC))
+	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(middle.ID, 1, suiteBaseTimeUTC.Add(-1*time.Hour)))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(oldest.ID, 1, suiteBaseTimeUTC.Add(-2*time.Hour)))
+
+	rows, err := ste.Repository.ListRecently(ste.Context, persist.ImageListSpec[time.Time]{
+		Limit: 2,
+	})
+	assert.NilError(t, "ListRecently() error", err)
+	assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+	assertRowsExcludeIngestID(t, rows, withoutLastViewedAt.ID)
+
+	nextCursor := assertLastRowTimeCursorEquals(t, rows, middleStat.LastViewedAt.MustGet())
+	nextRows, err := ste.Repository.ListRecently(ste.Context, persist.ImageListSpec[time.Time]{
+		Cursor: mo.Some(nextCursor),
+		Limit:  2,
+	})
+	assert.NilError(t, "ListRecently() error", err)
+	assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
+	assertRowsExcludeIngestID(t, nextRows, withoutLastViewedAt.ID)
+}
+
+func (ste ImageListSuite) RunTestListFirstLove(t *testing.T) {
+	withoutFirstLovedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, NewStatFixture(withoutFirstLovedAt.ID))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(latest.ID, suiteBaseTimeUTC))
+	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(middle.ID, suiteBaseTimeUTC.Add(-1*time.Hour)))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(oldest.ID, suiteBaseTimeUTC.Add(-2*time.Hour)))
+
+	rows, err := ste.Repository.ListFirstLove(ste.Context, persist.ImageListSpec[time.Time]{
+		Limit: 2,
+	})
+	assert.NilError(t, "ListFirstLove() error", err)
+	assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+	assertRowsExcludeIngestID(t, rows, withoutFirstLovedAt.ID)
+
+	nextCursor := assertLastRowTimeCursorEquals(t, rows, middleStat.FirstLovedAt.MustGet())
+	nextRows, err := ste.Repository.ListFirstLove(ste.Context, persist.ImageListSpec[time.Time]{
+		Cursor: mo.Some(nextCursor),
+		Limit:  2,
+	})
+	assert.NilError(t, "ListFirstLove() error", err)
+	assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
+	assertRowsExcludeIngestID(t, nextRows, withoutFirstLovedAt.ID)
+}
+
+func (ste ImageListSuite) RunTestListHallOfFame(t *testing.T) {
+	withoutHallOfFameAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, NewStatFixture(withoutHallOfFameAt.ID))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithHallOfFameAt(latest.ID, suiteBaseTimeUTC))
+	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithHallOfFameAt(middle.ID, suiteBaseTimeUTC.Add(-1*time.Hour)))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithHallOfFameAt(oldest.ID, suiteBaseTimeUTC.Add(-2*time.Hour)))
+
+	rows, err := ste.Repository.ListHallOfFame(ste.Context, persist.ImageListSpec[time.Time]{
+		Limit: 2,
+	})
+	assert.NilError(t, "ListHallOfFame() error", err)
+	assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+	assertRowsExcludeIngestID(t, rows, withoutHallOfFameAt.ID)
+
+	nextCursor := assertLastRowTimeCursorEquals(t, rows, middleStat.HallOfFameAt.MustGet())
+	nextRows, err := ste.Repository.ListHallOfFame(ste.Context, persist.ImageListSpec[time.Time]{
+		Cursor: mo.Some(nextCursor),
+		Limit:  2,
+	})
+	assert.NilError(t, "ListHallOfFame() error", err)
+	assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
+	assertRowsExcludeIngestID(t, nextRows, withoutHallOfFameAt.ID)
+}
+
+func (ste ImageListSuite) RunTestListEngaged(t *testing.T) {
+	hiddenHighest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(-3*24*time.Hour)))
+	high := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-5*24*time.Hour)))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+	low := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(6, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
+	lowest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-4*24*time.Hour)))
+
+	hiddenHighestStat := NewStatFixtureWithScore(hiddenHighest.ID, 190, suiteBaseTimeUTC)
+	hiddenHighestStat.HallOfFameAt = mo.Some(suiteBaseTimeUTC)
+	ste.Operations.MustAddStat(t, hiddenHighestStat)
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(high.ID, 180, suiteBaseTimeUTC))
+	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithScore(middle.ID, 165, suiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(low.ID, 160, suiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(lowest.ID, 150, suiteBaseTimeUTC))
+
+	rows, err := ste.Repository.ListEngaged(ste.Context, persist.EngagedImageListSpec{
+		ImageListSpec: persist.ImageListSpec[int16]{
 			Limit: 2,
-		})
-		assert.NilError(t, "ListLatest() error", err)
-		assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+		},
+		ScoreThreshold: 160,
+	})
+	assert.NilError(t, "ListEngaged() error", err)
+	assertRowsIngestIDs(t, rows, "rows", high.ID, middle.ID)
+	assertRowsExcludeIngestID(t, rows, hiddenHighest.ID)
 
-		nextCursor := assertLastRowTimeCursorEquals(t, rows, middle.IngestedAt)
-		nextRows, err := setup.Repo.ListLatest(setup.Ctx, persist.ImageListSpec[time.Time]{
+	nextCursor := assertLastRowInt16CursorEquals(t, rows, middleStat.Score)
+	nextRows, err := ste.Repository.ListEngaged(ste.Context, persist.EngagedImageListSpec{
+		ImageListSpec: persist.ImageListSpec[int16]{
 			Cursor: mo.Some(nextCursor),
 			Limit:  2,
-		})
-		assert.NilError(t, "ListLatest() error", err)
-		assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
+		},
+		ScoreThreshold: 160,
 	})
-}
-
-func runListChronological(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Run("ListChronological", func(t *testing.T) {
-		setup := setupFn(t)
-
-		latest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-		middle := setup.Ops.MustAddIngestAndImage(t, NewIngestFixtureWithCapturedAt(
-			4,
-			suiteBaseTimeUTC.Add(4*time.Hour),
-			suiteBaseTimeUTC.Add(-1*time.Hour),
-		))
-		oldest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*time.Hour)))
-
-		rows, err := setup.Repo.ListChronological(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Limit: 2,
-		})
-		assert.NilError(t, "ListChronological() error", err)
-		assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
-
-		nextCursor := assertLastRowTimeCursorEquals(t, rows, middle.CapturedAt)
-		nextRows, err := setup.Repo.ListChronological(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Cursor: mo.Some(nextCursor),
-			Limit:  2,
-		})
-		assert.NilError(t, "ListChronological() error", err)
-		assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
-	})
-}
-
-func runListRecently(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Run("ListRecently", func(t *testing.T) {
-		setup := setupFn(t)
-
-		withoutLastViewedAt := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
-		latest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-		middle := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
-		oldest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
-
-		setup.Ops.MustAddStat(t, NewStatFixture(withoutLastViewedAt.ID))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithLastViewedAt(latest.ID, 1, suiteBaseTimeUTC))
-		middleStat := setup.Ops.MustAddStat(t, NewStatFixtureWithLastViewedAt(middle.ID, 1, suiteBaseTimeUTC.Add(-1*time.Hour)))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithLastViewedAt(oldest.ID, 1, suiteBaseTimeUTC.Add(-2*time.Hour)))
-
-		rows, err := setup.Repo.ListRecently(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Limit: 2,
-		})
-		assert.NilError(t, "ListRecently() error", err)
-		assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
-		assertRowsExcludeIngestID(t, rows, withoutLastViewedAt.ID)
-
-		nextCursor := assertLastRowTimeCursorEquals(t, rows, middleStat.LastViewedAt.MustGet())
-		nextRows, err := setup.Repo.ListRecently(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Cursor: mo.Some(nextCursor),
-			Limit:  2,
-		})
-		assert.NilError(t, "ListRecently() error", err)
-		assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
-		assertRowsExcludeIngestID(t, nextRows, withoutLastViewedAt.ID)
-	})
-}
-
-func runListFirstLove(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Run("ListFirstLove", func(t *testing.T) {
-		setup := setupFn(t)
-
-		withoutFirstLovedAt := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
-		latest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-		middle := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
-		oldest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
-
-		setup.Ops.MustAddStat(t, NewStatFixture(withoutFirstLovedAt.ID))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithLastLovedAt(latest.ID, suiteBaseTimeUTC))
-		middleStat := setup.Ops.MustAddStat(t, NewStatFixtureWithLastLovedAt(middle.ID, suiteBaseTimeUTC.Add(-1*time.Hour)))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithLastLovedAt(oldest.ID, suiteBaseTimeUTC.Add(-2*time.Hour)))
-
-		rows, err := setup.Repo.ListFirstLove(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Limit: 2,
-		})
-		assert.NilError(t, "ListFirstLove() error", err)
-		assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
-		assertRowsExcludeIngestID(t, rows, withoutFirstLovedAt.ID)
-
-		nextCursor := assertLastRowTimeCursorEquals(t, rows, middleStat.FirstLovedAt.MustGet())
-		nextRows, err := setup.Repo.ListFirstLove(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Cursor: mo.Some(nextCursor),
-			Limit:  2,
-		})
-		assert.NilError(t, "ListFirstLove() error", err)
-		assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
-		assertRowsExcludeIngestID(t, nextRows, withoutFirstLovedAt.ID)
-	})
-}
-
-func runListHallOfFame(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Run("ListHallOfFame", func(t *testing.T) {
-		setup := setupFn(t)
-
-		withoutHallOfFameAt := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
-		latest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-		middle := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
-		oldest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
-
-		setup.Ops.MustAddStat(t, NewStatFixture(withoutHallOfFameAt.ID))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithHallOfFameAt(latest.ID, suiteBaseTimeUTC))
-		middleStat := setup.Ops.MustAddStat(t, NewStatFixtureWithHallOfFameAt(middle.ID, suiteBaseTimeUTC.Add(-1*time.Hour)))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithHallOfFameAt(oldest.ID, suiteBaseTimeUTC.Add(-2*time.Hour)))
-
-		rows, err := setup.Repo.ListHallOfFame(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Limit: 2,
-		})
-		assert.NilError(t, "ListHallOfFame() error", err)
-		assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
-		assertRowsExcludeIngestID(t, rows, withoutHallOfFameAt.ID)
-
-		nextCursor := assertLastRowTimeCursorEquals(t, rows, middleStat.HallOfFameAt.MustGet())
-		nextRows, err := setup.Repo.ListHallOfFame(setup.Ctx, persist.ImageListSpec[time.Time]{
-			Cursor: mo.Some(nextCursor),
-			Limit:  2,
-		})
-		assert.NilError(t, "ListHallOfFame() error", err)
-		assertRowsIngestIDs(t, nextRows, "nextRows", oldest.ID)
-		assertRowsExcludeIngestID(t, nextRows, withoutHallOfFameAt.ID)
-	})
-}
-
-func runListEngaged(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Run("ListEngaged", func(t *testing.T) {
-		setup := setupFn(t)
-
-		hiddenHighest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(-3*24*time.Hour)))
-		high := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-5*24*time.Hour)))
-		middle := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
-		low := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(6, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
-		lowest := setup.Ops.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-4*24*time.Hour)))
-
-		hiddenHighestStat := NewStatFixtureWithScore(hiddenHighest.ID, 190, suiteBaseTimeUTC)
-		hiddenHighestStat.HallOfFameAt = mo.Some(suiteBaseTimeUTC)
-		setup.Ops.MustAddStat(t, hiddenHighestStat)
-		setup.Ops.MustAddStat(t, NewStatFixtureWithScore(high.ID, 180, suiteBaseTimeUTC))
-		middleStat := setup.Ops.MustAddStat(t, NewStatFixtureWithScore(middle.ID, 165, suiteBaseTimeUTC))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithScore(low.ID, 160, suiteBaseTimeUTC))
-		setup.Ops.MustAddStat(t, NewStatFixtureWithScore(lowest.ID, 150, suiteBaseTimeUTC))
-
-		rows, err := setup.Repo.ListEngaged(setup.Ctx, persist.EngagedImageListSpec{
-			ImageListSpec: persist.ImageListSpec[int16]{
-				Limit: 2,
-			},
-			ScoreThreshold: 160,
-		})
-		assert.NilError(t, "ListEngaged() error", err)
-		assertRowsIngestIDs(t, rows, "rows", high.ID, middle.ID)
-		assertRowsExcludeIngestID(t, rows, hiddenHighest.ID)
-
-		nextCursor := assertLastRowInt16CursorEquals(t, rows, middleStat.Score)
-		nextRows, err := setup.Repo.ListEngaged(setup.Ctx, persist.EngagedImageListSpec{
-			ImageListSpec: persist.ImageListSpec[int16]{
-				Cursor: mo.Some(nextCursor),
-				Limit:  2,
-			},
-			ScoreThreshold: 160,
-		})
-		assert.NilError(t, "ListEngaged() error", err)
-		assertRowsIngestIDs(t, nextRows, "nextRows", low.ID)
-		assertRowsExcludeIngestID(t, nextRows, hiddenHighest.ID)
-	})
-}
-
-func RunImageListSuite(t *testing.T, setupFn func(testing.TB) ImageListSetup) {
-	t.Helper()
-
-	runListLatest(t, setupFn)
-	runListChronological(t, setupFn)
-	runListRecently(t, setupFn)
-	runListFirstLove(t, setupFn)
-	runListHallOfFame(t, setupFn)
-	runListEngaged(t, setupFn)
+	assert.NilError(t, "ListEngaged() error", err)
+	assertRowsIngestIDs(t, nextRows, "nextRows", low.ID)
+	assertRowsExcludeIngestID(t, nextRows, hiddenHighest.ID)
 }

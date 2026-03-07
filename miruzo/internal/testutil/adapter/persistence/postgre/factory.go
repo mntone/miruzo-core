@@ -1,4 +1,4 @@
-package testutil
+package postgre
 
 import (
 	"context"
@@ -19,13 +19,13 @@ func joinErrors(primary error, secondary error) error {
 	return fmt.Errorf("%w (cleanup failed: %v)", primary, secondary)
 }
 
-type Suite struct {
+type SuiteFactory struct {
 	pool     *pgxpool.Pool
 	close    func() error
 	testRepo repository
 }
 
-func NewSuite(ctx context.Context) (*Suite, error) {
+func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
 	container, err := startPostgreContainer(ctx)
 	if err != nil {
 		return nil, err
@@ -57,14 +57,14 @@ func NewSuite(ctx context.Context) (*Suite, error) {
 		)
 	}
 
-	return &Suite{
+	return &SuiteFactory{
 		pool:     pool,
 		close:    closeFn,
-		testRepo: NewRepository(pool),
+		testRepo: newRepository(pool),
 	}, nil
 }
 
-func (ste *Suite) Close() error {
+func (ste *SuiteFactory) Close() error {
 	if ste.close == nil {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (ste *Suite) Close() error {
 	return closeFn()
 }
 
-func (ste *Suite) Reset(ctx context.Context) error {
+func (ste *SuiteFactory) Reset(ctx context.Context) error {
 	_, err := ste.pool.Exec(ctx, "TRUNCATE TABLE stats, images, ingests RESTART IDENTITY CASCADE")
 	if err != nil {
 		return fmt.Errorf("reset postgre database: %w", err)
@@ -83,21 +83,26 @@ func (ste *Suite) Reset(ctx context.Context) error {
 	return nil
 }
 
-func (ste *Suite) MustReset(
-	tb testing.TB,
+func (ste *SuiteFactory) MustReset(
+	t *testing.T,
 	ctx context.Context,
 ) {
-	tb.Helper()
+	t.Helper()
 
 	if err := ste.Reset(ctx); err != nil {
-		tb.Fatalf("reset postgre test suite: %v", err)
+		t.Fatalf("reset postgre test suite: %v", err)
 	}
 }
 
-func (ste *Suite) NewImageList(ctx context.Context) testutilPersistence.ImageListSetup {
-	return testutilPersistence.ImageListSetup{
-		Ctx:  ctx,
-		Ops:  testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repo: imagelist.NewRepository(ste.pool),
+func (ste *SuiteFactory) NewImageList(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.ImageListSuite {
+	t.Helper()
+
+	return testutilPersistence.ImageListSuite{
+		Context:    ctx,
+		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
+		Repository: imagelist.NewRepository(ste.pool),
 	}
 }

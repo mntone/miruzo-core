@@ -6,28 +6,27 @@ import (
 	"os"
 	"testing"
 
-	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 	testutilPostgre "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/postgre"
 )
 
-var suite *testutilPostgre.Suite
+var factory *testutilPostgre.SuiteFactory
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// setup
-	testSuite, err := testutilPostgre.NewSuite(ctx)
+	testFactory, err := testutilPostgre.NewSuiteFactory(ctx)
 	if err != nil {
 		log.Printf("setup postgre test suite: %v", err)
 		os.Exit(1)
 	}
-	suite = testSuite
+	factory = testFactory
 
 	exitCode := m.Run()
 
 	// teardown
-	if suite != nil {
-		if err := suite.Close(); err != nil {
+	if factory != nil {
+		if err := factory.Close(); err != nil {
 			log.Printf("teardown postgre test suite: %v", err)
 			if exitCode == 0 {
 				exitCode = 1
@@ -38,16 +37,62 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func TestImageListRepositoryRunSuite(t *testing.T) {
-	if suite == nil {
+func TestImageListRepositoryListLatest(t *testing.T) {
+	if factory == nil {
 		t.Fatal("suite is nil")
 	}
 
-	testutilPersistence.RunImageListSuite(t, func(tb testing.TB) testutilPersistence.ImageListSetup {
-		tb.Helper()
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewImageList(t, ctx).RunTestListLatest(t)
+}
 
-		ctx := context.Background()
-		suite.MustReset(tb, ctx)
-		return suite.NewImageList(ctx)
-	})
+func TestImageListRepositoryListChronological(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewImageList(t, ctx).RunTestListChronological(t)
+}
+
+func TestImageListRepositoryListRecently(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewImageList(t, ctx).RunTestListRecently(t)
+}
+
+func TestImageListRepositoryListFirstLove(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewImageList(t, ctx).RunTestListFirstLove(t)
+}
+
+func TestImageListRepositoryListHallOfFame(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewImageList(t, ctx).RunTestListHallOfFame(t)
+}
+
+func TestImageListRepositoryListEngaged(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewImageList(t, ctx).RunTestListEngaged(t)
 }
