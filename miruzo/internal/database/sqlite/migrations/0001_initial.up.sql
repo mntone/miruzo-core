@@ -53,8 +53,7 @@ CREATE TABLE images(
 			CHECK (json_valid(original) AND json_type(original) = 'object'),
 	fallback JSON
 		CONSTRAINT c_fallback
-			NOT NULL
-			CHECK (json_valid(fallback) AND json_type(fallback) IN ('null', 'object')),
+			CHECK (json_valid(fallback) AND json_type(fallback) = 'object'),
 	variants JSON
 		CONSTRAINT c_variants
 			NOT NULL

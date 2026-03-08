@@ -9,6 +9,25 @@ sql:
         out: postgre/gen
         sql_package: pgx/v5
         emit_interface: false
+        overrides:
+        - column: "ingests.executions"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model/ingest
+            type: Execution
+        - column: "images.original"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model/media
+            type: Variant
+        - column: "images.fallback"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model/media
+            type: Variant
+            pointer: true
+        - column: "images.variants"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model/media
+            type: Variant
+            slice: true
   - engine: sqlite
     queries: sqlite/queries/
     schema: sqlite/migrations/0001_initial.up.sql
@@ -27,6 +46,7 @@ sql:
         - column: "images.fallback"
           go_type:
             type: "[]byte"
+            pointer: true
         - column: "images.variants"
           go_type:
             type: "[]byte"

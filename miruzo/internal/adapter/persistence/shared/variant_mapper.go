@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"bytes"
 	"encoding/json"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
@@ -17,16 +16,13 @@ func MapVariant(raw []byte) (media.Variant, error) {
 	return variant, nil
 }
 
-func MapNullableVariant(raw []byte) (mo.Option[media.Variant], error) {
-	if len(raw) == 0 {
-		return mo.None[media.Variant](), nil
-	}
-	if bytes.Equal(raw, []byte("null")) {
+func MapNullableVariant(raw *[]byte) (mo.Option[media.Variant], error) {
+	if raw == nil {
 		return mo.None[media.Variant](), nil
 	}
 
 	var variant media.Variant
-	if err := json.Unmarshal(raw, &variant); err != nil {
+	if err := json.Unmarshal(*raw, &variant); err != nil {
 		return mo.None[media.Variant](), err
 	}
 

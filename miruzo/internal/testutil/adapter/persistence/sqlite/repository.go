@@ -58,9 +58,14 @@ func (repo repository) CreateImage(
 		return err
 	}
 
-	fallbackBytes, err := json.Marshal(fallback)
-	if err != nil {
-		return err
+	var fallbackBytes *[]byte
+	if fallbackValue, present := fallback.Get(); present {
+		bytes, err := json.Marshal(fallbackValue)
+		if err != nil {
+			return err
+		}
+
+		fallbackBytes = &bytes
 	}
 
 	variantsBytes, err := json.Marshal(variants)

@@ -2,7 +2,6 @@ package postgre
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,27 +51,12 @@ func (repo repository) CreateImage(
 	fallback mo.Option[media.Variant],
 	variants []media.Variant,
 ) error {
-	originalBytes, err := json.Marshal(original)
-	if err != nil {
-		return err
-	}
-
-	fallbackBytes, err := json.Marshal(fallback)
-	if err != nil {
-		return err
-	}
-
-	variantsBytes, err := json.Marshal(variants)
-	if err != nil {
-		return err
-	}
-
-	err = repo.queries.CreateImage(ctx, gen.CreateImageParams{
+	err := repo.queries.CreateImage(ctx, gen.CreateImageParams{
 		IngestID:   id,
 		IngestedAt: shared.PgtypeTimestampFromTime(ingestedAt),
-		Original:   originalBytes,
-		Fallback:   fallbackBytes,
-		Variants:   variantsBytes,
+		Original:   original,
+		Fallback:   fallback.ToPointer(),
+		Variants:   variants,
 	})
 	if err != nil {
 		return shared.MapPostgreError("Create", err)

@@ -53,8 +53,7 @@ CREATE TABLE images(
 			CHECK (jsonb_typeof(original) = 'object'),
 	fallback JSONB
 		CONSTRAINT c_fallback
-			NOT NULL
-			CHECK (jsonb_typeof(fallback) IN ('null', 'object')),
+			CHECK (jsonb_typeof(fallback) = 'object'),
 	variants JSONB
 		CONSTRAINT c_variants
 			NOT NULL

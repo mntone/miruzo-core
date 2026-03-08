@@ -3,9 +3,9 @@ package imagelist
 import (
 	"fmt"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/samber/mo"
 )
 
 func mapRow[C persist.ImageListCursor](row gen.Image, cursor C) (persist.ImageWithCursor[C], error) {
@@ -19,29 +19,14 @@ func mapRow[C persist.ImageListCursor](row gen.Image, cursor C) (persist.ImageWi
 		)
 	}
 
-	original, err := shared.MapVariant(row.Original)
-	if err != nil {
-		return persist.ImageWithCursor[C]{}, err
-	}
-
-	fallback, err := shared.MapNullableVariant(row.Fallback)
-	if err != nil {
-		return persist.ImageWithCursor[C]{}, err
-	}
-
-	variants, err := shared.MapVariants(row.Variants)
-	if err != nil {
-		return persist.ImageWithCursor[C]{}, err
-	}
-
 	return persist.ImageWithCursor[C]{
 		Image: persist.Image{
 			IngestID:   row.IngestID,
 			IngestedAt: row.IngestedAt.Time,
 			Type:       imageType,
-			Original:   original,
-			Fallback:   fallback,
-			Variants:   variants,
+			Original:   row.Original,
+			Fallback:   mo.PointerToOption(row.Fallback),
+			Variants:   row.Variants,
 		},
 		Cursor: cursor,
 	}, nil
