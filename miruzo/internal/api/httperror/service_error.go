@@ -9,6 +9,14 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
+func WriteNotFound(responseWriter http.ResponseWriter) {
+	_ = response.WriteJSONText(
+		responseWriter,
+		http.StatusNotFound,
+		"{\"type\":\"not_found\"}",
+	)
+}
+
 func WriteInternalServerError(responseWriter http.ResponseWriter) {
 	_ = response.WriteJSONText(
 		responseWriter,

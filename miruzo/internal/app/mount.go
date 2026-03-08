@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/api"
 	healthAPI "github.com/mntone/miruzo-core/miruzo/internal/api/health"
 	imageListAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/list"
 	quotaAPI "github.com/mntone/miruzo-core/miruzo/internal/api/quota"
@@ -43,4 +44,6 @@ func MountAPI(
 
 	healthHandler := healthAPI.NewHandler(version)
 	healthAPI.RegisterRoutes(mux, healthHandler)
+
+	api.RegisterNotFoundRoute(mux)
 }
