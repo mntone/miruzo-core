@@ -2,6 +2,9 @@
 	"files.exclude": {
 		"**/__pycache__": true
 	},
+	"[go]": {
+		"editor.defaultFormatter": "golang.go"
+	},
 	"python.analysis.autoImportCompletions": true,
 	"python.analysis.importFormat": "absolute",
 	"python.testing.pytestArgs": [

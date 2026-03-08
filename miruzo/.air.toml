@@ -8,9 +8,9 @@ args_bin = []
 cmd = "go build -gcflags='all=-N -l' -o ./bin/miruzo-api ./cmd/miruzo-api"
 delay = 1000
 entrypoint = ["./bin/miruzo-api"]
-exclude_dir = ["bin", "dist", "tmp"]
+exclude_dir = ["bin", "dist", "internal/testutil", "tmp"]
 exclude_file = []
-exclude_regex = ["_test.go"]
+exclude_regex = ["_test.go$"]
 exclude_unchanged = false
 follow_symlink = false
 include_dir = []
