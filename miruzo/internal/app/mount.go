@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	healthAPI "github.com/mntone/miruzo-core/miruzo/internal/api/health"
 	imageListAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/list"
 	quotaAPI "github.com/mntone/miruzo-core/miruzo/internal/api/quota"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
@@ -17,6 +18,7 @@ func MountAPI(
 	mux *http.ServeMux,
 	factory persist.RepositoryFactory,
 	cfg config.AppConfig,
+	version string,
 ) {
 	imageListBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
 	imageListService := imageListService.New(
@@ -38,4 +40,7 @@ func MountAPI(
 	)
 	quotaHandler := quotaAPI.NewHandler(userService)
 	quotaAPI.RegisterRoutes(mux, quotaHandler)
+
+	healthHandler := healthAPI.NewHandler(version)
+	healthAPI.RegisterRoutes(mux, healthHandler)
 }

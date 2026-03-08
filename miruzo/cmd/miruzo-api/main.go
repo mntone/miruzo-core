@@ -11,6 +11,8 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/server"
 )
 
+var version = "0.0.0+dev"
+
 func main() {
 	cfg, err := app.LoadConfig()
 	if err != nil {
@@ -24,7 +26,7 @@ func main() {
 	defer factory.Close()
 
 	mux := http.NewServeMux()
-	app.MountAPI(mux, factory, cfg)
+	app.MountAPI(mux, factory, cfg, version)
 
 	// mux.HandleFunc("GET /api/i/{ingest_id}", handler.GetLatestImagesHandler)
 
