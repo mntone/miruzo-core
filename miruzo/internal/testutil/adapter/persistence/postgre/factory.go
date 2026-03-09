@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations"
@@ -97,6 +98,19 @@ func (ste *SuiteFactory) MustReset(
 
 	if err := ste.Reset(ctx); err != nil {
 		t.Fatalf("reset postgre test suite: %v", err)
+	}
+}
+
+func (ste *SuiteFactory) NewAction(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.ActionSuite {
+	t.Helper()
+
+	return testutilPersistence.ActionSuite{
+		Context:    ctx,
+		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
+		Repository: action.NewRepository(ste.pool),
 	}
 }
 

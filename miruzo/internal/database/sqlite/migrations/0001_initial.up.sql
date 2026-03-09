@@ -43,7 +43,7 @@ CREATE TABLE images(
 			REFERENCES ingests(id),
 	ingested_at DATETIME NOT NULL,
 	kind INTEGER
-		CONSTRAINT c_kind
+		CONSTRAINT c_images_kind
 			NOT NULL
 			CHECK (kind IN (0, 1, 2, 3))
 			DEFAULT 0,
@@ -112,8 +112,24 @@ CREATE TABLE stats(
 		CHECK (first_loved_at IS NULL OR first_loved_at <= last_loved_at)
 );
 
+-- Create actions table
+CREATE TABLE actions(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	ingest_id INTEGER
+		CONSTRAINT c_actions_ingest_id
+			NOT NULL
+			REFERENCES ingests(id)
+			ON DELETE CASCADE,
+	kind INTEGER
+		CONSTRAINT c_actions_kind
+			NOT NULL
+			CHECK (kind IN (0, 1, 11, 12, 13, 14, 15, 16))
+			DEFAULT 0,
+	occurred_at DATETIME NOT NULL
+);
+
 -- Create users table
-CREATE TABLE users (
+CREATE TABLE users(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
 		CONSTRAINT c_id
 			NOT NULL

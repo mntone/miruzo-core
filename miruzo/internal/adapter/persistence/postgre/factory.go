@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
@@ -36,6 +37,10 @@ func NewRepositoryFactory(
 func (factory repositoryFactory) Close() error {
 	factory.pool.Close()
 	return nil
+}
+
+func (factory repositoryFactory) NewAction() persist.ActionRepository {
+	return action.NewRepository(factory.pool)
 }
 
 func (factory repositoryFactory) NewImageList() persist.ImageListRepository {
