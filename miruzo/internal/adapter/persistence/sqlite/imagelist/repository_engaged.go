@@ -32,7 +32,7 @@ func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageW
 	)
 }
 
-func (repo *repository) ListEngaged(
+func (repo repository) ListEngaged(
 	ctx context.Context,
 	spec persist.EngagedImageListSpec,
 ) ([]persist.ImageWithCursor[int16], error) {

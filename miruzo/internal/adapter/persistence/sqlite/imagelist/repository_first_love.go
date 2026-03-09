@@ -33,7 +33,7 @@ func mapFirstLoveAfterRows(rows []gen.ListImagesFirstLoveAfterRow) ([]persist.Im
 	)
 }
 
-func (repo *repository) ListFirstLove(
+func (repo repository) ListFirstLove(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
 ) ([]persist.ImageWithCursor[time.Time], error) {

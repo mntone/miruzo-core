@@ -15,7 +15,7 @@ func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursor[
 			return row.Image
 		},
 		func(row gen.ListImagesEngagedRow) int16 {
-			return int16(row.ScoreEvaluated)
+			return row.ScoreEvaluated
 		},
 	)
 }
@@ -27,12 +27,12 @@ func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageW
 			return row.Image
 		},
 		func(row gen.ListImagesEngagedAfterRow) int16 {
-			return int16(row.ScoreEvaluated)
+			return row.ScoreEvaluated
 		},
 	)
 }
 
-func (repo *repository) ListEngaged(
+func (repo repository) ListEngaged(
 	ctx context.Context,
 	spec persist.EngagedImageListSpec,
 ) ([]persist.ImageWithCursor[int16], error) {

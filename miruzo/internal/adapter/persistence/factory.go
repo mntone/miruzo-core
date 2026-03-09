@@ -10,15 +10,15 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func NewRepository(
+func NewPersistenceManager(
 	ctx context.Context,
 	conf config.DatabaseConfig,
-) (persist.RepositoryFactory, error) {
+) (persist.PersistenceManager, error) {
 	switch conf.Backend {
 	case config.DatabaseBackendPostgre:
-		return postgre.NewRepositoryFactory(ctx, conf)
+		return postgre.NewPersistenceManager(ctx, conf)
 	case config.DatabaseBackendSQLite:
-		return sqlite.NewRepositoryFactory(ctx, conf)
+		return sqlite.NewPersistenceManager(ctx, conf)
 	default:
 		return nil, fmt.Errorf("unsupported database backend: %s", conf.Backend)
 	}

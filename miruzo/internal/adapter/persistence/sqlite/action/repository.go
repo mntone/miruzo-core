@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
@@ -14,13 +13,13 @@ type repository struct {
 	queries *gen.Queries
 }
 
-func NewRepository(db *sql.DB) *repository {
-	return &repository{
-		queries: gen.New(db),
+func NewRepository(queries *gen.Queries) repository {
+	return repository{
+		queries: queries,
 	}
 }
 
-func (repo *repository) CreateAction(
+func (repo repository) CreateAction(
 	ctx context.Context,
 	ingestID int64,
 	kind action.ActionType,

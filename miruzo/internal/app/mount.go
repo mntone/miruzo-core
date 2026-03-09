@@ -17,13 +17,13 @@ import (
 
 func MountAPI(
 	mux *http.ServeMux,
-	factory persist.RepositoryFactory,
+	manager persist.PersistenceManager,
 	cfg config.AppConfig,
 	version string,
 ) {
 	imageListBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
 	imageListService := imageListService.New(
-		factory.NewImageList(),
+		manager.Repos().ImageList,
 		imageListBackoff,
 		cfg.Score.EngagedScoreThreshold,
 	)
@@ -35,7 +35,7 @@ func MountAPI(
 	imageListAPI.RegisterRoutes(mux, imageListHandler)
 
 	userService := userService.New(
-		factory.NewUser(),
+		manager.Repos().User,
 		period.NewDailyResolver(cfg.Period.DayStartOffset),
 		cfg.Quota.DailyLoveLimit,
 	)

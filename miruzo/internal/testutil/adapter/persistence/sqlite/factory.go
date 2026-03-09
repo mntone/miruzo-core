@@ -8,6 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/migrations"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
@@ -30,7 +31,7 @@ func NewActionSuite(t *testing.T) persistence.ActionSuite {
 	return persistence.ActionSuite{
 		Context:    ctx,
 		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: action.NewRepository(db),
+		Repository: action.NewRepository(gen.New(db)),
 	}
 }
 
@@ -42,7 +43,7 @@ func NewImageListSuite(t *testing.T) persistence.ImageListSuite {
 	return persistence.ImageListSuite{
 		Context:    ctx,
 		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: imagelist.NewRepository(db),
+		Repository: imagelist.NewRepository(gen.New(db)),
 	}
 }
 
@@ -54,6 +55,6 @@ func NewUserSuite(t *testing.T) persistence.UserSuite {
 	return persistence.UserSuite{
 		Context:    ctx,
 		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: user.NewRepository(db),
+		Repository: user.NewRepository(gen.New(db)),
 	}
 }

@@ -33,7 +33,7 @@ func mapChronologicalAfterRows(rows []gen.ListImagesChronologicalAfterRow) ([]pe
 	)
 }
 
-func (repo *repository) ListChronological(
+func (repo repository) ListChronological(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
 ) ([]persist.ImageWithCursor[time.Time], error) {

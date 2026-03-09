@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	factory, err := persistence.NewRepository(context.Background(), cfg.Database)
+	factory, err := persistence.NewPersistenceManager(context.Background(), cfg.Database)
 	if err != nil {
 		log.Fatal(err)
 	}

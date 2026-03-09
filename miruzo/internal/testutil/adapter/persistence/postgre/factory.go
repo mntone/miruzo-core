@@ -9,6 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
@@ -110,7 +111,7 @@ func (ste *SuiteFactory) NewAction(
 	return testutilPersistence.ActionSuite{
 		Context:    ctx,
 		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: action.NewRepository(ste.pool),
+		Repository: action.NewRepository(gen.New(ste.pool)),
 	}
 }
 
@@ -123,7 +124,7 @@ func (ste *SuiteFactory) NewImageList(
 	return testutilPersistence.ImageListSuite{
 		Context:    ctx,
 		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: imagelist.NewRepository(ste.pool),
+		Repository: imagelist.NewRepository(gen.New(ste.pool)),
 	}
 }
 
@@ -136,6 +137,6 @@ func (ste *SuiteFactory) NewUser(
 	return testutilPersistence.UserSuite{
 		Context:    ctx,
 		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: user.NewRepository(ste.pool),
+		Repository: user.NewRepository(gen.New(ste.pool)),
 	}
 }

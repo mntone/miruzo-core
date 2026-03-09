@@ -33,7 +33,7 @@ func mapRecentlyAfterRows(rows []gen.ListImagesRecentlyAfterRow) ([]persist.Imag
 	)
 }
 
-func (repo *repository) ListRecently(
+func (repo repository) ListRecently(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
 ) ([]persist.ImageWithCursor[time.Time], error) {

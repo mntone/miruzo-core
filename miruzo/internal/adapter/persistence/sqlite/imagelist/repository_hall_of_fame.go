@@ -33,7 +33,7 @@ func mapHallOfFameAfterRows(rows []gen.ListImagesHallOfFameAfterRow) ([]persist.
 	)
 }
 
-func (repo *repository) ListHallOfFame(
+func (repo repository) ListHallOfFame(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
 ) ([]persist.ImageWithCursor[time.Time], error) {

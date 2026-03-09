@@ -24,7 +24,7 @@ func mapLatestRows(rows []gen.Image) ([]persist.ImageWithCursor[time.Time], erro
 	return imagesWithCursor, nil
 }
 
-func (repo *repository) ListLatest(
+func (repo repository) ListLatest(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
 ) ([]persist.ImageWithCursor[time.Time], error) {

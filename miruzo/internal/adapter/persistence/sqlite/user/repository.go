@@ -2,24 +2,23 @@ package user
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type userRepository struct {
+type repository struct {
 	queries *gen.Queries
 }
 
-func NewRepository(db *sql.DB) *userRepository {
-	return &userRepository{
-		queries: gen.New(db),
+func NewRepository(queries *gen.Queries) repository {
+	return repository{
+		queries: queries,
 	}
 }
 
-func (repo *userRepository) GetSingletonUser(
+func (repo repository) GetSingletonUser(
 	ctx context.Context,
 ) (persist.User, error) {
 	user, err := repo.queries.GetSingletonUser(ctx)
