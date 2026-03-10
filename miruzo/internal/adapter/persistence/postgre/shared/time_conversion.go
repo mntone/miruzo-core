@@ -18,6 +18,13 @@ func TimeFromPgtype(value pgtype.Timestamp) time.Time {
 	return value.Time
 }
 
+func OptionTimeFromPgtype(value pgtype.Timestamp) mo.Option[time.Time] {
+	if !value.Valid {
+		return mo.None[time.Time]()
+	}
+	return mo.Some(value.Time)
+}
+
 func PgtypeTimestampFromTime(value time.Time) pgtype.Timestamp {
 	return pgtype.Timestamp{
 		Time:  value,

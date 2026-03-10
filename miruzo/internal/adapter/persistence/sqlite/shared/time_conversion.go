@@ -18,6 +18,13 @@ func TimeFromSql(value sql.NullTime) time.Time {
 	return value.Time
 }
 
+func OptionTimeFromSql(value sql.NullTime) mo.Option[time.Time] {
+	if !value.Valid {
+		return mo.None[time.Time]()
+	}
+	return mo.Some(value.Time)
+}
+
 func NullTimeFromTime(value time.Time) sql.NullTime {
 	return sql.NullTime{
 		Time:  value,

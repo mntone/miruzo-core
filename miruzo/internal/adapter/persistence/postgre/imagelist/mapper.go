@@ -1,33 +1,19 @@
 package imagelist
 
 import (
-	"fmt"
-
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/image"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
-	"github.com/samber/mo"
 )
 
 func mapRow[C persist.ImageListCursor](row gen.Image, cursor C) (persist.ImageWithCursor[C], error) {
-	imageType, err := persist.ParseImageType(row.Kind)
+	image, err := image.MapImage(row)
 	if err != nil {
-		return persist.ImageWithCursor[C]{}, fmt.Errorf(
-			"%w: ingest_id=%d kind=%d",
-			err,
-			row.IngestID,
-			row.Kind,
-		)
+		return persist.ImageWithCursor[C]{}, err
 	}
 
 	return persist.ImageWithCursor[C]{
-		Image: persist.Image{
-			IngestID:   row.IngestID,
-			IngestedAt: row.IngestedAt.Time,
-			Type:       imageType,
-			Original:   row.Original,
-			Fallback:   mo.PointerToOption(row.Fallback),
-			Variants:   row.Variants,
-		},
+		Image:  image,
 		Cursor: cursor,
 	}, nil
 }

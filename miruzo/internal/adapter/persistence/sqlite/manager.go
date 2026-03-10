@@ -26,6 +26,7 @@ func newPersistenceManager(db *sql.DB) persistenceManager {
 			Action:    action.NewRepository(queries),
 			ImageList: imagelist.NewRepository(queries),
 			User:      user.NewRepository(queries),
+			View:      NewViewRepository(queries),
 		},
 	}
 }

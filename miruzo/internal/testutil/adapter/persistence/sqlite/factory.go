@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
@@ -56,5 +57,17 @@ func NewUserSuite(t *testing.T) persistence.UserSuite {
 		Context:    ctx,
 		Operations: persistence.NewOperations(ctx, newRepository(db)),
 		Repository: user.NewRepository(gen.New(db)),
+	}
+}
+
+func NewViewSuite(t *testing.T) persistence.ViewSuite {
+	t.Helper()
+
+	ctx := context.Background()
+	db := setupDatabase(t, ctx)
+	return persistence.ViewSuite{
+		Context:    ctx,
+		Operations: persistence.NewOperations(ctx, newRepository(db)),
+		Repository: sqlite.NewViewRepository(gen.New(db)),
 	}
 }

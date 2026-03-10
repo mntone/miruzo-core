@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
@@ -138,5 +139,18 @@ func (ste *SuiteFactory) NewUser(
 		Context:    ctx,
 		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
 		Repository: user.NewRepository(gen.New(ste.pool)),
+	}
+}
+
+func (ste *SuiteFactory) NewView(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.ViewSuite {
+	t.Helper()
+
+	return testutilPersistence.ViewSuite{
+		Context:    ctx,
+		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
+		Repository: postgre.NewViewRepository(gen.New(ste.pool)),
 	}
 }

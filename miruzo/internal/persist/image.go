@@ -49,3 +49,8 @@ type ImageWithCursor[C ImageListCursor] struct {
 	Image  Image
 	Cursor C
 }
+
+type ImageWithStats struct {
+	Image
+	Stats Stats
+}
