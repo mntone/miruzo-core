@@ -11,18 +11,11 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
-
-func joinErrors(primary error, secondary error) error {
-	if secondary == nil {
-		return primary
-	}
-
-	return fmt.Errorf("%w (cleanup failed: %v)", primary, secondary)
-}
 
 type SuiteFactory struct {
 	pool     *pgxpool.Pool
@@ -41,7 +34,7 @@ func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
 		containerErr := container.Terminate(ctx)
 		return nil, fmt.Errorf(
 			"open postgre test pool: %w",
-			joinErrors(err, containerErr),
+			shared.JoinErrors(err, containerErr),
 		)
 	}
 
@@ -58,7 +51,7 @@ func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
 		closeErr := closeFn()
 		return nil, fmt.Errorf(
 			"run postgre migrations: %w",
-			joinErrors(err, closeErr),
+			shared.JoinErrors(err, closeErr),
 		)
 	}
 
