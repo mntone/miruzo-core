@@ -63,6 +63,7 @@ def _build_record() -> IngestRecord:
 		fingerprint='a' * 64,
 		ingested_at=datetime.now(timezone.utc),
 		captured_at=datetime.now(timezone.utc),
+		updated_at=datetime.now(timezone.utc),
 	)
 	record.image = image
 

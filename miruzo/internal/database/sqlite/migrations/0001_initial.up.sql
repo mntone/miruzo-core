@@ -1,36 +1,33 @@
 -- Create ingests table
 CREATE TABLE ingests(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
-		CONSTRAINT c_id
+		CONSTRAINT ck_ingests_id
 			CHECK (id >= 1 AND id <= 9007199254740991),
 	process INTEGER
-		CONSTRAINT c_process
+		CONSTRAINT ck_ingests_process
 			NOT NULL
 			CHECK (process IN (0, 1))
 			DEFAULT 0,
 	visibility INTEGER
-		CONSTRAINT c_visibility
+		CONSTRAINT ck_ingests_visibility
 			NOT NULL
 			CHECK (visibility IN (0, 1))
 			DEFAULT 0,
 	relative_path VARCHAR
-		CONSTRAINT c_relative_path
+		CONSTRAINT ck_ingests_relative_path
 			NOT NULL
 			CHECK (length(relative_path) >= 4 AND relative_path NOT LIKE '/%'),
-	fingerprint VARCHAR(64) NOT NULL,
+	fingerprint VARCHAR(64)
+		CONSTRAINT uq_ingests_fingerprint
+			NOT NULL
+			UNIQUE,
 	ingested_at DATETIME NOT NULL,
-	captured_at DATETIME
-		CONSTRAINT c_captured_at
-			NOT NULL
-			CHECK (captured_at <= ingested_at),
-	updated_at DATETIME
-		CONSTRAINT c_updated_at
-			NOT NULL
-			CHECK (updated_at >= ingested_at),
+	captured_at DATETIME NOT NULL CHECK (captured_at <= ingested_at),
+	updated_at  DATETIME NOT NULL CHECK (updated_at >= ingested_at),
 	executions JSON
-		CONSTRAINT c_executions
+		CONSTRAINT ck_ingests_executions
 			NOT NULL
-			CHECK (json_valid(executions) AND json_type(executions) = 'array')
+			CHECK (json_type(executions) IS 'array' AND json_array_length(executions) <= 5)
 			DEFAULT '[]',
 	UNIQUE (fingerprint)
 );
@@ -38,40 +35,41 @@ CREATE TABLE ingests(
 -- Create images table
 CREATE TABLE images(
 	ingest_id INTEGER
-		CONSTRAINT c_images_ingest_id
+		CONSTRAINT ck_images_ingest_id
 			PRIMARY KEY
 			REFERENCES ingests(id),
 	ingested_at DATETIME NOT NULL,
 	kind INTEGER
-		CONSTRAINT c_images_kind
+		CONSTRAINT ck_images_kind
 			NOT NULL
 			CHECK (kind IN (0, 1, 2, 3))
 			DEFAULT 0,
 	original JSON
-		CONSTRAINT c_original
+		CONSTRAINT ck_images_original
 			NOT NULL
-			CHECK (json_valid(original) AND json_type(original) = 'object'),
+			CHECK (json_type(original) IS 'object'),
 	fallback JSON
-		CONSTRAINT c_fallback
-			CHECK (json_valid(fallback) AND json_type(fallback) = 'object'),
+		CONSTRAINT ck_images_fallback
+			CHECK (fallback IS NULL OR json_type(fallback) IS 'object'),
 	variants JSON
-		CONSTRAINT c_variants
+		CONSTRAINT ck_images_variants
 			NOT NULL
-			CHECK (json_valid(variants) AND json_type(variants) = 'array')
+			CHECK (json_type(variants) IS 'array')
 );
 
 -- Create stats table
 CREATE TABLE stats(
 	ingest_id INTEGER
-		CONSTRAINT c_stats_ingest_id
+		CONSTRAINT ck_stats_ingest_id
 			PRIMARY KEY
-			REFERENCES ingests(id),
+			REFERENCES ingests(id)
+			ON DELETE CASCADE,
 	score INTEGER
-		CONSTRAINT c_score
+		CONSTRAINT ck_stats_score
 			NOT NULL
 			CHECK (score >= -32768 AND score <= 32767),
 	score_evaluated INTEGER
-		CONSTRAINT c_score_evaluated
+		CONSTRAINT ck_stats_score_evaluated
 			NOT NULL
 			CHECK (score_evaluated >= -32768 AND score_evaluated <= 32767),
 	score_evaluated_at DATETIME,
@@ -79,36 +77,34 @@ CREATE TABLE stats(
 	last_loved_at DATETIME,
 	hall_of_fame_at DATETIME,
 	last_viewed_at DATETIME
-		CONSTRAINT c_last_viewed_at
+		CONSTRAINT ck_stats_last_viewed_at
 			CHECK (
 				(view_count != 0 AND last_viewed_at IS NOT NULL)
 				OR
 				(view_count == 0 AND last_viewed_at IS NULL)
 			),
 	view_count INTEGER
-		CONSTRAINT c_view_count
-			NOT NULL
-			CHECK (view_count >= 0)
-			DEFAULT 0,
+		NOT NULL
+		CHECK (view_count >= 0)
+		DEFAULT 0,
 	view_milestone_count INTEGER
-		CONSTRAINT c_view_milestone_count
-			NOT NULL
-			CHECK (view_milestone_count >= 0 AND view_milestone_count <= view_count)
-			DEFAULT 0,
+		NOT NULL
+		CHECK (view_milestone_count >= 0 AND view_milestone_count <= view_count)
+		DEFAULT 0,
 	view_milestone_archived_at DATETIME
-		CONSTRAINT c_view_milestone_archived_at
+		CONSTRAINT ck_stats_view_milestone_archived_at
 			CHECK (
 				(view_milestone_count != 0 AND view_milestone_archived_at IS NOT NULL)
 				OR
 				(view_milestone_count == 0 AND view_milestone_archived_at IS NULL)
 			),
-	CONSTRAINT c_loved_at_pair
+	CONSTRAINT ck_stats_loved_at_pair
 		CHECK (
 			(first_loved_at IS NULL AND last_loved_at IS NULL)
 			OR
 			(first_loved_at IS NOT NULL AND last_loved_at IS NOT NULL)
 		),
-	CONSTRAINT c_loved_at_order
+	CONSTRAINT ck_stats_loved_at_order
 		CHECK (first_loved_at IS NULL OR first_loved_at <= last_loved_at)
 );
 
@@ -116,12 +112,12 @@ CREATE TABLE stats(
 CREATE TABLE actions(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	ingest_id INTEGER
-		CONSTRAINT c_actions_ingest_id
+		CONSTRAINT ck_actions_ingest_id
 			NOT NULL
 			REFERENCES ingests(id)
 			ON DELETE CASCADE,
 	kind INTEGER
-		CONSTRAINT c_actions_kind
+		CONSTRAINT ck_actions_kind
 			NOT NULL
 			CHECK (kind IN (0, 1, 11, 12, 13, 14, 15, 16))
 			DEFAULT 0,
@@ -131,11 +127,11 @@ CREATE TABLE actions(
 -- Create users table
 CREATE TABLE users(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
-		CONSTRAINT c_id
+		CONSTRAINT ck_users_id
 			NOT NULL
 			CHECK (id >= 1 AND id <= 32767),
 	daily_love_used SMALLINT
-		CONSTRAINT c_daily_love_used
+		CONSTRAINT ck_users_daily_love_used
 			NOT NULL
 			CHECK (daily_love_used >= 0 AND daily_love_used <= 32767)
 			DEFAULT 0

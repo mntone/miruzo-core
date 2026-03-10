@@ -41,7 +41,7 @@ def _make_ingest_record(
 ) -> IngestRecord:
 	current = datetime.now(timezone.utc)
 	ingested_at = ingested_at or current
-	captured_at = captured_at or current
+	captured_at = captured_at or ingested_at
 	return IngestRecord(
 		id=ingest_id,
 		process=process,
@@ -50,6 +50,7 @@ def _make_ingest_record(
 		fingerprint=f'{ingest_id:064d}',
 		ingested_at=ingested_at,
 		captured_at=captured_at,
+		updated_at=ingested_at,
 	)
 
 
