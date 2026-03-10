@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	ErrNotFound               = errors.New("not found")
 	ErrConflict               = errors.New("conflict")
 	ErrRecoverableConflict    = errors.New("recoverable conflict")
 	ErrUnavailable            = errors.New("unavailable")

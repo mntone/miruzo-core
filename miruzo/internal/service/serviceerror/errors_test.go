@@ -9,6 +9,13 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
+func TestMapPersistErrorMapsNotFound(t *testing.T) {
+	err := serviceerror.MapPersistError(fmt.Errorf("not found: %w", persist.ErrNotFound))
+	if !errors.Is(err, serviceerror.ErrNotFound) {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}
+
 func TestMapPersistErrorMapsTimeout(t *testing.T) {
 	err := serviceerror.MapPersistError(fmt.Errorf("query timeout: %w", persist.ErrTimeout))
 	if !errors.Is(err, serviceerror.ErrGatewayTimeout) {

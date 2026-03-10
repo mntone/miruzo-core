@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	ErrNotFound             = errors.New("not found")             // 404 Not Found
 	ErrConflict             = errors.New("conflict")              // 409 Conflict
 	ErrUnprocessableContent = errors.New("unprocessable content") // 422 Unprocessable Content
 
@@ -24,6 +25,9 @@ func MapPersistError(err error) error {
 	switch {
 	case errors.Is(err, context.Canceled):
 		return err
+
+	case errors.Is(err, persist.ErrNotFound):
+		return fmt.Errorf("%w: %v", ErrNotFound, err)
 
 	case errors.Is(err, persist.ErrConflict),
 		errors.Is(err, persist.ErrRecoverableConflict),

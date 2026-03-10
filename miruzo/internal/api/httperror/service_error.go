@@ -30,6 +30,13 @@ func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 	case errors.Is(err, context.Canceled):
 		return
 
+	case errors.Is(err, serviceerror.ErrNotFound):
+		_ = response.WriteJSONText(
+			responseWriter,
+			http.StatusNotFound,
+			"{\"type\":\"not_found\"}",
+		)
+
 	case errors.Is(err, serviceerror.ErrServiceUnavailable):
 		_ = response.WriteJSONText(
 			responseWriter,

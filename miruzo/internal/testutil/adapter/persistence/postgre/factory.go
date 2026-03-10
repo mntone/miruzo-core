@@ -9,6 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations"
@@ -139,6 +140,20 @@ func (ste *SuiteFactory) NewUser(
 		Context:    ctx,
 		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
 		Repository: user.NewRepository(gen.New(ste.pool)),
+	}
+}
+
+func (ste *SuiteFactory) NewStats(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.StatsSuite {
+	t.Helper()
+
+	return testutilPersistence.StatsSuite{
+		Context:        ctx,
+		Operations:     testutilPersistence.NewOperations(ctx, ste.testRepo),
+		Repository:     stats.NewRepository(gen.New(ste.pool)),
+		ViewRepository: postgre.NewViewRepository(gen.New(ste.pool)),
 	}
 }
 

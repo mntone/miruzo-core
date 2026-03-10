@@ -6,6 +6,7 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	database "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
@@ -25,6 +26,7 @@ func newPersistenceManager(db *sql.DB) persistenceManager {
 		repos: persist.Repositories{
 			Action:    action.NewRepository(queries),
 			ImageList: imagelist.NewRepository(queries),
+			Stats:     stats.NewRepository(queries),
 			User:      user.NewRepository(queries),
 			View:      NewViewRepository(queries),
 		},

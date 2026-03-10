@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	database "github.com/mntone/miruzo-core/miruzo/internal/database/postgre"
@@ -25,6 +26,7 @@ func newPersistenceManager(pool *pgxpool.Pool) persistenceManager {
 		repos: persist.Repositories{
 			Action:    action.NewRepository(queries),
 			ImageList: imagelist.NewRepository(queries),
+			Stats:     stats.NewRepository(queries),
 			User:      user.NewRepository(queries),
 			View:      NewViewRepository(queries),
 		},

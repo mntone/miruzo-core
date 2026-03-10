@@ -8,6 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/migrations"
@@ -57,6 +58,19 @@ func NewUserSuite(t *testing.T) persistence.UserSuite {
 		Context:    ctx,
 		Operations: persistence.NewOperations(ctx, newRepository(db)),
 		Repository: user.NewRepository(gen.New(db)),
+	}
+}
+
+func NewStatsSuite(t *testing.T) persistence.StatsSuite {
+	t.Helper()
+
+	ctx := context.Background()
+	db := setupDatabase(t, ctx)
+	return persistence.StatsSuite{
+		Context:        ctx,
+		Operations:     persistence.NewOperations(ctx, newRepository(db)),
+		Repository:     stats.NewRepository(gen.New(db)),
+		ViewRepository: sqlite.NewViewRepository(gen.New(db)),
 	}
 }
 

@@ -23,6 +23,22 @@ func TestWriteServiceErrorWritesNothingForCanceled(t *testing.T) {
 	}
 }
 
+func TestWriteServiceErrorReturnsNotFoundForNotFound(t *testing.T) {
+	responseRecorder := httptest.NewRecorder()
+
+	WriteServiceError(
+		responseRecorder,
+		fmt.Errorf("not found: %w", serviceerror.ErrNotFound),
+	)
+
+	if responseRecorder.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != "{\"type\":\"not_found\"}" {
+		t.Fatalf("unexpected body: %q", responseRecorder.Body.String())
+	}
+}
+
 func TestWriteServiceErrorReturnsConflictForConflict(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
