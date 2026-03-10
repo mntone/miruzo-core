@@ -6,7 +6,7 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
-	"github.com/mntone/miruzo-core/miruzo/internal/model/action"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
 type repository struct {
@@ -21,10 +21,10 @@ func NewRepository(queries *gen.Queries) repository {
 
 func (repo repository) CreateAction(
 	ctx context.Context,
-	ingestID int64,
-	kind action.ActionType,
+	ingestID model.IngestIDType,
+	kind model.ActionType,
 	occurredAt time.Time,
-) (action.ActionID, error) {
+) (model.ActionIDType, error) {
 	actionID, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
 		IngestID:   ingestID,
 		Kind:       int64(kind),

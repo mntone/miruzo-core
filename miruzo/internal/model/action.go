@@ -1,6 +1,6 @@
-package action
+package model
 
-type ActionID = int64
+type ActionIDType = int64
 
 type ActionType uint32
 

@@ -1,4 +1,6 @@
-package ingest
+package model
+
+type IngestIDType = int64
 
 type ProcessStatus uint8
 

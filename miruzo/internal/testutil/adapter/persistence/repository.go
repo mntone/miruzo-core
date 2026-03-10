@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
 	"github.com/samber/mo"
 )
@@ -11,7 +12,7 @@ import (
 type TestRepository interface {
 	CreateIngest(
 		ctx context.Context,
-		id int64,
+		id model.IngestIDType,
 		relativePath string,
 		fingerprint string,
 		ingestedAt time.Time,
@@ -20,7 +21,7 @@ type TestRepository interface {
 
 	CreateImage(
 		ctx context.Context,
-		id int64,
+		id model.IngestIDType,
 		ingestedAt time.Time,
 		original media.Variant,
 		fallback mo.Option[media.Variant],
@@ -29,9 +30,9 @@ type TestRepository interface {
 
 	CreateStat(
 		ctx context.Context,
-		id int64,
-		score int16,
-		scoreEvaluated int16,
+		id model.IngestIDType,
+		score model.ScoreType,
+		scoreEvaluated model.ScoreType,
 		lastViewedAt mo.Option[time.Time],
 		firstLovedAt mo.Option[time.Time],
 		lastLovedAt mo.Option[time.Time],

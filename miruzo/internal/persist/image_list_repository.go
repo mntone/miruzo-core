@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/samber/mo"
 )
 
@@ -13,8 +14,8 @@ type ImageListSpec[C ImageListCursor] struct {
 }
 
 type EngagedImageListSpec struct {
-	ImageListSpec[int16]
-	ScoreThreshold int16
+	ImageListSpec[model.ScoreType]
+	ScoreThreshold model.ScoreType
 }
 
 // ImageListRepository provides read operations for image list endpoints.
@@ -54,5 +55,5 @@ type ImageListRepository interface {
 	ListEngaged(
 		requestContext context.Context,
 		spec EngagedImageListSpec,
-	) ([]ImageWithCursor[int16], error)
+	) ([]ImageWithCursor[model.ScoreType], error)
 }

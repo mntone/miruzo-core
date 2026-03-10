@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/model/action"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
@@ -21,7 +21,7 @@ func (ste ActionSuite) RunTestCreateAction(t *testing.T) {
 	actionID, err := ste.Repository.CreateAction(
 		ste.Context,
 		ingest.ID,
-		action.ActionTypeView,
+		model.ActionTypeView,
 		suiteBaseTimeUTC.Add(2*time.Hour),
 	)
 	assert.NilError(t, "CreateAction() error", err)

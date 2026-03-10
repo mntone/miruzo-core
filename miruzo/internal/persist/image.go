@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
 	"github.com/samber/mo"
 	"golang.org/x/exp/constraints"
@@ -31,7 +32,7 @@ func ParseImageType[T constraints.Integer](value T) (ImageType, error) {
 }
 
 type Image struct {
-	IngestID   IngestID
+	IngestID   model.IngestIDType
 	IngestedAt time.Time
 	Type       ImageType
 
@@ -41,7 +42,7 @@ type Image struct {
 }
 
 type ImageListCursor interface {
-	~int16 | time.Time
+	~model.ScoreType | time.Time
 }
 
 type ImageWithCursor[C ImageListCursor] struct {

@@ -3,19 +3,17 @@ package persist
 import (
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/model/ingest"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
-type IngestID = int64
-
 type Ingest struct {
-	ID           IngestID
-	Process      ingest.ProcessStatus
-	Visibility   ingest.VisibilityStatus
+	ID           model.IngestIDType
+	Process      model.ProcessStatus
+	Visibility   model.VisibilityStatus
 	RelativePath string
 	Fingerprint  string
 	IngestedAt   time.Time
 	CapturedAt   time.Time
 	UpdatedAt    time.Time
-	Executions   []ingest.Execution
+	Executions   []model.Execution
 }

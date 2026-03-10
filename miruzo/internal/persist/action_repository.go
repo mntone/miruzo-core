@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/model/action"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
 type ActionRepository interface {
 	CreateAction(
 		ctx context.Context,
-		ingestID int64,
-		kind action.ActionType,
+		ingestID model.IngestIDType,
+		kind model.ActionType,
 		occurredAt time.Time,
-	) (action.ActionID, error)
+	) (model.ActionIDType, error)
 }

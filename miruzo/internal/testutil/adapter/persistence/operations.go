@@ -6,6 +6,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
@@ -46,7 +47,7 @@ func (ops Operations) MustAddIngest(t testing.TB, entry persist.Ingest) persist.
 }
 
 func createVariant(
-	id persist.IngestID,
+	id model.IngestIDType,
 	layerID media.LayerIDType,
 	format string,
 	width uint16,
@@ -98,7 +99,7 @@ func (ops Operations) MustAddIngestAndImage(t testing.TB, entry persist.Ingest) 
 	return entry
 }
 
-func (ops Operations) AddStat(entry persist.Stat) error {
+func (ops Operations) AddStat(entry persist.Stats) error {
 	return ops.repo.CreateStat(
 		ops.ctx,
 		entry.IngestID,
@@ -112,7 +113,7 @@ func (ops Operations) AddStat(entry persist.Stat) error {
 	)
 }
 
-func (ops Operations) MustAddStat(t testing.TB, entry persist.Stat) persist.Stat {
+func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Stats {
 	err := ops.AddStat(entry)
 	if err != nil {
 		t.Fatalf("add stat: %v", err)

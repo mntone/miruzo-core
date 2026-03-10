@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
 	"github.com/samber/mo"
 )
@@ -23,7 +24,7 @@ func newRepository(pool *pgxpool.Pool) repository {
 
 func (repo repository) CreateIngest(
 	ctx context.Context,
-	id int64,
+	id model.IngestIDType,
 	relativePath string,
 	fingerprint string,
 	ingestedAt time.Time,
@@ -45,7 +46,7 @@ func (repo repository) CreateIngest(
 
 func (repo repository) CreateImage(
 	ctx context.Context,
-	id int64,
+	id model.IngestIDType,
 	ingestedAt time.Time,
 	original media.Variant,
 	fallback mo.Option[media.Variant],
@@ -67,9 +68,9 @@ func (repo repository) CreateImage(
 
 func (repo repository) CreateStat(
 	ctx context.Context,
-	id int64,
-	score int16,
-	scoreEvaluated int16,
+	id model.IngestIDType,
+	score model.ScoreType,
+	scoreEvaluated model.ScoreType,
 	lastViewedAt mo.Option[time.Time],
 	firstLovedAt mo.Option[time.Time],
 	lastLovedAt mo.Option[time.Time],

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 	"github.com/samber/mo"
@@ -15,7 +16,7 @@ func assertRowsIngestIDs[C persist.ImageListCursor](
 	t *testing.T,
 	rows []persist.ImageWithCursor[C],
 	rowsName string,
-	want ...persist.IngestID,
+	want ...model.IngestIDType,
 ) {
 	t.Helper()
 
@@ -56,7 +57,7 @@ func assertLastRowInt16CursorEquals(
 func assertRowsExcludeIngestID[C persist.ImageListCursor](
 	t *testing.T,
 	rows []persist.ImageWithCursor[C],
-	disallowedID persist.IngestID,
+	disallowedID model.IngestIDType,
 ) {
 	t.Helper()
 

@@ -5,29 +5,30 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursor[int16], error) {
+func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursor[model.ScoreType], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesEngagedRow) gen.Image {
 			return row.Image
 		},
-		func(row gen.ListImagesEngagedRow) int16 {
-			return int16(row.ScoreEvaluated)
+		func(row gen.ListImagesEngagedRow) model.ScoreType {
+			return model.ScoreType(row.ScoreEvaluated)
 		},
 	)
 }
 
-func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageWithCursor[int16], error) {
+func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageWithCursor[model.ScoreType], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesEngagedAfterRow) gen.Image {
 			return row.Image
 		},
-		func(row gen.ListImagesEngagedAfterRow) int16 {
-			return int16(row.ScoreEvaluated)
+		func(row gen.ListImagesEngagedAfterRow) model.ScoreType {
+			return model.ScoreType(row.ScoreEvaluated)
 		},
 	)
 }

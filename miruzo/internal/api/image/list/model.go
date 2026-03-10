@@ -2,10 +2,10 @@ package list
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
 type ImageListModel struct {
-	IngestID persist.IngestID `json:"id"`
+	IngestID model.IngestIDType `json:"id"`
 	variant.VariantLayersModel
 }

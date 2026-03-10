@@ -12,7 +12,7 @@ sql:
         overrides:
         - column: "ingests.executions"
           go_type:
-            import: github.com/mntone/miruzo-core/miruzo/internal/model/ingest
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
             type: Execution
         - column: "images.original"
           go_type:

@@ -4,30 +4,30 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/model/ingest"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
 func NewIngestFixtureWithCapturedAt(
-	id persist.IngestID,
+	id model.IngestIDType,
 	ingestedAt time.Time,
 	capturedAt time.Time,
 ) persist.Ingest {
 	return persist.Ingest{
 		ID:           id,
-		Process:      ingest.ProcessStatusProcessing,
-		Visibility:   ingest.VisibilityStatusPrivate,
+		Process:      model.ProcessStatusProcessing,
+		Visibility:   model.VisibilityStatusPrivate,
 		RelativePath: fmt.Sprintf("orig/%d.png", id),
 		Fingerprint:  fmt.Sprintf("%064d", id),
 		IngestedAt:   ingestedAt,
 		CapturedAt:   capturedAt,
 		UpdatedAt:    ingestedAt,
-		Executions:   []ingest.Execution{},
+		Executions:   []model.Execution{},
 	}
 }
 
-func NewIngestFixture(id persist.IngestID, ingestedAt time.Time) persist.Ingest {
+func NewIngestFixture(id model.IngestIDType, ingestedAt time.Time) persist.Ingest {
 	return NewIngestFixtureWithCapturedAt(
 		id,
 		ingestedAt,
@@ -39,8 +39,8 @@ func DefaultIngestFixture(ingestedAt time.Time) persist.Ingest {
 	return NewIngestFixture(0, ingestedAt)
 }
 
-func NewStatFixture(id persist.IngestID) persist.Stat {
-	return persist.Stat{
+func NewStatFixture(id model.IngestIDType) persist.Stats {
+	return persist.Stats{
 		IngestID:         id,
 		Score:            100,
 		ScoreEvaluated:   100,
@@ -58,10 +58,10 @@ func NewStatFixture(id persist.IngestID) persist.Stat {
 }
 
 func NewStatFixtureWithScore(
-	id persist.IngestID,
+	id model.IngestIDType,
 	score int16,
 	scoreEvaluatedAt time.Time,
-) persist.Stat {
+) persist.Stats {
 	entry := NewStatFixture(id)
 	entry.Score = score
 	entry.ScoreEvaluated = score
@@ -70,10 +70,10 @@ func NewStatFixtureWithScore(
 }
 
 func NewStatFixtureWithLastViewedAt(
-	id persist.IngestID,
+	id model.IngestIDType,
 	viewCount int64,
 	lastViewedAt time.Time,
-) persist.Stat {
+) persist.Stats {
 	entry := NewStatFixture(id)
 	entry.ViewCount = viewCount
 	entry.LastViewedAt = mo.Some(lastViewedAt)
@@ -81,9 +81,9 @@ func NewStatFixtureWithLastViewedAt(
 }
 
 func NewStatFixtureWithLastLovedAt(
-	id persist.IngestID,
+	id model.IngestIDType,
 	lastLovedAt time.Time,
-) persist.Stat {
+) persist.Stats {
 	entry := NewStatFixture(id)
 	entry.FirstLovedAt = mo.Some(lastLovedAt.Add(-24 * time.Hour))
 	entry.LastLovedAt = mo.Some(lastLovedAt)
@@ -91,9 +91,9 @@ func NewStatFixtureWithLastLovedAt(
 }
 
 func NewStatFixtureWithHallOfFameAt(
-	id persist.IngestID,
+	id model.IngestIDType,
 	hallOfFameAt time.Time,
-) persist.Stat {
+) persist.Stats {
 	entry := NewStatFixture(id)
 	entry.HallOfFameAt = mo.Some(hallOfFameAt)
 	return entry
