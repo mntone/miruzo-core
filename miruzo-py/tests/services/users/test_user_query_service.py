@@ -21,23 +21,20 @@ def test_get_quota_returns_remaining_and_reset_at(monkeypatch: pytest.MonkeyPatc
 	user_repo = StubUserRepository()
 	user_repo.users[user.id] = user
 
+	resolver = DailyPeriodResolver(
+		base_timezone=ZoneInfo('UTC'),
+		daily_reset_at=time(5, 0),
+	)
 	service = UserQueryService(
 		repository=user_repo,
 		daily_love_limit=10,
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		period_resolver=resolver,
 	)
 
 	response = service.get_quota()
 	assert user_repo.get_called_with == [1]
 	assert response.love.period == 'daily'
-	assert response.love.reset_at == resolve_daily_period_start(
-		current,
-		daily_reset_at=time(5, 0),
-		base_timezone=ZoneInfo('UTC'),
-	)
+	assert response.love.reset_at == resolver.resolve_period_end(current)
 	assert response.love.limit == 10
 	assert response.love.remaining == 7
 
