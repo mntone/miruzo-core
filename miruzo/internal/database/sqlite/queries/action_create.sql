@@ -1,7 +1,6 @@
--- name: CreateAction :one
+-- name: CreateAction :execlastid
 INSERT INTO actions(
 	ingest_id,
 	kind,
 	occurred_at
-) VALUES(?, ?, ?)
-RETURNING id;
+) VALUES(?, ?, ?);
