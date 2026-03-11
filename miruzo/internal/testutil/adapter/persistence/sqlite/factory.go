@@ -11,7 +11,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/migrations"
+	migrations "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/migrations_min"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
 

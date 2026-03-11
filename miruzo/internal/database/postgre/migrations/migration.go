@@ -1,3 +1,5 @@
+//go:generate go run ../../../../../tools/sql_minify/main.go ../migrations ../migrations_min --dialect=postgre
+
 package migrations
 
 import (

@@ -2,4 +2,5 @@
 bin/
 dist/
 internal/database/*/gen/
+internal/database/*/migrations_min/
 tmp/

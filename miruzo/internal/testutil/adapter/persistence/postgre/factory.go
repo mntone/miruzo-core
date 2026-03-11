@@ -13,7 +13,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations"
+	migrations "github.com/mntone/miruzo-core/miruzo/internal/database/postgre/migrations_min"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
 
