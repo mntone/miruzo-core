@@ -53,7 +53,7 @@ def test_make_score_context_marks_view_before_period() -> None:
 		1,
 		last_viewed_at=datetime(2024, 1, 1, 4, 0, tzinfo=timezone.utc),
 	)
-	evaluated_at = datetime(2024, 1, 2, 4, 0, tzinfo=timezone.utc)
+	evaluated_at = datetime(2024, 1, 2, 3, 0, tzinfo=timezone.utc)
 
 	context = make_score_context(
 		stats=stats,

@@ -21,7 +21,9 @@ def make_score_context(
 			f'last_viewed_at ({last_viewed_at}) is later than evaluated_at ({evaluated_at})',
 		)
 	else:
-		days_since_last_view = (evaluated_at - last_viewed_at).days
+		days_since_last_view = (
+			resolver.resolve_period_start(evaluated_at) - resolver.resolve_period_start(last_viewed_at)
+		).days
 
 	has_view_today = resolver.is_since_period_start(
 		stats.last_viewed_at,
