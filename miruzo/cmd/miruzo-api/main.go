@@ -28,8 +28,6 @@ func main() {
 	mux := http.NewServeMux()
 	app.MountAPI(mux, factory, cfg, version)
 
-	// mux.HandleFunc("GET /api/i/{ingest_id}", handler.GetLatestImagesHandler)
-
 	httpServer := server.NewHTTPServer(
 		m.RequestLog(mux),
 		cfg.Server,

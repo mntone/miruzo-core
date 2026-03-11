@@ -5,15 +5,34 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api"
 	healthAPI "github.com/mntone/miruzo-core/miruzo/internal/api/health"
+	imageItemAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/item"
 	imageListAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/list"
 	quotaAPI "github.com/mntone/miruzo-core/miruzo/internal/api/quota"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/score"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	imageListService "github.com/mntone/miruzo-core/miruzo/internal/service/imagelist"
 	userService "github.com/mntone/miruzo-core/miruzo/internal/service/user"
+	viewService "github.com/mntone/miruzo-core/miruzo/internal/service/view"
 )
+
+func buildScoreCalculator(
+	dailyResolver period.DailyResolver,
+	cfg config.ScoreConfig,
+) score.Calculator {
+	return score.New(
+		dailyResolver,
+		cfg.ViewBonusAtFirst,
+		cfg.ViewBonusByDays,
+		cfg.ViewBonusFallback,
+		cfg.MemoBonus,
+		cfg.MemoPenalty,
+		cfg.LoveBonus,
+		cfg.LovePenalty,
+	)
+}
 
 func MountAPI(
 	mux *http.ServeMux,
@@ -21,22 +40,29 @@ func MountAPI(
 	cfg config.AppConfig,
 	version string,
 ) {
-	imageListBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
+	readBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
 	imageListService := imageListService.New(
 		manager.Repos().ImageList,
-		imageListBackoff,
+		readBackoff,
 		cfg.Score.EngagedScoreThreshold,
 	)
+	mediaURLBuilder := variant.NewMediaURLBuilder(cfg.API.MediaPublic)
 	imageListHandler := imageListAPI.NewHandler(
 		imageListService,
 		cfg.API.VariantLayers,
-		variant.NewMediaURLBuilder(cfg.API.MediaPublic),
+		mediaURLBuilder,
 	)
 	imageListAPI.RegisterRoutes(mux, imageListHandler)
 
+	dailyResolver := period.NewDailyResolver(cfg.Period.DayStartOffset)
+	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
+	viewService := viewService.New(manager, readBackoff, scoreCalculator, cfg.View.Milestones)
+	imageItemHandler := imageItemAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
+	imageItemAPI.RegisterRoutes(mux, imageItemHandler)
+
 	userService := userService.New(
 		manager.Repos().User,
-		period.NewDailyResolver(cfg.Period.DayStartOffset),
+		dailyResolver,
 		cfg.Quota.DailyLoveLimit,
 	)
 	quotaHandler := quotaAPI.NewHandler(userService)

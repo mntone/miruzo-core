@@ -7,6 +7,7 @@ type AppConfig struct {
 	Quota    QuotaConfig    `mapstructure:"quota"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Score    ScoreConfig    `mapstructure:"score"`
+	View     ViewConfig     `mapstructure:"view"`
 }
 
 func DefaultAppConfig() AppConfig {
@@ -17,5 +18,6 @@ func DefaultAppConfig() AppConfig {
 		Quota:    DefaultQuotaConfig(),
 		Server:   DefaultServerConfig(),
 		Score:    DefaultScoreConfig(),
+		View:     DefaultViewConfig(),
 	}
 }
