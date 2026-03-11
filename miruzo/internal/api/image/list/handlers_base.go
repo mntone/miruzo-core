@@ -19,22 +19,12 @@ func (hdl *handler) listBase(
 		params *imagelist.Params[time.Time],
 	) (imagelist.Result[time.Time], error),
 ) {
-	qry, fieldErrors := bindQueryWithTimeCursor(req.URL.Query())
-	if len(fieldErrors) != 0 {
+	params, fieldError := bindParamsForTimeCursor(req.URL.Query())
+	if fieldError != nil {
 		response.WriteJSON(
 			responseWriter,
 			http.StatusBadRequest,
-			apierror.NewValidationError(fieldErrors),
-		)
-		return
-	}
-
-	params, fieldErrors := buildTimeParamsFromQuery(qry)
-	if len(fieldErrors) != 0 {
-		response.WriteJSON(
-			responseWriter,
-			http.StatusBadRequest,
-			apierror.NewValidationError(fieldErrors),
+			apierror.NewValidationError(fieldError),
 		)
 		return
 	}

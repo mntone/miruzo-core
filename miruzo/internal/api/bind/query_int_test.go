@@ -1,73 +1,69 @@
 package bind
 
 import (
-	"net/url"
 	"testing"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-func TestParseIntQueryWithDefaultReturnsDefaultWhenMissing(t *testing.T) {
-	query := url.Values{}
-	defaultValue := int16(-12)
-
-	parsedValue, errs := ParseIntQueryWithDefault(query, "offset", defaultValue)
-	if len(errs) != 0 {
-		t.Fatalf("expected no errors, got %v", errs)
-	}
-	if parsedValue != defaultValue {
-		t.Fatalf("expected %d, got %d", defaultValue, parsedValue)
-	}
+func TestBindIntQueryReturnsValidValue(t *testing.T) {
+	got, err := BindIntQuery[int]("key", []string{"-42"})
+	assert.Nil(t, "BindIntQuery() error", err)
+	assert.Equal(t, "BindIntQuery()", got, -42)
 }
 
-func TestParseIntQueryWithDefaultParsesValidValue(t *testing.T) {
-	query := url.Values{
-		"offset": []string{"-42"},
+func TestBindIntQueryReturnsError(t *testing.T) {
+	tests := []struct {
+		name         string
+		values       []string
+		errorType    string
+		errorMessage string
+	}{
+		{
+			name:         "Empty",
+			values:       []string{},
+			errorType:    "invalid",
+			errorMessage: "must not be empty",
+		},
+		{
+			name:         "Duplicate",
+			values:       []string{"20", "40"},
+			errorType:    "duplicate",
+			errorMessage: "must not be specified multiple times",
+		},
+		{
+			name:         "String",
+			values:       []string{"abc"},
+			errorType:    "invalid",
+			errorMessage: "must be an integer",
+		},
+		{
+			name:         "TooSmall",
+			values:       []string{"-129"},
+			errorType:    "invalid",
+			errorMessage: "must be an integer",
+		},
+		{
+			name:         "TooLarge",
+			values:       []string{"128"},
+			errorType:    "invalid",
+			errorMessage: "must be an integer",
+		},
+		{
+			name:         "FloatingPoint",
+			values:       []string{"12.3"},
+			errorType:    "invalid",
+			errorMessage: "must be an integer",
+		},
 	}
 
-	parsedValue, errs := ParseIntQueryWithDefault[int16](query, "offset", 0)
-	if len(errs) != 0 {
-		t.Fatalf("expected no errors, got %v", errs)
-	}
-	if parsedValue != -42 {
-		t.Fatalf("expected -42, got %d", parsedValue)
-	}
-}
-
-func TestParseIntQueryWithDefaultReturnsValidationErrorWhenInvalid(t *testing.T) {
-	query := url.Values{
-		"offset": []string{"12.3"},
-	}
-
-	_, errs := ParseIntQueryWithDefault[int16](query, "offset", 0)
-	if len(errs) != 1 {
-		t.Fatalf("expected a single error, got %v", errs)
-	}
-	if errs[0].Path != "query.offset" {
-		t.Fatalf("unexpected path: %s", errs[0].Path)
-	}
-	if errs[0].Type != "invalid_type" {
-		t.Fatalf("unexpected type: %s", errs[0].Type)
-	}
-	if errs[0].Message != "offset must be an integer" {
-		t.Fatalf("unexpected message: %s", errs[0].Message)
-	}
-}
-
-func TestParseIntQueryWithDefaultReturnsValidationErrorWhenOutOfRange(t *testing.T) {
-	query := url.Values{
-		"offset": []string{"200"},
-	}
-
-	_, errs := ParseIntQueryWithDefault[int8](query, "offset", 0)
-	if len(errs) != 1 {
-		t.Fatalf("expected a single error, got %v", errs)
-	}
-	if errs[0].Path != "query.offset" {
-		t.Fatalf("unexpected path: %s", errs[0].Path)
-	}
-	if errs[0].Type != "invalid_type" {
-		t.Fatalf("unexpected type: %s", errs[0].Type)
-	}
-	if errs[0].Message != "offset must be an integer" {
-		t.Fatalf("unexpected message: %s", errs[0].Message)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := BindIntQuery[int8]("key", tt.values)
+			assert.NotNil(t, "BindIntQuery() error", err)
+			assert.Equal(t, "BindIntQuery().Type", err.Type, tt.errorType)
+			assert.Equal(t, "BindIntQuery().Path", err.Path, "query.key")
+			assert.Equal(t, "BindIntQuery().Message", err.Message, tt.errorMessage)
+		})
 	}
 }

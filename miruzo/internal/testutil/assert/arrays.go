@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func NilArray[T any](t *testing.T, name string, val []T) {
+	t.Helper()
+	if val != nil {
+		t.Fatalf("%s = \"%v\", want nil", name, val)
+	}
+}
+
 func rlen(val any) int {
 	v := reflect.ValueOf(val)
 	if !v.IsValid() {

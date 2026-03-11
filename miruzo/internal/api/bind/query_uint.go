@@ -1,7 +1,6 @@
 package bind
 
 import (
-	"net/url"
 	"strconv"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
@@ -26,25 +25,24 @@ func bitSizeOfUnsignedInteger[T constraints.Unsigned]() int {
 	}
 }
 
-func ParseUintQueryWithDefault[T constraints.Unsigned](
-	queryValues url.Values,
-	queryName string,
-	defaultValue T,
-) (T, []apierror.FieldError) {
-	text := queryValues.Get(queryName)
-	if text == "" {
-		return defaultValue, nil
+func BindUintQuery[U constraints.Unsigned](
+	key string,
+	values []string,
+) (U, *apierror.FieldError) {
+	text, fieldError := validateSingleValue(key, values)
+	if fieldError != nil {
+		return 0, fieldError
 	}
 
-	bitSize := bitSizeOfUnsignedInteger[T]()
+	bitSize := bitSizeOfUnsignedInteger[U]()
 	parsedValue64, parseError := strconv.ParseUint(text, 10, bitSize)
 	if parseError != nil {
-		return 0, []apierror.FieldError{{
-			Path:    "query." + queryName,
-			Type:    "invalid_type",
-			Message: queryName + " must be an integer",
-		}}
+		return 0, &apierror.FieldError{
+			Type:    apierror.FieldErrorTypeInvalid,
+			Path:    "query." + key,
+			Message: "must be an integer",
+		}
 	}
 
-	return T(parsedValue64), nil
+	return U(parsedValue64), nil
 }

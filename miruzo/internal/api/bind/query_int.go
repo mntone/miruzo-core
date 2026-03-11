@@ -1,55 +1,30 @@
 package bind
 
 import (
-	"net/url"
 	"strconv"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
-	"github.com/samber/mo"
 	"golang.org/x/exp/constraints"
 )
 
-func ParseIntQuery[T constraints.Signed](
-	queryValues url.Values,
-	queryName string,
-) (mo.Option[T], []apierror.FieldError) {
-	text := queryValues.Get(queryName)
-	if text == "" {
-		return mo.None[T](), nil
+func BindIntQuery[I constraints.Signed](
+	key string,
+	values []string,
+) (I, *apierror.FieldError) {
+	text, fieldError := validateSingleValue(key, values)
+	if fieldError != nil {
+		return 0, fieldError
 	}
 
-	bitSize := bitSizeOfSignedInteger[T]()
+	bitSize := bitSizeOfSignedInteger[I]()
 	parsedValue64, parseError := strconv.ParseInt(text, 10, bitSize)
 	if parseError != nil {
-		return mo.None[T](), []apierror.FieldError{{
-			Path:    "query." + queryName,
-			Type:    "invalid_type",
-			Message: queryName + " must be an integer",
-		}}
+		return 0, &apierror.FieldError{
+			Type:    apierror.FieldErrorTypeInvalid,
+			Path:    "query." + key,
+			Message: "must be an integer",
+		}
 	}
 
-	return mo.Some(T(parsedValue64)), nil
-}
-
-func ParseIntQueryWithDefault[T constraints.Signed](
-	queryValues url.Values,
-	queryName string,
-	defaultValue T,
-) (T, []apierror.FieldError) {
-	text := queryValues.Get(queryName)
-	if text == "" {
-		return defaultValue, nil
-	}
-
-	bitSize := bitSizeOfSignedInteger[T]()
-	parsedValue64, parseError := strconv.ParseInt(text, 10, bitSize)
-	if parseError != nil {
-		return 0, []apierror.FieldError{{
-			Path:    "query." + queryName,
-			Type:    "invalid_type",
-			Message: queryName + " must be an integer",
-		}}
-	}
-
-	return T(parsedValue64), nil
+	return I(parsedValue64), nil
 }

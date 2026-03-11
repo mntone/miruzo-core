@@ -1,56 +1,52 @@
 package bind
 
 import (
-	"net/url"
 	"testing"
 	"time"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-func TestParseTimeQueryWithDefaultReturnsDefaultWhenMissing(t *testing.T) {
-	query := url.Values{}
-	defaultValue := time.Date(2026, 3, 2, 1, 2, 3, 400000000, time.UTC)
-
-	parsedValue, errs := ParseTimeQueryWithDefault(query, "cursor", defaultValue)
-	if len(errs) != 0 {
-		t.Fatalf("expected no errors, got %v", errs)
-	}
-	if !parsedValue.Equal(defaultValue) {
-		t.Fatalf("expected %v, got %v", defaultValue, parsedValue)
-	}
+func TestBindTimeQueryReturnsValidValue(t *testing.T) {
+	got, err := BindTimeQuery("cursor", []string{"2026-03-02T10:20:30.123456Z"})
+	assert.Nil(t, "BindTimeQuery() error", err)
+	assert.EqualFn(t, "BindTimeQuery()", got, time.Date(2026, 3, 2, 10, 20, 30, 123456000, time.UTC))
 }
 
-func TestParseTimeQueryWithDefaultParsesValidValue(t *testing.T) {
-	query := url.Values{
-		"cursor": []string{"2026-03-02T10:20:30.123456Z"},
+func TestBindTimeQueryReturnsError(t *testing.T) {
+	tests := []struct {
+		name         string
+		values       []string
+		errorType    string
+		errorMessage string
+	}{
+		{
+			name:         "Empty",
+			values:       []string{},
+			errorType:    "invalid",
+			errorMessage: "must not be empty",
+		},
+		{
+			name:         "Duplicate",
+			values:       []string{"2026-03-02T10:20:30.123456Z", "2026-03-02T10:20:30.123456Z"},
+			errorType:    "duplicate",
+			errorMessage: "must not be specified multiple times",
+		},
+		{
+			name:         "Invalid",
+			values:       []string{"not-a-time"},
+			errorType:    "invalid",
+			errorMessage: "must be ISO8601 timestamp",
+		},
 	}
-	expected := time.Date(2026, 3, 2, 10, 20, 30, 123456000, time.UTC)
 
-	parsedValue, errs := ParseTimeQueryWithDefault(query, "cursor", time.Time{})
-	if len(errs) != 0 {
-		t.Fatalf("expected no errors, got %v", errs)
-	}
-	if !parsedValue.Equal(expected) {
-		t.Fatalf("expected %v, got %v", expected, parsedValue)
-	}
-}
-
-func TestParseTimeQueryWithDefaultReturnsValidationErrorWhenInvalid(t *testing.T) {
-	query := url.Values{
-		"cursor": []string{"not-a-time"},
-	}
-
-	_, errs := ParseTimeQueryWithDefault(query, "cursor", time.Time{})
-	if len(errs) != 1 {
-		t.Fatalf("expected a single error, got %v", errs)
-	}
-	if errs[0].Path != "query.cursor" {
-		t.Fatalf("unexpected path: %s", errs[0].Path)
-	}
-	if errs[0].Type != "invalid_type" {
-		t.Fatalf("unexpected type: %s", errs[0].Type)
-	}
-	expectedMessage := "cursor must be a UTC timestamp in the format 2006-01-02T15:04:05.999999Z"
-	if errs[0].Message != expectedMessage {
-		t.Fatalf("unexpected message: %s", errs[0].Message)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := BindTimeQuery("cursor", tt.values)
+			assert.NotNil(t, "BindTimeQuery() error", err)
+			assert.Equal(t, "BindTimeQuery().Type", err.Type, tt.errorType)
+			assert.Equal(t, "BindTimeQuery().Path", err.Path, "query.cursor")
+			assert.Equal(t, "BindTimeQuery().Message", err.Message, tt.errorMessage)
+		})
 	}
 }

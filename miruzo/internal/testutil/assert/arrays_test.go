@@ -6,6 +6,13 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
+func TestNilArray(t *testing.T) {
+	requirePass(t, "nil", func(t *testing.T) {
+		var a []int = nil
+		assert.NilArray(t, "f()", a)
+	})
+}
+
 func TestNotEmpty(t *testing.T) {
 	requirePass(t, "slice", func(t *testing.T) {
 		assert.NotEmpty(t, "slice", []int{1})
