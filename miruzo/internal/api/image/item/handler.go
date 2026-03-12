@@ -2,7 +2,6 @@ package item
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/bind"
@@ -32,39 +31,21 @@ func NewHandler(
 	}
 }
 
-func parseLevel(qry url.Values) (bool, []apierror.FieldError) {
-	if !qry.Has("level") {
-		return false, nil
-	}
-
-	switch qry.Get("level") {
-	case "rich":
-		return true, nil
-	case "default":
-		return false, nil
-	}
-	return false, []apierror.FieldError{{
-		Path:    "query.level",
-		Type:    "invalid_value",
-		Message: "level must be \"default\" or \"rich\"",
-	}}
-}
-
 func (hdl *handler) getContext(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {
-	ingestID, fieldErrors := bind.ParseIntPath[model.IngestIDType](req, "ingest_id")
-	if fieldErrors != nil {
+	ingestID, fieldError := bind.BindIntPath[model.IngestIDType](req, "ingest_id")
+	if fieldError != nil {
 		response.WriteJSON(
 			responseWriter,
 			http.StatusBadRequest,
-			apierror.NewValidationError(fieldErrors),
+			apierror.NewValidationErrorFromPointer(fieldError),
 		)
 		return
 	}
 
-	rich, fieldErrors := parseLevel(req.URL.Query())
+	rich, fieldErrors := bindParams(req.URL.Query())
 	if fieldErrors != nil {
 		response.WriteJSON(
 			responseWriter,

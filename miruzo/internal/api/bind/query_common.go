@@ -4,7 +4,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
 )
 
-func validateSingleValue(
+func ValidateSingleValue(
 	key string,
 	values []string,
 ) (string, *apierror.FieldError) {

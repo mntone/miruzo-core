@@ -12,7 +12,7 @@ func BindTimeQuery(
 	key string,
 	values []string,
 ) (time.Time, *apierror.FieldError) {
-	text, fieldError := validateSingleValue(key, values)
+	text, fieldError := ValidateSingleValue(key, values)
 	if fieldError != nil {
 		return time.Time{}, fieldError
 	}

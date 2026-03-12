@@ -29,7 +29,7 @@ func BindUintQuery[U constraints.Unsigned](
 	key string,
 	values []string,
 ) (U, *apierror.FieldError) {
-	text, fieldError := validateSingleValue(key, values)
+	text, fieldError := ValidateSingleValue(key, values)
 	if fieldError != nil {
 		return 0, fieldError
 	}

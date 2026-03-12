@@ -8,28 +8,28 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func ParseIntPath[T constraints.Signed](
+func BindIntPath[S constraints.Signed](
 	request *http.Request,
 	pathName string,
-) (T, []apierror.FieldError) {
+) (S, *apierror.FieldError) {
 	text := request.PathValue(pathName)
 	if text == "" {
-		return T(0), []apierror.FieldError{{
+		return 0, &apierror.FieldError{
+			Type:    apierror.FieldErrorTypeRequired,
 			Path:    "path." + pathName,
-			Type:    "missing",
-			Message: pathName + " is required",
-		}}
+			Message: "is required",
+		}
 	}
 
-	bitSize := bitSizeOfSignedInteger[T]()
+	bitSize := bitSizeOfSignedInteger[S]()
 	parsedValue64, parseError := strconv.ParseInt(text, 10, bitSize)
 	if parseError != nil {
-		return T(0), []apierror.FieldError{{
+		return 0, &apierror.FieldError{
+			Type:    apierror.FieldErrorTypeInvalid,
 			Path:    "path." + pathName,
-			Type:    "invalid_type",
-			Message: pathName + " must be an integer",
-		}}
+			Message: "must be an integer",
+		}
 	}
 
-	return T(parsedValue64), nil
+	return S(parsedValue64), nil
 }

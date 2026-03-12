@@ -11,7 +11,7 @@ func BindIntQuery[I constraints.Signed](
 	key string,
 	values []string,
 ) (I, *apierror.FieldError) {
-	text, fieldError := validateSingleValue(key, values)
+	text, fieldError := ValidateSingleValue(key, values)
 	if fieldError != nil {
 		return 0, fieldError
 	}

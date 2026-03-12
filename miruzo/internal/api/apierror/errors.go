@@ -6,6 +6,7 @@ const (
 	fieldErrorTypeUnsupported string = "unsupported"
 	FieldErrorTypeDuplicate   string = "duplicate"
 	FieldErrorTypeInvalid     string = "invalid"
+	FieldErrorTypeRequired    string = "required"
 )
 
 type FieldError struct {
@@ -46,4 +47,12 @@ type ValidationError struct {
 
 func NewValidationError(fieldErrors []FieldError) ValidationError {
 	return ValidationError{Errors: fieldErrors}
+}
+
+func NewValidationErrorFromPointer(fieldError *FieldError) ValidationError {
+	return ValidationError{
+		Errors: []FieldError{
+			*fieldError,
+		},
+	}
 }
