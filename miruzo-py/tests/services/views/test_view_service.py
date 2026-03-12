@@ -59,7 +59,6 @@ def test_get_context_returns_summary_and_stats() -> None:
 	assert image_repo.one_called_with == image.ingest_id
 	assert stats_repo.get_or_create_called_with == image.ingest_id
 	assert stats_repo.get_or_create_initial_score == env.score.initial_score
-	assert action_repo.select_called_with == image.ingest_id
 	assert session.begin_called == 1
 
 	assert result is not None
@@ -67,9 +66,10 @@ def test_get_context_returns_summary_and_stats() -> None:
 	assert result.image.id == image.ingest_id
 	assert result.stats is not None
 	assert result.stats.view_count == 1
-	assert result.actions is not None
-	assert len(result.actions) == 1
-	assert result.actions[0].type == ActionKind.VIEW.name.lower()
+
+	assert action_repo.actions is not None
+	assert len(action_repo.actions) == 1
+	assert action_repo.actions[0].kind == ActionKind.VIEW
 
 
 def test_get_context_returns_rich_when_requested() -> None:

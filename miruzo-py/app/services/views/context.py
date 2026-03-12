@@ -89,8 +89,6 @@ class ContextService:
 						stats.view_milestone_count = milestone
 						stats.view_milestone_archived_at = current
 
-		actions = self._action_repo.select_by_ingest_id(ingest_id)
-
 		image_response: ImageSummaryModel | ImageRichModel
 		match query.level:
 			case 'default':
@@ -103,7 +101,6 @@ class ContextService:
 
 		response = ContextResponse.from_record(
 			image=image_response,
-			actions=[ActionModel.from_record(action) for action in actions],
 			stats=StatsModel.from_record(stats),
 		)
 

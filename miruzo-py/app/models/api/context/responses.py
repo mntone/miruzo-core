@@ -27,16 +27,6 @@ class ContextResponse(BaseModel):
 	]
 	"""metadata for the requested image"""
 
-	actions: Annotated[
-		Sequence[ActionModel],
-		Field(
-			title='Actions',
-			description='all actions',
-			min_length=1,
-		),
-	]
-	"""all actions"""
-
 	stats: Annotated[
 		StatsModel | None,
 		Field(
@@ -51,11 +41,9 @@ class ContextResponse(BaseModel):
 	def from_record(
 		cls,
 		image: ImageSummaryModel | ImageRichModel,
-		actions: Sequence[ActionModel],
 		stats: StatsModel,
 	) -> 'ContextResponse':
 		return cls(
 			image=image,
-			actions=actions,
 			stats=stats,
 		)
