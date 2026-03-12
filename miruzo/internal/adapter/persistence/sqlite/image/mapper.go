@@ -5,11 +5,12 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
 func MapImage(r gen.Image) (persist.Image, error) {
-	imageType, err := persist.ParseImageType(r.Kind)
+	imageType, err := model.ValidateImageType(r.Kind)
 	if err != nil {
 		return persist.Image{}, fmt.Errorf(
 			"%w: ingest_id=%d kind=%d",

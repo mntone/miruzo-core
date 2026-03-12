@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
 func MapImage(r gen.Image) (persist.Image, error) {
-	imageType, err := persist.ParseImageType(r.Kind)
+	imageType, err := model.ValidateImageType(r.Kind)
 	if err != nil {
 		return persist.Image{}, fmt.Errorf(
 			"%w: ingest_id=%d kind=%d",

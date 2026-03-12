@@ -5,20 +5,19 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
 type imageSummaryModel struct {
 	IngestID   model.IngestIDType `json:"id"`
 	IngestedAt time.Time          `json:"ingested_at"`
-	Type       persist.ImageType  `json:"type,omitempty"`
+	Type       model.ImageType    `json:"type,omitempty"`
 }
 
 type imageRichModel struct {
 	Level      string             `json:"level"`
 	IngestID   model.IngestIDType `json:"id"`
 	IngestedAt time.Time          `json:"ingested_at"`
-	Type       persist.ImageType  `json:"type,omitempty"`
+	Type       model.ImageType    `json:"type,omitempty"`
 	variant.VariantLayersModel
 }
 

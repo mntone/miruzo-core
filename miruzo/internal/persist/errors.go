@@ -19,8 +19,6 @@ var (
 	ErrExclusionViolation          = errors.New("exclusion violation")
 	ErrNotNullViolation            = errors.New("not null violation")
 	ErrUniqueViolation             = errors.New("unique violation")
-
-	ErrInvalidImageKind = errors.New("invalid image kind")
 )
 
 func IsRecoverable(err error) bool {
