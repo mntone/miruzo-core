@@ -12,13 +12,13 @@ type StatsRepository interface {
 		ctx context.Context,
 		ingestID model.IngestIDType,
 		scoreDelta model.ScoreType,
-		evaluatedAt time.Time,
+		viewedAt time.Time,
 	) error
 
 	ApplyViewWithMilestone(
 		ctx context.Context,
 		ingestID model.IngestIDType,
 		scoreDelta model.ScoreType,
-		evaluatedAt time.Time,
+		viewedAt time.Time,
 	) error
 }

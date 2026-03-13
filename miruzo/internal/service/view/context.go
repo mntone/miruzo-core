@@ -24,7 +24,7 @@ func (srv Service) GetContext(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
 ) (persist.ImageWithStats, error) {
-	evaluatedAt := time.Now().UTC()
+	viewedAt := time.Now().UTC()
 
 	var result persist.ImageWithStats
 	err := srv.mgr.Session(
@@ -44,14 +44,14 @@ func (srv Service) GetContext(
 				return err
 			}
 
-			scoreDelta, negative := srv.scoreCalculator.ViewDelta(imageWithStats.Stats.LastViewedAt, evaluatedAt)
+			scoreDelta, negative := srv.scoreCalculator.ViewDelta(imageWithStats.Stats.LastViewedAt, viewedAt)
 			if negative {
 				lastViewedAt := imageWithStats.Stats.LastViewedAt.MustGet()
 				log.Printf(
-					"view delta negative: ingest_id=%d last_viewed_at=%s evaluated_at=%s",
+					"view delta negative: ingest_id=%d last_viewed_at=%s viewed_at=%s",
 					ingestID,
 					lastViewedAt.Format(time.RFC3339Nano),
-					evaluatedAt.Format(time.RFC3339Nano),
+					viewedAt.Format(time.RFC3339Nano),
 				)
 			}
 
@@ -60,10 +60,10 @@ func (srv Service) GetContext(
 					ctx,
 					ingestID,
 					scoreDelta,
-					evaluatedAt,
+					viewedAt,
 				)
 
-				imageWithStats.Stats.LastViewedAt = mo.Some(evaluatedAt)
+				imageWithStats.Stats.LastViewedAt = mo.Some(viewedAt)
 				imageWithStats.Stats.ViewCount += 1
 				imageWithStats.Stats.ViewMilestoneCount = imageWithStats.Stats.ViewCount
 			} else {
@@ -71,10 +71,10 @@ func (srv Service) GetContext(
 					ctx,
 					ingestID,
 					scoreDelta,
-					evaluatedAt,
+					viewedAt,
 				)
 
-				imageWithStats.Stats.LastViewedAt = mo.Some(evaluatedAt)
+				imageWithStats.Stats.LastViewedAt = mo.Some(viewedAt)
 				imageWithStats.Stats.ViewCount += 1
 			}
 			if err != nil {
@@ -85,7 +85,7 @@ func (srv Service) GetContext(
 				ctx,
 				ingestID,
 				model.ActionTypeView,
-				evaluatedAt,
+				viewedAt,
 			)
 			if err != nil {
 				return err

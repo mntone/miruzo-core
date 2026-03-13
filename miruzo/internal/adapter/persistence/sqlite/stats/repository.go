@@ -24,12 +24,12 @@ func (repo repository) ApplyView(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
-	evaluatedAt time.Time,
+	viewedAt time.Time,
 ) error {
 	rowCount, err := repo.queries.ApplyViewToStats(ctx, gen.ApplyViewToStatsParams{
-		IngestID:    ingestID,
-		ScoreDelta:  int64(scoreDelta),
-		EvaluatedAt: shared.NullTimeFromTime(evaluatedAt),
+		IngestID:   ingestID,
+		ScoreDelta: int64(scoreDelta),
+		ViewedAt:   shared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
 		return shared.MapSQLiteError("ApplyView", err)
@@ -46,12 +46,12 @@ func (repo repository) ApplyViewWithMilestone(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
-	evaluatedAt time.Time,
+	viewedAt time.Time,
 ) error {
 	rowCount, err := repo.queries.ApplyViewToStatsWithMilestone(ctx, gen.ApplyViewToStatsWithMilestoneParams{
-		IngestID:    ingestID,
-		ScoreDelta:  int64(scoreDelta),
-		EvaluatedAt: shared.NullTimeFromTime(evaluatedAt),
+		IngestID:   ingestID,
+		ScoreDelta: int64(scoreDelta),
+		ViewedAt:   shared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
 		return shared.MapSQLiteError("ApplyViewWithMilestone", err)
