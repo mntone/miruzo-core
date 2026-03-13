@@ -39,4 +39,6 @@ type TestRepository interface {
 		hallOfFameAt mo.Option[time.Time],
 		viewCount int64,
 	) error
+
+	DeleteUser(ctx context.Context) error
 }

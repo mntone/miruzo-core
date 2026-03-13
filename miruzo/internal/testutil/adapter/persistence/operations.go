@@ -121,3 +121,14 @@ func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Sta
 
 	return entry
 }
+
+func (ops Operations) RemoveUser() error {
+	return ops.repo.DeleteUser(ops.ctx)
+}
+
+func (ops Operations) MustRemoveUser(t testing.TB) {
+	err := ops.RemoveUser()
+	if err != nil {
+		t.Fatalf("remove user: %v", err)
+	}
+}

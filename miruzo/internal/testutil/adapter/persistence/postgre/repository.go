@@ -9,6 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgre/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
@@ -87,4 +88,17 @@ func (repo repository) CreateStat(
 		LastViewedAt:   shared.PgtypeTimestampFromOption(lastViewedAt),
 		ViewCount:      viewCount,
 	})
+}
+
+func (repo repository) DeleteUser(ctx context.Context) error {
+	rowCount, err := repo.queries.DeleteUser(ctx)
+	if err != nil {
+		return shared.MapPostgreDeleteError("DeleteUser", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrNotFound
+	}
+
+	return nil
 }
