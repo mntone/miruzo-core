@@ -87,6 +87,22 @@ func TestWriteServiceErrorReturnsUnprocessableContent(t *testing.T) {
 	}
 }
 
+func TestWriteServiceErrorReturnsTooManyRequests(t *testing.T) {
+	responseRecorder := httptest.NewRecorder()
+
+	WriteServiceError(
+		responseRecorder,
+		fmt.Errorf("invalid state: %w", serviceerror.ErrTooManyRequests),
+	)
+
+	if responseRecorder.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected status 429, got %d", responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != "{\"type\":\"too_many_requests\"}" {
+		t.Fatalf("unexpected body: %q", responseRecorder.Body.String())
+	}
+}
+
 func TestWriteServiceErrorReturnsGatewayTimeoutForTimeout(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 

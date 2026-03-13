@@ -46,3 +46,33 @@ func TestUserRepositoryGetSingletonUser(t *testing.T) {
 	factory.MustReset(t, ctx)
 	factory.NewUser(t, ctx).RunTestGetSingletonUser(t)
 }
+
+func TestUserRepositoryIncrementDailyLoveUsedIncrements(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestIncrementDailyLoveUsedIncrements(t)
+}
+
+func TestUserRepositoryIncrementDailyLoveUsedReturnsQuotaExceededWhenMissing(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestIncrementDailyLoveUsedReturnsQuotaExceededWhenMissing(t)
+}
+
+func TestUserRepositoryIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitReached(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitReached(t)
+}

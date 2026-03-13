@@ -58,6 +58,13 @@ func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 			"{\"type\":\"unprocessable_content\"}",
 		)
 
+	case errors.Is(err, serviceerror.ErrTooManyRequests):
+		_ = response.WriteJSONText(
+			responseWriter,
+			http.StatusTooManyRequests,
+			"{\"type\":\"too_many_requests\"}",
+		)
+
 	case errors.Is(err, serviceerror.ErrGatewayTimeout), errors.Is(err, context.DeadlineExceeded):
 		_ = response.WriteJSONText(
 			responseWriter,

@@ -12,6 +12,7 @@ var (
 	ErrNotFound             = errors.New("not found")             // 404 Not Found
 	ErrConflict             = errors.New("conflict")              // 409 Conflict
 	ErrUnprocessableContent = errors.New("unprocessable content") // 422 Unprocessable Content
+	ErrTooManyRequests      = errors.New("too many requests")     // 429 Too Many Request
 
 	ErrServiceUnavailable = errors.New("service unavailable") // 503 Service Unavailable
 	ErrGatewayTimeout     = errors.New("gateway timeout")     // 504 Gateway Timeout
@@ -28,6 +29,9 @@ func MapPersistError(err error) error {
 
 	case errors.Is(err, persist.ErrNotFound):
 		return fmt.Errorf("%w: %v", ErrNotFound, err)
+
+	case errors.Is(err, persist.ErrQuotaExceeded):
+		return fmt.Errorf("%w: %v", ErrTooManyRequests, err)
 
 	case errors.Is(err, persist.ErrConflict),
 		errors.Is(err, persist.ErrRecoverableConflict),

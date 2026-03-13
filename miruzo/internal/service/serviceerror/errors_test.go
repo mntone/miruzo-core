@@ -16,6 +16,13 @@ func TestMapPersistErrorMapsNotFound(t *testing.T) {
 	}
 }
 
+func TestMapPersistErrorMapsQuotaExceeded(t *testing.T) {
+	err := serviceerror.MapPersistError(fmt.Errorf("not found: %w", persist.ErrQuotaExceeded))
+	if !errors.Is(err, serviceerror.ErrTooManyRequests) {
+		t.Fatalf("expected ErrTooManyRequests, got %v", err)
+	}
+}
+
 func TestMapPersistErrorMapsTimeout(t *testing.T) {
 	err := serviceerror.MapPersistError(fmt.Errorf("query timeout: %w", persist.ErrTimeout))
 	if !errors.Is(err, serviceerror.ErrGatewayTimeout) {

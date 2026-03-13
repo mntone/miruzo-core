@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
@@ -30,4 +32,20 @@ func (repo repository) GetSingletonUser(
 		ID:            int16(user.ID),
 		DailyLoveUsed: int16(user.DailyLoveUsed),
 	}, nil
+}
+
+func (repo repository) IncrementDailyLoveUsed(
+	ctx context.Context,
+	dailyLoveLimit int16,
+) (int16, error) {
+	dailyLoveUsed, err := repo.queries.IncrementDailyLoveUsed(ctx, int64(dailyLoveLimit))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, persist.ErrQuotaExceeded
+		}
+
+		return 0, shared.MapSQLiteError("IncrementDailyLoveUsed", err)
+	}
+
+	return int16(dailyLoveUsed), nil
 }

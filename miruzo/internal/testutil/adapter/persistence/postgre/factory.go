@@ -78,7 +78,7 @@ func (ste *SuiteFactory) Reset(ctx context.Context) error {
 		return fmt.Errorf("reset postgre database: %w", err)
 	}
 
-	_, err = ste.pool.Exec(ctx, "UPDATE users SET daily_love_used=0;")
+	_, err = ste.pool.Exec(ctx, "INSERT INTO users(id) VALUES(1) ON CONFLICT (id) DO UPDATE SET daily_love_used=0;")
 	if err != nil {
 		return fmt.Errorf("reset postgre database: %w", err)
 	}

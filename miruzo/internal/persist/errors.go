@@ -12,6 +12,7 @@ var (
 	ErrUnavailable            = errors.New("unavailable")
 	ErrRecoverableUnavailable = errors.New("recoverable unavailable")
 	ErrTimeout                = errors.New("timeout")
+	ErrQuotaExceeded          = errors.New("quota exceeded")
 
 	ErrCheckViolation              = errors.New("check violation")
 	ErrForeignKeyReferenceNotFound = errors.New("foreign key reference not found")
