@@ -41,4 +41,6 @@ type TestRepository interface {
 	) error
 
 	DeleteUser(ctx context.Context) error
+
+	SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16) error
 }

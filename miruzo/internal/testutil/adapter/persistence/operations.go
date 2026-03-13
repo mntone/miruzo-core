@@ -132,3 +132,14 @@ func (ops Operations) MustRemoveUser(t testing.TB) {
 		t.Fatalf("remove user: %v", err)
 	}
 }
+
+func (ops Operations) SetDailyLoveUsed(dailyLoveUsed int16) error {
+	return ops.repo.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
+}
+
+func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed int16) {
+	err := ops.SetDailyLoveUsed(dailyLoveUsed)
+	if err != nil {
+		t.Fatalf("set daily_love_used to user: %v", err)
+	}
+}

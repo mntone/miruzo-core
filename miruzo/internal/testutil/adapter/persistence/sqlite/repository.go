@@ -124,3 +124,16 @@ func (repo repository) DeleteUser(ctx context.Context) error {
 
 	return nil
 }
+
+func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16) error {
+	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, int64(dailyLoveUsed))
+	if err != nil {
+		return shared.MapSQLiteError("SetDailyLoveUsed", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrNotFound
+	}
+
+	return nil
+}
