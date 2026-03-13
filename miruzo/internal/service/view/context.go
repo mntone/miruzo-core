@@ -8,6 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/retry"
+	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 	"github.com/samber/mo"
 )
 
@@ -96,7 +97,7 @@ func (srv Service) GetContext(
 		},
 	)
 	if err != nil {
-		return persist.ImageWithStats{}, err
+		return persist.ImageWithStats{}, serviceerror.MapPersistError(err)
 	}
 
 	return result, nil

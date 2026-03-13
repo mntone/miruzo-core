@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
+	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
 type QuotaResult struct {
@@ -16,7 +17,7 @@ func (srv Service) GetQuota(
 ) (QuotaResult, error) {
 	user, err := srv.repository.GetSingletonUser(requestContext)
 	if err != nil {
-		return QuotaResult{}, err
+		return QuotaResult{}, serviceerror.MapPersistError(err)
 	}
 
 	loveUsed := user.DailyLoveUsed
