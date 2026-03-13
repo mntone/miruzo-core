@@ -1,14 +1,7 @@
 package quota
 
-import "time"
-
-type quotaItem struct {
-	Period    string    `json:"period"`
-	ResetAt   time.Time `json:"reset_at"`
-	Limit     int16     `json:"limit"`
-	Remaining int16     `json:"remaining"`
-}
+import "github.com/mntone/miruzo-core/miruzo/internal/api/model"
 
 type quotaResponse struct {
-	Love quotaItem `json:"love"`
+	Love model.Quota `json:"love"`
 }

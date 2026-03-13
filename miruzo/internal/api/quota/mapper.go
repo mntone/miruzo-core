@@ -1,36 +1,17 @@
 package quota
 
 import (
-	"errors"
-	"fmt"
-
-	"github.com/mntone/miruzo-core/miruzo/internal/model"
+	apiModel "github.com/mntone/miruzo-core/miruzo/internal/api/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/user"
 )
 
-var ErrInvalidPeriodType = errors.New("invalid period type")
-
-func mapPeriodType(val model.PeriodType) (string, error) {
-	switch val {
-	case model.PeriodTypeDaily:
-		return "daily", nil
-	}
-
-	return "", fmt.Errorf("%w: type=%d", ErrInvalidPeriodType, val)
-}
-
 func mapQuota(result user.QuotaResult) (quotaResponse, error) {
-	lovePeriod, err := mapPeriodType(result.Love.Period)
+	loveQuota, err := apiModel.MapQuota(result.Love)
 	if err != nil {
 		return quotaResponse{}, err
 	}
 
 	return quotaResponse{
-		Love: quotaItem{
-			Period:    lovePeriod,
-			ResetAt:   result.Love.ResetAt,
-			Limit:     result.Love.Limit,
-			Remaining: result.Love.Remaining,
-		},
+		Love: loveQuota,
 	}, nil
 }
