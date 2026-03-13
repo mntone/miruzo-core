@@ -82,13 +82,17 @@ func (manager persistenceManager) Session(
 	err = callback(ctx, repos)
 	if err != nil {
 		rollbackErr := tx.Rollback()
-		return fmt.Errorf(
-			"rollback sqlite: %w",
-			shared.JoinErrors(
-				sharedSQLite.MapSQLiteError("Session()", err),
-				sharedSQLite.MapSQLiteError("Session()", rollbackErr),
-			),
-		)
+		if rollbackErr != nil {
+			return fmt.Errorf(
+				"rollback sqlite: %w",
+				shared.JoinErrors(
+					err,
+					sharedSQLite.MapSQLiteError("Session()", rollbackErr),
+				),
+			)
+		}
+
+		return err
 	}
 
 	err = tx.Commit()

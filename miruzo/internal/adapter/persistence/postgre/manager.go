@@ -86,13 +86,17 @@ func (manager persistenceManager) Session(
 	err = callback(ctx, repos)
 	if err != nil {
 		rollbackErr := tx.Rollback(ctx)
-		return fmt.Errorf(
-			"rollback postgre: %w",
-			shared.JoinErrors(
-				sharedPostgre.MapPostgreError("Session()", err),
-				sharedPostgre.MapPostgreError("Session()", rollbackErr),
-			),
-		)
+		if rollbackErr != nil {
+			return fmt.Errorf(
+				"rollback postgre: %w",
+				shared.JoinErrors(
+					err,
+					sharedPostgre.MapPostgreError("Session()", rollbackErr),
+				),
+			)
+		}
+
+		return err
 	}
 
 	err = tx.Commit(ctx)
