@@ -5,7 +5,7 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api"
 	healthAPI "github.com/mntone/miruzo-core/miruzo/internal/api/health"
-	imageItemAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/item"
+	contextAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/item/context"
 	imageListAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/list"
 	quotaAPI "github.com/mntone/miruzo-core/miruzo/internal/api/quota"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
@@ -57,8 +57,8 @@ func MountAPI(
 	dailyResolver := period.NewDailyResolver(cfg.Period.DayStartOffset)
 	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
 	viewService := viewService.New(manager, readBackoff, scoreCalculator, cfg.View.Milestones)
-	imageItemHandler := imageItemAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
-	imageItemAPI.RegisterRoutes(mux, imageItemHandler)
+	imageItemHandler := contextAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
+	contextAPI.RegisterRoutes(mux, imageItemHandler)
 
 	userService := userService.New(
 		manager.Repos().User,
