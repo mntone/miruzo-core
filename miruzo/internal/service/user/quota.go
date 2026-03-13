@@ -28,7 +28,7 @@ func (srv Service) GetQuota(
 	result := QuotaResult{
 		Love: model.Quota{
 			Period:    model.PeriodTypeDaily,
-			ResetAt:   srv.dailyPeriodResolver.PeriodEnd(time.Now()).UTC(),
+			ResetAt:   srv.dailyPeriodResolver.PeriodEnd(time.Now()),
 			Limit:     srv.dailyLoveLimit,
 			Remaining: loveRemaining,
 		},

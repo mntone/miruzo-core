@@ -43,7 +43,7 @@ func (resolv DailyResolver) PeriodStart(evaluatedAt time.Time) time.Time {
 		candidate = candidate.AddDate(0, 0, -1)
 	}
 
-	return candidate
+	return candidate.UTC()
 }
 
 // PeriodEnd returns the exclusive end of the daily period containing evaluatedAt.
