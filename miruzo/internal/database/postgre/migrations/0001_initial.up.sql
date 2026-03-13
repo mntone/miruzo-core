@@ -124,7 +124,7 @@ CREATE TABLE users(
 	daily_love_used SMALLINT
 		CONSTRAINT ck_users_daily_love_used
 			NOT NULL
-			CHECK (daily_love_used >= 0 AND daily_love_used <= 32767)
+			CHECK (daily_love_used >= 0)
 			DEFAULT 0
 );
 INSERT INTO users(id) VALUES(1);
