@@ -3,24 +3,12 @@ package user
 import (
 	"context"
 	"time"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
-
-type PeriodType uint8
-
-const (
-	PeriodTypeUnspecified PeriodType = iota
-	PeriodTypeDaily
-)
-
-type quotaItem struct {
-	Period    PeriodType
-	ResetAt   time.Time
-	Limit     uint16
-	Remaining uint16
-}
 
 type QuotaResult struct {
-	Love quotaItem
+	Love model.Quota
 }
 
 func (srv Service) GetQuota(
@@ -31,15 +19,15 @@ func (srv Service) GetQuota(
 		return QuotaResult{}, err
 	}
 
-	loveUsed := uint16(user.DailyLoveUsed)
-	loveRemaining := uint16(0)
+	loveUsed := user.DailyLoveUsed
+	loveRemaining := int16(0)
 	if loveUsed < srv.dailyLoveLimit {
 		loveRemaining = srv.dailyLoveLimit - loveUsed
 	}
 
 	result := QuotaResult{
-		Love: quotaItem{
-			Period:    PeriodTypeDaily,
+		Love: model.Quota{
+			Period:    model.PeriodTypeDaily,
 			ResetAt:   srv.dailyPeriodResolver.PeriodEnd(time.Now()).UTC(),
 			Limit:     srv.dailyLoveLimit,
 			Remaining: loveRemaining,

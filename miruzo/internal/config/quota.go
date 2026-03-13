@@ -1,7 +1,7 @@
 package config
 
 type QuotaConfig struct {
-	DailyLoveLimit uint16 `mapstructure:"daily_love_limit"`
+	DailyLoveLimit int16 `mapstructure:"daily_love_limit"`
 }
 
 func DefaultQuotaConfig() QuotaConfig {

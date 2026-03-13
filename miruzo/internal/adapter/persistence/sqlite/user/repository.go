@@ -28,6 +28,6 @@ func (repo repository) GetSingletonUser(
 
 	return persist.User{
 		ID:            int16(user.ID),
-		DailyLoveUsed: uint16(user.DailyLoveUsed),
+		DailyLoveUsed: int16(user.DailyLoveUsed),
 	}, nil
 }

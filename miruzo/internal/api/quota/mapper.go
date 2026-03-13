@@ -4,14 +4,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/user"
 )
 
 var ErrInvalidPeriodType = errors.New("invalid period type")
 
-func mapPeriodType(val user.PeriodType) (string, error) {
+func mapPeriodType(val model.PeriodType) (string, error) {
 	switch val {
-	case user.PeriodTypeDaily:
+	case model.PeriodTypeDaily:
 		return "daily", nil
 	}
 

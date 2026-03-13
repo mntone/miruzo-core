@@ -8,13 +8,13 @@ import (
 type Service struct {
 	repository          persist.UserRepository
 	dailyPeriodResolver period.DailyResolver
-	dailyLoveLimit      uint16
+	dailyLoveLimit      int16
 }
 
 func New(
 	repo persist.UserRepository,
 	dailyPeriodResolver period.DailyResolver,
-	dailyLoveLimit uint16,
+	dailyLoveLimit int16,
 ) Service {
 	return Service{
 		repository:          repo,

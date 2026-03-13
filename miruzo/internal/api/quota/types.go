@@ -5,8 +5,8 @@ import "time"
 type quotaItem struct {
 	Period    string    `json:"period"`
 	ResetAt   time.Time `json:"reset_at"`
-	Limit     uint16    `json:"limit"`
-	Remaining uint16    `json:"remaining"`
+	Limit     int16     `json:"limit"`
+	Remaining int16     `json:"remaining"`
 }
 
 type quotaResponse struct {
