@@ -6,6 +6,14 @@ import (
 	testutilSQLite "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/sqlite"
 )
 
+func TestStatsRepositoryApplyLoveUpdatesWhenEmpty(t *testing.T) {
+	testutilSQLite.NewStatsSuite(t).RunTestApplyLoveUpdatesWhenEmpty(t)
+}
+
+func TestStatsRepositoryApplyLoveRejectsCurrentPeriod(t *testing.T) {
+	testutilSQLite.NewStatsSuite(t).RunTestApplyLoveRejectsCurrentPeriod(t)
+}
+
 func TestStatsRepositoryApplyView(t *testing.T) {
 	testutilSQLite.NewStatsSuite(t).RunTestApplyView(t)
 }

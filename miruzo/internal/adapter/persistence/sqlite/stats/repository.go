@@ -2,6 +2,8 @@ package stats
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
@@ -18,6 +20,34 @@ func NewRepository(queries *gen.Queries) repository {
 	return repository{
 		queries: queries,
 	}
+}
+
+func (repo repository) ApplyLove(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	scoreDelta model.ScoreType,
+	lovedAt time.Time,
+	periodStartAt time.Time,
+) (persist.LoveStats, error) {
+	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
+		IngestID:      ingestID,
+		ScoreDelta:    int64(scoreDelta),
+		LovedAt:       shared.NullTimeFromTime(lovedAt),
+		PeriodStartAt: shared.NullTimeFromTime(periodStartAt),
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return persist.LoveStats{}, persist.ErrConflict
+		}
+
+		return persist.LoveStats{}, shared.MapSQLiteError("ApplyLove", err)
+	}
+
+	return persist.LoveStats{
+		Score:        model.ScoreType(loveStats.Score),
+		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
+		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),
+	}, nil
 }
 
 func (repo repository) ApplyView(

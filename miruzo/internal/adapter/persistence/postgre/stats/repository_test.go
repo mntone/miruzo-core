@@ -37,6 +37,26 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+func TestStatsRepositoryApplyLoveUpdatesWhenEmpty(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyLoveUpdatesWhenEmpty(t)
+}
+
+func TestStatsRepositoryApplyLoveRejectsCurrentPeriod(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyLoveRejectsCurrentPeriod(t)
+}
+
 func TestStatsRepositoryApplyView(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")

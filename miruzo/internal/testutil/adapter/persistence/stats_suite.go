@@ -11,6 +11,7 @@ import (
 )
 
 var statsSuiteBaseTimeUTC = time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
+var statsSuitePeriodStartTimeUTC = time.Date(2026, 1, 9, 5, 0, 0, 0, time.UTC)
 
 type StatsSuite struct {
 	Context        context.Context
@@ -18,6 +19,49 @@ type StatsSuite struct {
 	Repository     persist.StatsRepository
 	ViewRepository persist.ViewRepository
 }
+
+// --- love ---
+
+func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	baseStats := ste.Operations.MustAddStat(t, NewStatFixture(ingest.ID))
+	scoreDelta := model.ScoreType(20)
+	lovedAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
+
+	loveStats, err := ste.Repository.ApplyLove(
+		ste.Context,
+		ingest.ID,
+		scoreDelta,
+		lovedAt,
+		statsSuitePeriodStartTimeUTC,
+	)
+	assert.NilError(t, "ApplyLove() error", err)
+	assert.Equal(t, "ApplyLove().Score", loveStats.Score, baseStats.Score+scoreDelta)
+	assert.Equal(t, "ApplyLove().FirstLovedAt", loveStats.FirstLovedAt.MustGet(), lovedAt)
+	assert.Equal(t, "ApplyLove().LastLovedAt", loveStats.LastLovedAt.MustGet(), lovedAt)
+}
+
+func (ste StatsSuite) RunTestApplyLoveRejectsCurrentPeriod(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(ingest.ID, statsSuitePeriodStartTimeUTC.Add(2*time.Hour)))
+	scoreDelta := model.ScoreType(20)
+	lovedAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
+
+	_, err := ste.Repository.ApplyLove(
+		ste.Context,
+		ingest.ID,
+		scoreDelta,
+		lovedAt,
+		statsSuitePeriodStartTimeUTC,
+	)
+	assert.ErrorIs(t, "ApplyLove() error", err, persist.ErrConflict)
+}
+
+// --- view ---
 
 func (ste StatsSuite) RunTestApplyView(t *testing.T) {
 	t.Helper()

@@ -22,3 +22,9 @@ type Stats struct {
 	ViewMilestoneCount      int64
 	ViewMilestoneArchivedAt mo.Option[time.Time]
 }
+
+type LoveStats struct {
+	Score        model.ScoreType
+	FirstLovedAt mo.Option[time.Time]
+	LastLovedAt  mo.Option[time.Time]
+}

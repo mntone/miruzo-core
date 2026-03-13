@@ -8,6 +8,14 @@ import (
 )
 
 type StatsRepository interface {
+	ApplyLove(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		scoreDelta model.ScoreType,
+		lovedAt time.Time,
+		periodStartAt time.Time,
+	) (LoveStats, error)
+
 	ApplyView(
 		ctx context.Context,
 		ingestID model.IngestIDType,
