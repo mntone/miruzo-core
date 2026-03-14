@@ -13,8 +13,8 @@ import (
 type sqlDialect string
 
 const (
-	dialectPostgre sqlDialect = "postgre"
-	dialectSQLite  sqlDialect = "sqlite"
+	dialectPostgres sqlDialect = "postgres"
+	dialectSQLite   sqlDialect = "sqlite"
 )
 
 const (
@@ -61,7 +61,7 @@ func minifySQL(input []byte, dialect sqlDialect) []byte {
 
 		switch state {
 		case stateNormal:
-			if dialect == dialectPostgre && c == '$' {
+			if dialect == dialectPostgres && c == '$' {
 				if delimiter, ok := readDollarQuoteDelimiter(input, i); ok {
 					dollarDelimiter = delimiter
 					state = stateDollarQuote
@@ -234,14 +234,14 @@ func processDirectory(input_dir string, output_dir string, dialect sqlDialect) e
 
 func main() {
 	args := os.Args[1:]
-	dialect := dialectPostgre
+	dialect := dialectPostgres
 	positional := make([]string, 0, 2)
 
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "--dialect=") {
 			value := strings.TrimPrefix(arg, "--dialect=")
 			switch sqlDialect(value) {
-			case dialectPostgre, dialectSQLite:
+			case dialectPostgres, dialectSQLite:
 				dialect = sqlDialect(value)
 			default:
 				fmt.Fprintln(os.Stderr, "invalid dialect:", value)
@@ -253,7 +253,7 @@ func main() {
 	}
 
 	if len(positional) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: sql_minify <input> <output> [--dialect=postgre|sqlite]")
+		fmt.Fprintln(os.Stderr, "usage: sql_minify <input> <output> [--dialect=postgres|sqlite]")
 		os.Exit(1)
 	}
 

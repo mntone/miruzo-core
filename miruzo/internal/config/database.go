@@ -5,8 +5,8 @@ import "time"
 type DatabaseBackend string
 
 const (
-	DatabaseBackendSQLite  DatabaseBackend = "sqlite"
-	DatabaseBackendPostgre DatabaseBackend = "postgre"
+	DatabaseBackendSQLite   DatabaseBackend = "sqlite"
+	DatabaseBackendPostgres DatabaseBackend = "postgres"
 )
 
 type DatabaseConfig struct {

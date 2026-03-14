@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgre"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -15,8 +15,8 @@ func NewPersistenceManager(
 	conf config.DatabaseConfig,
 ) (persist.PersistenceManager, error) {
 	switch conf.Backend {
-	case config.DatabaseBackendPostgre:
-		return postgre.NewPersistenceManager(ctx, conf)
+	case config.DatabaseBackendPostgres:
+		return postgres.NewPersistenceManager(ctx, conf)
 	case config.DatabaseBackendSQLite:
 		return sqlite.NewPersistenceManager(ctx, conf)
 	default:

@@ -1,12 +1,12 @@
 version: "2"
 sql:
   - engine: postgresql
-    queries: postgre/queries/
-    schema: postgre/migrations
+    queries: postgres/queries/
+    schema: postgres/migrations
     gen:
       go:
         package: gen
-        out: postgre/gen
+        out: postgres/gen
         sql_package: pgx/v5
         emit_interface: false
         overrides:
