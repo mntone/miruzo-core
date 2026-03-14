@@ -11,6 +11,7 @@ import (
 	quotaAPI "github.com/mntone/miruzo-core/miruzo/internal/api/quota"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/clock"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/score"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -56,14 +57,22 @@ func MountAPI(
 	)
 	imageListAPI.RegisterRoutes(mux, imageListHandler)
 
+	clockProvider := clock.NewSystemProvider()
 	dailyResolver := period.NewDailyResolver(cfg.Period.DayStartOffset)
 	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
-	viewService := viewService.New(manager, readBackoff, scoreCalculator, cfg.View.Milestones)
+	viewService := viewService.New(
+		manager,
+		readBackoff,
+		clockProvider,
+		scoreCalculator,
+		cfg.View.Milestones,
+	)
 	imageItemHandler := contextAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
 	contextAPI.RegisterRoutes(mux, imageItemHandler)
 
 	reactionService := reactionService.New(
 		manager,
+		clockProvider,
 		dailyResolver,
 		scoreCalculator,
 		cfg.Quota.DailyLoveLimit,
@@ -73,6 +82,7 @@ func MountAPI(
 
 	userService := userService.New(
 		manager.Repos().User,
+		clockProvider,
 		dailyResolver,
 		cfg.Quota.DailyLoveLimit,
 	)

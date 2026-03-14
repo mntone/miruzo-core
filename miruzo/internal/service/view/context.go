@@ -25,7 +25,7 @@ func (srv Service) GetContext(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
 ) (persist.ImageWithStats, error) {
-	viewedAt := time.Now().UTC()
+	viewedAt := srv.clk.Now()
 
 	var result persist.ImageWithStats
 	err := srv.mgr.Session(

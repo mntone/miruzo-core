@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
@@ -15,6 +14,8 @@ type QuotaResult struct {
 func (srv Service) GetQuota(
 	requestContext context.Context,
 ) (QuotaResult, error) {
+	current := srv.clk.Now()
+
 	user, err := srv.repository.GetSingletonUser(requestContext)
 	if err != nil {
 		return QuotaResult{}, serviceerror.MapPersistError(err)
@@ -29,7 +30,7 @@ func (srv Service) GetQuota(
 	result := QuotaResult{
 		Love: model.Quota{
 			Period:    model.PeriodTypeDaily,
-			ResetAt:   srv.dailyPeriodResolver.PeriodEnd(time.Now()),
+			ResetAt:   srv.dailyPeriodResolver.PeriodEnd(current),
 			Limit:     srv.dailyLoveLimit,
 			Remaining: loveRemaining,
 		},

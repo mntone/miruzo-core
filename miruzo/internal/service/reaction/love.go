@@ -2,7 +2,6 @@ package reaction
 
 import (
 	"context"
-	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -18,7 +17,7 @@ func (srv Service) Love(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
 ) (LoveResult, error) {
-	lovedAt := time.Now().UTC()
+	lovedAt := srv.clk.Now()
 	periodStartAt, periodEndAt := srv.dailyPeriodResolver.PeriodRange(lovedAt)
 	scoreDelta := srv.scoreCalculator.LoveDelta()
 
