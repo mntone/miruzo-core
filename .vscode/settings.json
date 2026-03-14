@@ -6,6 +6,9 @@
 		"editor.defaultFormatter": "golang.go"
 	},
 	"python.analysis.autoImportCompletions": true,
+	"python.analysis.extraPaths": [
+		"miruzo-py"
+	],
 	"python.analysis.importFormat": "absolute",
 	"python.testing.pytestArgs": [
 		"miruzo-py/tests"

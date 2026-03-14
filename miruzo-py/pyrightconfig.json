@@ -3,7 +3,7 @@
 	"typeCheckingMode": "strict",
 	"executionEnvironments": [
 		{
-			"root": "./",
+			"root": ".",
 			"reportPrivateUsage": "none"
 		}
 	]
