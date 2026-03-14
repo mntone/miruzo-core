@@ -44,7 +44,7 @@ func (srv Service) Love(
 			return err
 		}
 
-		_, err = repos.Action.CreateAction(
+		_, err = repos.Action.Create(
 			ctx,
 			ingestID,
 			model.ActionTypeLove,

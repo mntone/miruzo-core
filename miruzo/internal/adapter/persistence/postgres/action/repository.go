@@ -19,7 +19,7 @@ func NewRepository(queries *gen.Queries) repository {
 	}
 }
 
-func (repo repository) CreateAction(
+func (repo repository) Create(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	kind model.ActionType,
@@ -31,7 +31,7 @@ func (repo repository) CreateAction(
 		OccurredAt: shared.PgtypeTimestampFromTime(occurredAt),
 	})
 	if err != nil {
-		return 0, shared.MapPostgreError("CreateAction", err)
+		return 0, shared.MapPostgreError("Create", err)
 	}
 
 	return actionID, nil

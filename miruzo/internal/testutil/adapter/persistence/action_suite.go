@@ -18,7 +18,7 @@ func (ste ActionSuite) RunTestCreateAction(t *testing.T) {
 
 	ingest := ste.Operations.MustAddIngest(t, NewIngestFixture(1, actionSuiteBaseTimeUTC))
 
-	actionID, err := ste.Repository.CreateAction(
+	actionID, err := ste.Repository.Create(
 		ste.Context,
 		ingest.ID,
 		model.ActionTypeView,

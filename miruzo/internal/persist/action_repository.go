@@ -8,7 +8,7 @@ import (
 )
 
 type ActionRepository interface {
-	CreateAction(
+	Create(
 		ctx context.Context,
 		ingestID model.IngestIDType,
 		kind model.ActionType,
