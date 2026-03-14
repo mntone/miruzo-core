@@ -8,7 +8,7 @@ from app.models.records import StatsRecord
 class StatsRepository(Protocol):
 	def get_one(self, ingest_id: int) -> StatsRecord: ...
 
-	def get_or_create(
+	def create(
 		self,
 		ingest_id: int,
 		*,

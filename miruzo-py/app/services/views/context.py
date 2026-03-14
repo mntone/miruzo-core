@@ -68,10 +68,7 @@ class ContextService:
 				occurred_at=current,
 			)
 
-			stats = self._stats_repo.get_or_create(
-				ingest_id,
-				initial_score=self._score_calc.config.initial_score,
-			)
+			stats = self._stats_repo.get_one(ingest_id)
 
 			update_score_from_action(
 				stats=stats,

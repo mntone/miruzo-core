@@ -30,7 +30,7 @@ def test_get_context_returns_none_when_record_missing() -> None:
 
 	assert result is None
 	assert image_repo.one_called_with == 123
-	assert stats_repo.get_or_create_called_with is None
+	assert stats_repo.create_called_with is None
 	assert action_repo.select_called_with is None
 	assert session.begin_called == 1
 
@@ -57,8 +57,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 	result = service.get_context(image.ingest_id, query=ContextQuery())
 
 	assert image_repo.one_called_with == image.ingest_id
-	assert stats_repo.get_or_create_called_with == image.ingest_id
-	assert stats_repo.get_or_create_initial_score == env.score.initial_score
+	assert stats_repo.get_one_called_with == image.ingest_id
 	assert session.begin_called == 1
 
 	assert result is not None

@@ -14,6 +14,7 @@ from app.databases import engine, init_database
 from app.models.enums import IngestMode
 from app.persist.images.factory import create_image_repository
 from app.persist.ingests.factory import create_ingest_repository
+from app.persist.stats.factory import create_stats_repository
 from app.services.images.ingest import ImageIngestService
 from app.services.images.variants.bootstrap import configure_pillow
 from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
@@ -102,10 +103,13 @@ def import_jsonl(
 	session = Session(engine)
 	image_repo = create_image_repository(session)
 	ingest_repo = create_ingest_repository(session)
+	stats_repo = create_stats_repository(session)
 	ingest = ImageIngestService(
 		image_repo=image_repo,
 		ingest_repo=ingest_repo,
+		stats_repo=stats_repo,
 		policy=DEFAULT_VARIANT_POLICY,
+		initial_score=env.score.initial_score,
 	)
 
 	stats = ImportStats()

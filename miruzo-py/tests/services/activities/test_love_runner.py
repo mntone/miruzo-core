@@ -10,7 +10,7 @@ from tests.services.images.utils import add_ingest_record
 from app.config.score import ScoreConfig
 from app.domain.activities.daily_period import DailyPeriodResolver
 from app.errors import InvalidStateError, QuotaExceededError
-from app.persist.stats.sqlite import SQLiteStatsRepository
+from app.persist.stats.base import BaseStatsRepository
 from app.persist.users.sqlite import SQLiteUserRepository
 from app.services.activities.love import LoveRunner
 
@@ -27,13 +27,13 @@ def session() -> Generator[Session, Any, None]:
 
 
 def test_run_updates_stats_and_user(session: Session) -> None:
-	stats_repo = SQLiteStatsRepository(session)
+	stats_repo = BaseStatsRepository(session)
 	user_repo = SQLiteUserRepository(session)
 
 	with session.begin():
 		user_repo.create_singleton_if_missing()
 		ingest = add_ingest_record(session, 1)
-		stats_repo.get_or_create(ingest.id, initial_score=100)
+		stats_repo.create(ingest.id, initial_score=100)
 
 	runner = LoveRunner(
 		daily_love_limit=3,
@@ -61,13 +61,13 @@ def test_run_updates_stats_and_user(session: Session) -> None:
 
 
 def test_run_raises_when_already_loved_today(session: Session) -> None:
-	stats_repo = SQLiteStatsRepository(session)
+	stats_repo = BaseStatsRepository(session)
 
 	existing = datetime(2024, 1, 1, 1, tzinfo=timezone.utc)
 	with session.begin():
 		ingest = add_ingest_record(session, 1)
 
-		stats = stats_repo.get_or_create(ingest.id, initial_score=100)
+		stats = stats_repo.create(ingest.id, initial_score=100)
 		stats.last_loved_at = existing
 
 	runner = LoveRunner(
@@ -92,7 +92,7 @@ def test_run_raises_when_already_loved_today(session: Session) -> None:
 
 
 def test_run_raises_when_quota_exceeded(session: Session) -> None:
-	stats_repo = SQLiteStatsRepository(session)
+	stats_repo = BaseStatsRepository(session)
 	user_repo = SQLiteUserRepository(session)
 
 	with session.begin():
@@ -100,7 +100,7 @@ def test_run_raises_when_quota_exceeded(session: Session) -> None:
 		user.daily_love_used = 1
 
 		ingest = add_ingest_record(session, 1)
-		stats_repo.get_or_create(ingest.id, initial_score=100)
+		stats_repo.create(ingest.id, initial_score=100)
 
 	runner = LoveRunner(
 		daily_love_limit=1,

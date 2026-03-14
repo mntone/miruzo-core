@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from tests.services.images.utils import add_image_record, add_ingest_record
 
-from app.persist.stats.sqlite import SQLiteStatsRepository
+from app.persist.stats.base import BaseStatsRepository
 
 
 @pytest.fixture()
@@ -20,24 +20,20 @@ def session() -> Generator[Session, Any, None]:
 		yield session
 
 
-def test_get_or_create(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+def test_create(session: Session) -> None:
+	repo = BaseStatsRepository(session)
 	image = add_image_record(session, 20)
 
-	stats = repo.get_or_create(image.ingest_id, initial_score=42)
+	stats = repo.create(image.ingest_id, initial_score=42)
 	assert stats.score == 42
 	assert stats.view_count == 0
 	assert stats.last_viewed_at is None
 
-	stats_again = repo.get_or_create(image.ingest_id, initial_score=99)
-	assert stats_again.ingest_id == image.ingest_id
-	assert stats_again.score == 42
-
 
 def test_try_set_last_loved_at_updates_when_empty(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+	repo = BaseStatsRepository(session)
 	ingest = add_ingest_record(session, 1)
-	repo.get_or_create(ingest.id, initial_score=1)
+	repo.create(ingest.id, initial_score=1)
 
 	period_start = datetime(2024, 1, 1, tzinfo=timezone.utc)
 	evaluated_at = datetime(2024, 1, 2, tzinfo=timezone.utc)
@@ -54,9 +50,9 @@ def test_try_set_last_loved_at_updates_when_empty(session: Session) -> None:
 
 
 def test_try_set_last_loved_at_rejects_current_period(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+	repo = BaseStatsRepository(session)
 	ingest = add_ingest_record(session, 1)
-	stats = repo.get_or_create(ingest.id, initial_score=1)
+	stats = repo.create(ingest.id, initial_score=1)
 
 	period_start = datetime(2024, 1, 1, tzinfo=timezone.utc)
 	existing = datetime(2024, 1, 1, 1, tzinfo=timezone.utc)
@@ -76,9 +72,9 @@ def test_try_set_last_loved_at_rejects_current_period(session: Session) -> None:
 
 
 def test_try_unset_last_loved_at_clears_current_period(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+	repo = BaseStatsRepository(session)
 	ingest = add_ingest_record(session, 1)
-	stats = repo.get_or_create(ingest.id, initial_score=1)
+	stats = repo.create(ingest.id, initial_score=1)
 
 	period_start = datetime(2024, 1, 1, tzinfo=timezone.utc)
 	stats.last_loved_at = datetime(2024, 1, 1, 2, tzinfo=timezone.utc)
@@ -96,9 +92,9 @@ def test_try_unset_last_loved_at_clears_current_period(session: Session) -> None
 
 
 def test_try_unset_last_loved_at_ignores_previous_period(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+	repo = BaseStatsRepository(session)
 	ingest = add_ingest_record(session, 1)
-	stats = repo.get_or_create(ingest.id, initial_score=1)
+	stats = repo.create(ingest.id, initial_score=1)
 
 	period_start = datetime(2024, 1, 2, tzinfo=timezone.utc)
 	stats.last_loved_at = datetime(2024, 1, 1, 23, tzinfo=timezone.utc)
@@ -116,12 +112,12 @@ def test_try_unset_last_loved_at_ignores_previous_period(session: Session) -> No
 
 
 def test_iterable_paginates_without_duplicates(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+	repo = BaseStatsRepository(session)
 	ingest_ids = [idx for idx in range(1, 503) if idx != 251]
 
 	for ingest_id in ingest_ids:
 		add_ingest_record(session, ingest_id)
-		repo.get_or_create(ingest_id, initial_score=1)
+		repo.create(ingest_id, initial_score=1)
 
 	records = list(repo.iterable())
 	record_ids = [record.ingest_id for record in records]
@@ -131,6 +127,6 @@ def test_iterable_paginates_without_duplicates(session: Session) -> None:
 
 
 def test_iterable_returns_empty_for_empty_table(session: Session) -> None:
-	repo = SQLiteStatsRepository(session)
+	repo = BaseStatsRepository(session)
 
 	assert list(repo.iterable()) == []

@@ -2,17 +2,13 @@
 # pyright: reportArgumentType=false
 # pyright: reportOptionalMemberAccess=false
 # pyright: reportOptionalOperand=false
-# pyright: reportUnknownArgumentType=false
-# pyright: reportUnknownMemberType=false
 # pyright: reportUnknownVariableType=false
 
-from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from datetime import datetime
-from typing import TypeVar
+from typing import TypeVar, final
 
-from sqlalchemy import Insert, or_, true, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_, true, update
 from sqlmodel import Session, SQLModel, select
 
 from app.models.records import StatsRecord
@@ -20,43 +16,30 @@ from app.models.records import StatsRecord
 TModel = TypeVar('TModel', bound=SQLModel)
 
 
-class BaseStatsRepository(ABC):
+@final
+class BaseStatsRepository:
 	def __init__(self, session: Session) -> None:
 		self._session = session
-
-	@abstractmethod
-	def _is_unique_violation(self, error: IntegrityError) -> bool: ...
 
 	def get_one(self, ingest_id: int) -> StatsRecord:
 		stats = self._session.get_one(StatsRecord, ingest_id)
 
 		return stats
 
-	def get_or_create(
+	def create(
 		self,
 		ingest_id: int,
 		*,
 		initial_score: int,
 	) -> StatsRecord:
-		stats = self._session.get(StatsRecord, ingest_id)
-		if stats is not None:
-			return stats
-
 		stats = StatsRecord(
 			ingest_id=ingest_id,
 			score=initial_score,
 			score_evaluated=initial_score,
 		)
 		self._session.add(stats)
-
-		try:
-			self._session.flush()
-		except IntegrityError as exc:
-			self._session.rollback()
-			if not self._is_unique_violation(exc):
-				raise
-			stats = self._session.get_one(StatsRecord, ingest_id)
-
+		self._session.flush()
+		self._session.refresh(stats)
 		return stats
 
 	def try_set_last_loved_at(
@@ -101,9 +84,6 @@ class BaseStatsRepository(ABC):
 		result = self._session.exec(statement)
 
 		return result.rowcount == 1
-
-	@abstractmethod
-	def _build_insert(self, model: type[TModel]) -> Insert: ...
 
 	def iterable(self) -> Iterable[StatsRecord]:
 		last_ingest_id = None

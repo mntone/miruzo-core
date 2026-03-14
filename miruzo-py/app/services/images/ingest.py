@@ -7,6 +7,7 @@ from app.models.enums import IngestMode
 from app.models.records import ImageRecord, IngestRecord
 from app.persist.images.protocol import ImageRepository
 from app.persist.ingests.protocol import IngestRepository
+from app.persist.stats.protocol import StatsRepository
 from app.services.images.variants.executors.local import LocalVariantExecutor
 from app.services.images.variants.mapper import (
 	map_commit_results_to_variants,
@@ -26,15 +27,19 @@ class ImageIngestService:
 		self,
 		image_repo: ImageRepository,
 		ingest_repo: IngestRepository,
+		stats_repo: StatsRepository,
 		policy: VariantPolicy,
+		initial_score: int,
 	) -> None:
 		self._image_repo = image_repo
+		self._stats_repo = stats_repo
 		self._ingest_core = IngestService(ingest_repo)
 		self._pipeline = VariantPipeline(
 			media_root=env.media_root,
 			policy=policy,
 			spec=env.variant_layers,
 		)
+		self._initial_score = initial_score
 
 	def ingest(
 		self,
@@ -50,6 +55,8 @@ class ImageIngestService:
 			captured_at=captured_at,
 			ingest_mode=ingest_mode,
 		)
+
+		self._stats_repo.create(ingest.id, initial_score=self._initial_score)
 
 		executor = LocalVariantExecutor()
 		session = VariantPipelineExecutionSession(executor)

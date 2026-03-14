@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from datetime import datetime
 from typing import Callable, final
 
@@ -11,11 +11,12 @@ from app.persist.stats.protocol import StatsRepository
 @final
 class StubStatsRepository:
 	def __init__(self) -> None:
-		self.stats_list_response: Sequence[StatsRecord] = []
+		self.stats_list_response: list[StatsRecord] = []
 
 		self.get_one_called_with: int | None = None
-		self.get_or_create_called_with: int | None = None
-		self.get_or_create_initial_score: int | None = None
+		self.create_called_with: int | None = None
+		self.create_initial_score: int | None = None
+		self.create_response: StatsRecord | None = None
 
 		self.try_set_last_loved_at_called_with: tuple[int, datetime, datetime] | None = None
 		self.try_set_last_loved_at_response: bool = True
@@ -30,13 +31,17 @@ class StubStatsRepository:
 				return record
 		raise RuntimeError('stats_list_response not configured')
 
-	def get_or_create(self, ingest_id: int, *, initial_score: int) -> StatsRecord:
-		self.get_or_create_called_with = ingest_id
-		self.get_or_create_initial_score = initial_score
-		for record in self.stats_list_response:
-			if record.ingest_id == ingest_id:
-				return record
-		raise RuntimeError('stats_list_response not configured')
+	def create(self, ingest_id: int, *, initial_score: int) -> StatsRecord:
+		self.create_called_with = ingest_id
+		self.create_initial_score = initial_score
+		stats = StatsRecord(
+			ingest_id=ingest_id,
+			score=initial_score,
+			score_evaluated=initial_score,
+		)
+		self.create_response = stats
+		self.stats_list_response.append(stats)
+		return stats
 
 	def try_set_last_loved_at(
 		self,

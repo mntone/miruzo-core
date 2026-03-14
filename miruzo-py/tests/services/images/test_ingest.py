@@ -1,6 +1,7 @@
 from collections.abc import Iterator, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
+from turtle import update
 from typing import cast
 
 import pytest
@@ -9,6 +10,7 @@ from PIL import Image as PILImage
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_variant_file
 from tests.stubs.image import StubImageRepository
+from tests.stubs.stats import StubStatsRepository
 
 from app.config.variant import VariantLayerSpec
 from app.models.enums import ExecutionStatus, IngestMode
@@ -108,7 +110,9 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 		id=5,
 		relative_path=str(origin_relpath),
 		fingerprint='f' * 64,
+		ingested_at=datetime.now(timezone.utc),
 		captured_at=datetime.now(timezone.utc),
+		updated_at=datetime.now(timezone.utc),
 	)
 
 	spec = build_variant_spec(1, 320, container='webp', codecs='vp8')
@@ -124,10 +128,13 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	)
 
 	image_repo = StubImageRepository()
+	stats_repo = StubStatsRepository()
 	service = ImageIngestService(
 		image_repo=image_repo,
 		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
 		policy=policy,
+		initial_score=100,
 	)
 	service._ingest_core = DummyIngestCore(ingest_record)  # pyright: ignore[reportAttributeAccessIssue]
 	service._persist = DummyPersist()  # pyright: ignore[reportAttributeAccessIssue]
@@ -154,6 +161,19 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	assert len(image.variants) == 1
 	assert image.variants[0]['format'] == 'webp'
 
+	stats = stats_repo.create_response
+	assert stats is not None
+	assert stats.ingest_id == ingest_record.id
+	assert stats.score == stats_repo.create_initial_score
+	assert stats.score_evaluated == stats_repo.create_initial_score
+	assert stats.first_loved_at is None
+	assert stats.last_loved_at is None
+	assert stats.hall_of_fame_at is None
+	assert stats.last_viewed_at is None
+	assert stats.view_count == 0
+	assert stats.view_milestone_count == 0
+	assert stats.view_milestone_archived_at is None
+
 	appended = cast(tuple[int, ExecutionEntry] | None, service._ingest_core.appended)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
 	assert appended is not None
 	ingest_id, entry = appended
@@ -171,7 +191,9 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 		id=7,
 		relative_path=str(origin_relpath),
 		fingerprint='f' * 64,
+		ingested_at=datetime.now(timezone.utc),
 		captured_at=datetime.now(timezone.utc),
+		updated_at=datetime.now(timezone.utc),
 	)
 
 	policy = VariantPolicy(
@@ -182,10 +204,13 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 	)
 
 	image_repo = StubImageRepository()
+	stats_repo = StubStatsRepository()
 	service = ImageIngestService(
 		image_repo=image_repo,
 		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
 		policy=policy,
+		initial_score=100,
 	)
 	service._ingest_core = DummyIngestCore(ingest_record)  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = FailingPipeline(tmp_path, [])  # pyright: ignore[reportAttributeAccessIssue]
