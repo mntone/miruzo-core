@@ -39,6 +39,8 @@ func (ops Operations) AddIngest(entry persist.Ingest) error {
 }
 
 func (ops Operations) MustAddIngest(t testing.TB, entry persist.Ingest) persist.Ingest {
+	t.Helper()
+
 	err := ops.AddIngest(entry)
 	if err != nil {
 		t.Fatalf("add ingest: %v", err)
@@ -91,6 +93,8 @@ func (ops Operations) AddIngestAndImage(entry persist.Ingest) error {
 }
 
 func (ops Operations) MustAddIngestAndImage(t testing.TB, entry persist.Ingest) persist.Ingest {
+	t.Helper()
+
 	err := ops.AddIngestAndImage(entry)
 	if err != nil {
 		t.Fatalf("add ingest and image: %v", err)
@@ -114,6 +118,8 @@ func (ops Operations) AddStat(entry persist.Stats) error {
 }
 
 func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Stats {
+	t.Helper()
+
 	err := ops.AddStat(entry)
 	if err != nil {
 		t.Fatalf("add stat: %v", err)
@@ -127,6 +133,8 @@ func (ops Operations) RemoveUser() error {
 }
 
 func (ops Operations) MustRemoveUser(t testing.TB) {
+	t.Helper()
+
 	err := ops.RemoveUser()
 	if err != nil {
 		t.Fatalf("remove user: %v", err)
@@ -138,6 +146,8 @@ func (ops Operations) SetDailyLoveUsed(dailyLoveUsed int16) error {
 }
 
 func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed int16) {
+	t.Helper()
+
 	err := ops.SetDailyLoveUsed(dailyLoveUsed)
 	if err != nil {
 		t.Fatalf("set daily_love_used to user: %v", err)

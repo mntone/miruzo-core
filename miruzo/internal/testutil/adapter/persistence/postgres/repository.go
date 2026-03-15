@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -17,9 +16,9 @@ type repository struct {
 	queries *gen.Queries
 }
 
-func newRepository(pool *pgxpool.Pool) repository {
+func newRepository(queries *gen.Queries) repository {
 	return repository{
-		queries: gen.New(pool),
+		queries: queries,
 	}
 }
 

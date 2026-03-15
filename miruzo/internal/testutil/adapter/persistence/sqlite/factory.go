@@ -30,10 +30,11 @@ func NewActionSuite(t *testing.T) persistence.ActionSuite {
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
 	return persistence.ActionSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: action.NewRepository(gen.New(db)),
+		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Repository: action.NewRepository(queries),
 	}
 }
 
@@ -42,10 +43,11 @@ func NewImageListSuite(t *testing.T) persistence.ImageListSuite {
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
 	return persistence.ImageListSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: imagelist.NewRepository(gen.New(db)),
+		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Repository: imagelist.NewRepository(queries),
 	}
 }
 
@@ -54,10 +56,11 @@ func NewUserSuite(t *testing.T) persistence.UserSuite {
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
 	return persistence.UserSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: user.NewRepository(gen.New(db)),
+		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Repository: user.NewRepository(queries),
 	}
 }
 
@@ -66,10 +69,11 @@ func NewSettingsSuite(t *testing.T) persistence.SettingsSuite {
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
 	return persistence.SettingsSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: sqlite.NewSettingsRepository(gen.New(db)),
+		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Repository: sqlite.NewSettingsRepository(queries),
 	}
 }
 
@@ -78,11 +82,12 @@ func NewStatsSuite(t *testing.T) persistence.StatsSuite {
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
 	return persistence.StatsSuite{
 		Context:        ctx,
-		Operations:     persistence.NewOperations(ctx, newRepository(db)),
-		Repository:     stats.NewRepository(gen.New(db)),
-		ViewRepository: sqlite.NewViewRepository(gen.New(db)),
+		Operations:     persistence.NewOperations(ctx, newRepository(queries)),
+		Repository:     stats.NewRepository(queries),
+		ViewRepository: sqlite.NewViewRepository(queries),
 	}
 }
 
@@ -91,9 +96,10 @@ func NewViewSuite(t *testing.T) persistence.ViewSuite {
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
 	return persistence.ViewSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(db)),
-		Repository: sqlite.NewViewRepository(gen.New(db)),
+		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Repository: sqlite.NewViewRepository(queries),
 	}
 }

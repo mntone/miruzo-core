@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -18,9 +17,9 @@ type repository struct {
 	queries *gen.Queries
 }
 
-func newRepository(db *sql.DB) repository {
+func newRepository(queries *gen.Queries) repository {
 	return repository{
-		queries: gen.New(db),
+		queries: queries,
 	}
 }
 

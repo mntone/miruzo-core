@@ -18,9 +18,8 @@ import (
 )
 
 type SuiteFactory struct {
-	pool     *pgxpool.Pool
-	close    func() error
-	testRepo repository
+	pool  *pgxpool.Pool
+	close func() error
 }
 
 func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
@@ -56,9 +55,8 @@ func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
 	}
 
 	return &SuiteFactory{
-		pool:     pool,
-		close:    closeFn,
-		testRepo: newRepository(pool),
+		pool:  pool,
+		close: closeFn,
 	}, nil
 }
 
@@ -103,10 +101,11 @@ func (ste *SuiteFactory) NewAction(
 ) testutilPersistence.ActionSuite {
 	t.Helper()
 
+	queries := gen.New(ste.pool)
 	return testutilPersistence.ActionSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: action.NewRepository(gen.New(ste.pool)),
+		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Repository: action.NewRepository(queries),
 	}
 }
 
@@ -116,10 +115,11 @@ func (ste *SuiteFactory) NewImageList(
 ) testutilPersistence.ImageListSuite {
 	t.Helper()
 
+	queries := gen.New(ste.pool)
 	return testutilPersistence.ImageListSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: imagelist.NewRepository(gen.New(ste.pool)),
+		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Repository: imagelist.NewRepository(queries),
 	}
 }
 
@@ -129,10 +129,11 @@ func (ste *SuiteFactory) NewUser(
 ) testutilPersistence.UserSuite {
 	t.Helper()
 
+	queries := gen.New(ste.pool)
 	return testutilPersistence.UserSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: user.NewRepository(gen.New(ste.pool)),
+		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Repository: user.NewRepository(queries),
 	}
 }
 
@@ -142,10 +143,11 @@ func (ste *SuiteFactory) NewSettings(
 ) testutilPersistence.SettingsSuite {
 	t.Helper()
 
+	queries := gen.New(ste.pool)
 	return testutilPersistence.SettingsSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: postgres.NewSettingsRepository(gen.New(ste.pool)),
+		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Repository: postgres.NewSettingsRepository(queries),
 	}
 }
 
@@ -155,11 +157,12 @@ func (ste *SuiteFactory) NewStats(
 ) testutilPersistence.StatsSuite {
 	t.Helper()
 
+	queries := gen.New(ste.pool)
 	return testutilPersistence.StatsSuite{
 		Context:        ctx,
-		Operations:     testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository:     stats.NewRepository(gen.New(ste.pool)),
-		ViewRepository: postgres.NewViewRepository(gen.New(ste.pool)),
+		Operations:     testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Repository:     stats.NewRepository(queries),
+		ViewRepository: postgres.NewViewRepository(queries),
 	}
 }
 
@@ -169,9 +172,10 @@ func (ste *SuiteFactory) NewView(
 ) testutilPersistence.ViewSuite {
 	t.Helper()
 
+	queries := gen.New(ste.pool)
 	return testutilPersistence.ViewSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
-		Repository: postgres.NewViewRepository(gen.New(ste.pool)),
+		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Repository: postgres.NewViewRepository(queries),
 	}
 }
