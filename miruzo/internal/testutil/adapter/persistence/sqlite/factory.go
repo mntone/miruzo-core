@@ -12,7 +12,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	migrations "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/migrations_min"
-	"github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
+	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
 
 func setupDatabase(t *testing.T, ctx context.Context) *sql.DB {
@@ -25,81 +25,91 @@ func setupDatabase(t *testing.T, ctx context.Context) *sql.DB {
 	return db
 }
 
-func NewActionSuite(t *testing.T) persistence.ActionSuite {
+func newOperations(
+	ctx context.Context,
+	queries *gen.Queries,
+) testutilPersistence.Operations {
+	return testutilPersistence.NewOperations(
+		ctx,
+		newRepository(queries),
+	)
+}
+
+func NewActionSuite(t *testing.T) testutilPersistence.ActionSuite {
 	t.Helper()
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
 	queries := gen.New(db)
-	return persistence.ActionSuite{
+	return testutilPersistence.ActionSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Operations: newOperations(ctx, queries),
 		Repository: action.NewRepository(queries),
 	}
 }
 
-func NewImageListSuite(t *testing.T) persistence.ImageListSuite {
+func NewImageListSuite(t *testing.T) testutilPersistence.ImageListSuite {
 	t.Helper()
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
 	queries := gen.New(db)
-	return persistence.ImageListSuite{
+	return testutilPersistence.ImageListSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Operations: newOperations(ctx, queries),
 		Repository: imagelist.NewRepository(queries),
 	}
 }
 
-func NewUserSuite(t *testing.T) persistence.UserSuite {
+func NewUserSuite(t *testing.T) testutilPersistence.UserSuite {
 	t.Helper()
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
 	queries := gen.New(db)
-	return persistence.UserSuite{
+	return testutilPersistence.UserSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Operations: newOperations(ctx, queries),
 		Repository: user.NewRepository(queries),
 	}
 }
 
-func NewSettingsSuite(t *testing.T) persistence.SettingsSuite {
+func NewSettingsSuite(t *testing.T) testutilPersistence.SettingsSuite {
 	t.Helper()
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
 	queries := gen.New(db)
-	return persistence.SettingsSuite{
+	return testutilPersistence.SettingsSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Operations: newOperations(ctx, queries),
 		Repository: sqlite.NewSettingsRepository(queries),
 	}
 }
 
-func NewStatsSuite(t *testing.T) persistence.StatsSuite {
+func NewStatsSuite(t *testing.T) testutilPersistence.StatsSuite {
 	t.Helper()
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
 	queries := gen.New(db)
-	return persistence.StatsSuite{
+	return testutilPersistence.StatsSuite{
 		Context:        ctx,
-		Operations:     persistence.NewOperations(ctx, newRepository(queries)),
+		Operations:     newOperations(ctx, queries),
 		Repository:     stats.NewRepository(queries),
 		ViewRepository: sqlite.NewViewRepository(queries),
 	}
 }
 
-func NewViewSuite(t *testing.T) persistence.ViewSuite {
+func NewViewSuite(t *testing.T) testutilPersistence.ViewSuite {
 	t.Helper()
 
 	ctx := context.Background()
 	db := setupDatabase(t, ctx)
 	queries := gen.New(db)
-	return persistence.ViewSuite{
+	return testutilPersistence.ViewSuite{
 		Context:    ctx,
-		Operations: persistence.NewOperations(ctx, newRepository(queries)),
+		Operations: newOperations(ctx, queries),
 		Repository: sqlite.NewViewRepository(queries),
 	}
 }

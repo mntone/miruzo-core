@@ -95,6 +95,16 @@ func (ste *SuiteFactory) MustReset(
 	}
 }
 
+func (ste *SuiteFactory) newOperations(
+	ctx context.Context,
+	queries *gen.Queries,
+) testutilPersistence.Operations {
+	return testutilPersistence.NewOperations(
+		ctx,
+		newRepository(queries),
+	)
+}
+
 func (ste *SuiteFactory) NewAction(
 	t *testing.T,
 	ctx context.Context,
@@ -104,7 +114,7 @@ func (ste *SuiteFactory) NewAction(
 	queries := gen.New(ste.pool)
 	return testutilPersistence.ActionSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Operations: ste.newOperations(ctx, queries),
 		Repository: action.NewRepository(queries),
 	}
 }
@@ -118,7 +128,7 @@ func (ste *SuiteFactory) NewImageList(
 	queries := gen.New(ste.pool)
 	return testutilPersistence.ImageListSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Operations: ste.newOperations(ctx, queries),
 		Repository: imagelist.NewRepository(queries),
 	}
 }
@@ -132,7 +142,7 @@ func (ste *SuiteFactory) NewUser(
 	queries := gen.New(ste.pool)
 	return testutilPersistence.UserSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Operations: ste.newOperations(ctx, queries),
 		Repository: user.NewRepository(queries),
 	}
 }
@@ -146,7 +156,7 @@ func (ste *SuiteFactory) NewSettings(
 	queries := gen.New(ste.pool)
 	return testutilPersistence.SettingsSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Operations: ste.newOperations(ctx, queries),
 		Repository: postgres.NewSettingsRepository(queries),
 	}
 }
@@ -160,7 +170,7 @@ func (ste *SuiteFactory) NewStats(
 	queries := gen.New(ste.pool)
 	return testutilPersistence.StatsSuite{
 		Context:        ctx,
-		Operations:     testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Operations:     ste.newOperations(ctx, queries),
 		Repository:     stats.NewRepository(queries),
 		ViewRepository: postgres.NewViewRepository(queries),
 	}
@@ -175,7 +185,7 @@ func (ste *SuiteFactory) NewView(
 	queries := gen.New(ste.pool)
 	return testutilPersistence.ViewSuite{
 		Context:    ctx,
-		Operations: testutilPersistence.NewOperations(ctx, newRepository(queries)),
+		Operations: ste.newOperations(ctx, queries),
 		Repository: postgres.NewViewRepository(queries),
 	}
 }

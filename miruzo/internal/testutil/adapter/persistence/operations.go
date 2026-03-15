@@ -14,21 +14,21 @@ import (
 
 type Operations struct {
 	ctx  context.Context
-	repo TestRepository
+	test TestRepository
 }
 
 func NewOperations(
 	ctx context.Context,
-	repo TestRepository,
+	test TestRepository,
 ) Operations {
 	return Operations{
 		ctx:  ctx,
-		repo: repo,
+		test: test,
 	}
 }
 
 func (ops Operations) AddIngest(entry persist.Ingest) error {
-	return ops.repo.CreateIngest(
+	return ops.test.CreateIngest(
 		ops.ctx,
 		entry.ID,
 		entry.RelativePath,
@@ -77,7 +77,7 @@ func (ops Operations) AddIngestAndImage(entry persist.Ingest) error {
 		return err
 	}
 
-	return ops.repo.CreateImage(
+	return ops.test.CreateImage(
 		ops.ctx,
 		entry.ID,
 		entry.IngestedAt,
@@ -104,7 +104,7 @@ func (ops Operations) MustAddIngestAndImage(t testing.TB, entry persist.Ingest) 
 }
 
 func (ops Operations) AddStat(entry persist.Stats) error {
-	return ops.repo.CreateStat(
+	return ops.test.CreateStat(
 		ops.ctx,
 		entry.IngestID,
 		entry.Score,
@@ -129,7 +129,7 @@ func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Sta
 }
 
 func (ops Operations) RemoveUser() error {
-	return ops.repo.DeleteUser(ops.ctx)
+	return ops.test.DeleteUser(ops.ctx)
 }
 
 func (ops Operations) MustRemoveUser(t testing.TB) {
@@ -142,7 +142,7 @@ func (ops Operations) MustRemoveUser(t testing.TB) {
 }
 
 func (ops Operations) SetDailyLoveUsed(dailyLoveUsed int16) error {
-	return ops.repo.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
+	return ops.test.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
 }
 
 func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed int16) {
