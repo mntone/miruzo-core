@@ -61,6 +61,18 @@ func NewUserSuite(t *testing.T) persistence.UserSuite {
 	}
 }
 
+func NewSettingsSuite(t *testing.T) persistence.SettingsSuite {
+	t.Helper()
+
+	ctx := context.Background()
+	db := setupDatabase(t, ctx)
+	return persistence.SettingsSuite{
+		Context:    ctx,
+		Operations: persistence.NewOperations(ctx, newRepository(db)),
+		Repository: sqlite.NewSettingsRepository(gen.New(db)),
+	}
+}
+
 func NewStatsSuite(t *testing.T) persistence.StatsSuite {
 	t.Helper()
 

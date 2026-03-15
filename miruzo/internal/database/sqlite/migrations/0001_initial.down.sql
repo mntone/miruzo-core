@@ -9,3 +9,6 @@ DROP TABLE images;
 
 -- Drop ingests table
 DROP TABLE ingests;
+
+-- Drop settings table
+DROP TABLE settings;

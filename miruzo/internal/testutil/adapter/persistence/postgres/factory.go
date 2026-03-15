@@ -136,6 +136,19 @@ func (ste *SuiteFactory) NewUser(
 	}
 }
 
+func (ste *SuiteFactory) NewSettings(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.SettingsSuite {
+	t.Helper()
+
+	return testutilPersistence.SettingsSuite{
+		Context:    ctx,
+		Operations: testutilPersistence.NewOperations(ctx, ste.testRepo),
+		Repository: postgres.NewSettingsRepository(gen.New(ste.pool)),
+	}
+}
+
 func (ste *SuiteFactory) NewStats(
 	t *testing.T,
 	ctx context.Context,

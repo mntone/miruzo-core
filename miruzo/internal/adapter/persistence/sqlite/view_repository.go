@@ -11,17 +11,17 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type repository struct {
+type viewRepository struct {
 	queries *gen.Queries
 }
 
-func NewViewRepository(queries *gen.Queries) repository {
-	return repository{
+func NewViewRepository(queries *gen.Queries) viewRepository {
+	return viewRepository{
 		queries: queries,
 	}
 }
 
-func (repo repository) GetImageWithStats(
+func (repo viewRepository) GetImageWithStats(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 ) (persist.ImageWithStats, error) {

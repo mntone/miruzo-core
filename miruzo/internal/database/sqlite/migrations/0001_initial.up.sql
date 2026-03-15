@@ -1,3 +1,12 @@
+-- Create settings table
+CREATE TABLE settings(
+	key VARCHAR PRIMARY KEY
+		CONSTRAINT ck_settings_key
+			NOT NULL
+			CHECK (length(key) BETWEEN 2 AND 8),
+	value VARCHAR NOT NULL
+);
+
 -- Create ingests table
 CREATE TABLE ingests(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
