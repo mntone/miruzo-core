@@ -1,13 +1,12 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
-from zoneinfo import ZoneInfo
 
 import pytest
 
 from tests.stubs.user import StubUserRepository
 
 import app.services.users.query_service as query_service
-from app.domain.activities.daily_period import DailyPeriodResolver, resolve_daily_period_start
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.records import UserRecord
 from app.services.users.query_service import UserQueryService
 
@@ -21,10 +20,7 @@ def test_get_quota_returns_remaining_and_reset_at(monkeypatch: pytest.MonkeyPatc
 	user_repo = StubUserRepository()
 	user_repo.users[user.id] = user
 
-	resolver = DailyPeriodResolver(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(5, 0),
-	)
+	resolver = DailyPeriodResolver(timedelta(hours=5))
 	service = UserQueryService(
 		repository=user_repo,
 		daily_love_limit=10,
@@ -49,10 +45,7 @@ def test_get_quota_uses_limit_when_no_love_used(monkeypatch: pytest.MonkeyPatch)
 	service = UserQueryService(
 		repository=user_repo,
 		daily_love_limit=8,
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	response = service.get_quota()
@@ -74,10 +67,7 @@ def test_get_quota_clamps_remaining_to_zero(monkeypatch: pytest.MonkeyPatch) -> 
 	service = UserQueryService(
 		repository=user_repo,
 		daily_love_limit=5,
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	response = service.get_quota()

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
 from starlette.responses import Response
 
@@ -48,6 +48,7 @@ def _get_image_list_service(
 
 
 def _get_context_service(
+	request: Request,
 	session: Annotated[Session, Depends(get_session)],
 ) -> ContextService:
 	return ContextService(
@@ -55,32 +56,22 @@ def _get_context_service(
 		action_repo=create_action_repository(session),
 		image_repo=create_image_repository(session),
 		stats_repo=create_stats_repository(session),
+		period_resolver=request.app.state['period_resolver'],
 		env=env,
 	)
 
 
-def _get_daily_period_resolver() -> DailyPeriodResolver:
-	return DailyPeriodResolver(
-		base_timezone=env.base_timezone,
-		daily_reset_at=env.time.daily_reset_at,
-	)
-
-
-def _get_love_runner(
-	resolver: Annotated[DailyPeriodResolver, Depends(_get_daily_period_resolver)],
-) -> LoveRunner:
+def _get_love_runner(request: Request) -> LoveRunner:
 	return LoveRunner(
-		period_resolver=resolver,
+		period_resolver=request.app.state['period_resolver'],
 		daily_love_limit=env.quota.daily_love_limit,
 		score_config=env.score,
 	)
 
 
-def _get_love_cancel_runner(
-	resolver: Annotated[DailyPeriodResolver, Depends(_get_daily_period_resolver)],
-) -> LoveCancelRunner:
+def _get_love_cancel_runner(request: Request) -> LoveCancelRunner:
 	return LoveCancelRunner(
-		period_resolver=resolver,
+		period_resolver=request.app.state['period_resolver'],
 		score_config=env.score,
 	)
 

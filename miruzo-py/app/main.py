@@ -10,7 +10,6 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config.environments import env
 from app.databases import create_session, init_database
-from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.infrastructures.api.exception_handlers import register_exception_handlers
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
@@ -23,6 +22,7 @@ from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.images.variants.bootstrap import configure_pillow
 from app.services.ingests.bootstrap import ensure_ingest_layout
 from app.services.jobs.manager import JobManager
+from app.services.settings.factory import build_daily_period_resolver
 
 log = getLogger('uvicorn.error')
 
@@ -41,12 +41,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 		min_interval=timedelta(minutes=3),
 	)
 
+	period_resolver = build_daily_period_resolver(
+		day_start_offset=env.period.day_start_offset,
+		initial_location=env.period.initial_location,
+	)
 	score_decay = DailyDecayJob(
 		DailyDecayRunner(
-			period_resolver=DailyPeriodResolver(
-				base_timezone=env.base_timezone,
-				daily_reset_at=env.time.daily_reset_at,
-			),
+			period_resolver=period_resolver,
 			score_calculator=ScoreCalculator(env.score),
 		),
 		session_factory=create_session,
@@ -56,8 +57,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 		scheduler=scheduler,
 		job_manager=job_manager,
 		job=score_decay,
-		trigger_time=env.time.daily_reset_at,
+		trigger_offset=period_resolver.day_start_offset,
 	)
+
+	app.state['period_resolver'] = period_resolver
 
 	scheduler.start()  # pyright: ignore[reportUnknownMemberType]
 	yield

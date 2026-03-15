@@ -1,6 +1,5 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Generator
-from zoneinfo import ZoneInfo
 
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
@@ -37,10 +36,7 @@ def test_run_updates_stats_and_user(session: Session) -> None:
 
 	runner = LoveRunner(
 		daily_love_limit=3,
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 
@@ -72,10 +68,7 @@ def test_run_raises_when_already_loved_today(session: Session) -> None:
 
 	runner = LoveRunner(
 		daily_love_limit=3,
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 
@@ -104,10 +97,7 @@ def test_run_raises_when_quota_exceeded(session: Session) -> None:
 
 	runner = LoveRunner(
 		daily_love_limit=1,
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 

@@ -1,5 +1,4 @@
-from datetime import datetime, time, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -17,10 +16,7 @@ def test_make_score_context_without_last_view() -> None:
 	context = make_score_context(
 		stats=stats,
 		evaluated_at=evaluated_at,
-		resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	assert context.last_viewed_at is None
@@ -38,10 +34,7 @@ def test_make_score_context_marks_view_within_period() -> None:
 	context = make_score_context(
 		stats=stats,
 		evaluated_at=evaluated_at,
-		resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	assert context.has_view_today is True
@@ -58,10 +51,7 @@ def test_make_score_context_marks_view_before_period() -> None:
 	context = make_score_context(
 		stats=stats,
 		evaluated_at=evaluated_at,
-		resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	assert context.has_view_today is False
@@ -76,8 +66,5 @@ def test_make_score_context_raises_for_future_last_view() -> None:
 		make_score_context(
 			stats=stats,
 			evaluated_at=evaluated_at,
-			resolver=DailyPeriodResolver(
-				base_timezone=ZoneInfo('UTC'),
-				daily_reset_at=time(5, 0),
-			),
+			resolver=DailyPeriodResolver(timedelta(hours=5)),
 		)

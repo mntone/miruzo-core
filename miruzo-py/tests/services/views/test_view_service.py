@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from tests.services.activities.stats.factory import build_stats_record
 from tests.services.images.utils import build_image_record
 from tests.stubs.action import StubActionRepository
@@ -7,6 +9,7 @@ from tests.stubs.stats import StubStatsRepository
 
 from app.config.constants import VIEW_MILESTONES
 from app.config.environments import env
+from app.domain.activities.daily_period import DailyPeriodResolver
 from app.models.api.context.query import ContextQuery
 from app.models.api.images.context import ImageRichModel, ImageSummaryModel
 from app.models.enums import ActionKind
@@ -24,6 +27,7 @@ def test_get_context_returns_none_when_record_missing() -> None:
 		image_repo=image_repo,
 		stats_repo=stats_repo,
 		env=env,
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	result = service.get_context(123, query=ContextQuery())
@@ -52,6 +56,7 @@ def test_get_context_returns_summary_and_stats() -> None:
 		image_repo=image_repo,
 		stats_repo=stats_repo,
 		env=env,
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	result = service.get_context(image.ingest_id, query=ContextQuery())
@@ -88,6 +93,7 @@ def test_get_context_returns_rich_when_requested() -> None:
 		image_repo=image_repo,
 		stats_repo=stats_repo,
 		env=env,
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	result = service.get_context(image.ingest_id, query=ContextQuery(level='rich'))
@@ -120,6 +126,7 @@ def test_get_context_updates_view_milestone() -> None:
 		image_repo=image_repo,
 		stats_repo=stats_repo,
 		env=env,
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 	)
 
 	result = service.get_context(image.ingest_id, query=ContextQuery())

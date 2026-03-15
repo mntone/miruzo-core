@@ -1,6 +1,5 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Generator
-from zoneinfo import ZoneInfo
 
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
@@ -51,10 +50,7 @@ def test_run_restores_previous_love(session: Session) -> None:
 		)
 
 	runner = LoveCancelRunner(
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 
@@ -86,10 +82,7 @@ def test_run_clears_first_loved_at_when_no_previous_love(session: Session) -> No
 		stats.last_loved_at = evaluated_at
 
 	runner = LoveCancelRunner(
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 
@@ -112,10 +105,7 @@ def test_run_raises_when_no_love_in_period(session: Session) -> None:
 		stats.last_loved_at = datetime(2024, 1, 1, 23, 0, tzinfo=timezone.utc)
 
 	runner = LoveCancelRunner(
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 
@@ -139,10 +129,7 @@ def test_run_raises_when_first_loved_at_missing(session: Session) -> None:
 		stats.last_loved_at = datetime(2024, 1, 2, 0, 30, tzinfo=timezone.utc)
 
 	runner = LoveCancelRunner(
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(0, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta()),
 		score_config=ScoreConfig(),
 	)
 

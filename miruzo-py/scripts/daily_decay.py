@@ -3,12 +3,12 @@ from datetime import timedelta
 
 from app.config.environments import env
 from app.databases import create_session, init_database
-from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
 from app.jobs.daily_decay import DailyDecayJob
 from app.persist.jobs.factory import create_job_repository
 from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.jobs.manager import JobManager
+from app.services.settings.factory import build_daily_period_resolver
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,9 +37,9 @@ def main() -> None:
 
 	job = DailyDecayJob(
 		DailyDecayRunner(
-			period_resolver=DailyPeriodResolver(
-				base_timezone=env.base_timezone,
-				daily_reset_at=env.time.daily_reset_at,
+			period_resolver=build_daily_period_resolver(
+				day_start_offset=env.period.day_start_offset,
+				initial_location=env.period.initial_location,
 			),
 			score_calculator=ScoreCalculator(env.score),
 		),

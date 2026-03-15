@@ -1,6 +1,5 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, timedelta, timezone
 from typing import final
-from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -74,10 +73,7 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 
 	session = StubSession()
 	runner = DailyDecayRunner(
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
 	)
 
@@ -152,10 +148,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 
 	session = StubSession()
 	runner = DailyDecayRunner(
-		period_resolver=DailyPeriodResolver(
-			base_timezone=ZoneInfo('UTC'),
-			daily_reset_at=time(5, 0),
-		),
+		period_resolver=DailyPeriodResolver(timedelta(hours=5)),
 		score_calculator=score_calculator,  # pyright: ignore[reportArgumentType]
 	)
 

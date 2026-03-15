@@ -1,58 +1,56 @@
-from datetime import datetime, time, timedelta
-from typing import cast
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-_LOCAL_TIMEZONE = cast(ZoneInfo, datetime.now().astimezone().tzinfo or ZoneInfo('UTC'))
+_UTC_TIMEZONE = ZoneInfo('UTC')
+_DEFAULT_DAY_START_OFFSET_LOCAL = timedelta(hours=5)
+
+
+def _get_day_start_offset_utc(
+	location: str,
+) -> timedelta:
+	# Use a fixed date so DST is intentionally ignored for the initial offset.
+	timezone_offset = datetime(2026, 1, 1).replace(tzinfo=ZoneInfo(location)).utcoffset() or timedelta()
+	day_start_offset = _DEFAULT_DAY_START_OFFSET_LOCAL - timezone_offset
+	if day_start_offset.total_seconds() < 0:
+		day_start_offset += timedelta(days=1)
+	return day_start_offset
 
 
 def resolve_daily_period_start(
 	evaluated_at: datetime,
-	*,
-	daily_reset_at: time,
-	base_timezone: ZoneInfo | None,
+	day_start_offset: timedelta,
 ) -> datetime:
 	"""
-	Return the start datetime of the daily period that evaluated_at belongs to.
-	evaluated_at is interpreted in base_timezone (local timezone if None).
+	Return the UTC start datetime of the daily period that evaluated_at belongs to.
+	Naive evaluated_at is treated as UTC.
 	"""
 
-	if base_timezone is None:
-		base_timezone = _LOCAL_TIMEZONE
-
 	if evaluated_at.tzinfo is None:
-		evaluated_at = evaluated_at.replace(tzinfo=base_timezone)
+		evaluated_at = evaluated_at.replace(tzinfo=_UTC_TIMEZONE)
 	else:
-		evaluated_at = evaluated_at.astimezone(base_timezone)
+		evaluated_at = evaluated_at.astimezone(_UTC_TIMEZONE)
 
-	candidate = evaluated_at.replace(
-		hour=daily_reset_at.hour,
-		minute=daily_reset_at.minute,
-		second=daily_reset_at.second,
+	shifted_datetime = evaluated_at - day_start_offset
+	shifted_date = shifted_datetime.replace(
+		hour=0,
+		minute=0,
+		second=0,
 		microsecond=0,
 	)
-
-	if candidate > evaluated_at:
-		candidate -= timedelta(days=1)
-
+	candidate = shifted_date + day_start_offset
 	return candidate
 
 
 def resolve_daily_period_range(
 	evaluated_at: datetime,
-	*,
-	daily_reset_at: time,
-	base_timezone: ZoneInfo | None,
+	day_start_offset: timedelta,
 ) -> tuple[datetime, datetime]:
 	"""
 	Return the [since, until) datetime range of the daily period
-	that evaluated_at belongs to, using base_timezone or local timezone.
+	that evaluated_at belongs to in UTC.
 	"""
 
-	period_start = resolve_daily_period_start(
-		evaluated_at,
-		daily_reset_at=daily_reset_at,
-		base_timezone=base_timezone,
-	)
+	period_start = resolve_daily_period_start(evaluated_at, day_start_offset)
 
 	period_end = period_start + timedelta(days=1)
 
@@ -63,17 +61,12 @@ def is_since_daily_period_start(
 	target: datetime | None,
 	*,
 	evaluated_at: datetime,
-	daily_reset_at: time,
-	base_timezone: ZoneInfo | None,
+	day_start_offset: timedelta,
 ) -> bool:
 	if target is None:
 		return False
 
-	period_start = resolve_daily_period_start(
-		evaluated_at,
-		daily_reset_at=daily_reset_at,
-		base_timezone=base_timezone,
-	)
+	period_start = resolve_daily_period_start(evaluated_at, day_start_offset)
 
 	is_since_period = target >= period_start
 
@@ -81,38 +74,25 @@ def is_since_daily_period_start(
 
 
 class DailyPeriodResolver:
-	"""Resolve daily-period boundaries with a fixed base timezone."""
+	"""Resolve daily-period boundaries in UTC with a fixed day-start offset."""
 
-	_base_timezone: ZoneInfo | None
-	_daily_reset_at: time
+	_day_start_offset: timedelta
 
-	def __init__(
-		self,
-		*,
-		base_timezone: ZoneInfo | None,
-		daily_reset_at: time,
-	) -> None:
-		self._base_timezone = base_timezone
-		self._daily_reset_at = daily_reset_at
+	def __init__(self, day_start_offset: timedelta) -> None:
+		self._day_start_offset = day_start_offset
+
+	@property
+	def day_start_offset(self) -> timedelta:
+		return self._day_start_offset
 
 	def resolve_period_start(self, evaluated_at: datetime) -> datetime:
-		return resolve_daily_period_start(
-			evaluated_at=evaluated_at,
-			daily_reset_at=self._daily_reset_at,
-			base_timezone=self._base_timezone,
-		)
+		return resolve_daily_period_start(evaluated_at, self._day_start_offset)
 
 	def resolve_period_end(self, evaluated_at: datetime) -> datetime:
-		return self.resolve_period_start(
-			evaluated_at=evaluated_at,
-		) + timedelta(days=1)
+		return self.resolve_period_start(evaluated_at) + timedelta(days=1)
 
 	def resolve_period_range(self, evaluated_at: datetime) -> tuple[datetime, datetime]:
-		return resolve_daily_period_range(
-			evaluated_at=evaluated_at,
-			daily_reset_at=self._daily_reset_at,
-			base_timezone=self._base_timezone,
-		)
+		return resolve_daily_period_range(evaluated_at, self._day_start_offset)
 
 	def is_since_period_start(
 		self,
@@ -123,6 +103,10 @@ class DailyPeriodResolver:
 		return is_since_daily_period_start(
 			target,
 			evaluated_at=evaluated_at,
-			daily_reset_at=self._daily_reset_at,
-			base_timezone=self._base_timezone,
+			day_start_offset=self._day_start_offset,
 		)
+
+	@classmethod
+	def from_location(cls, location: str) -> 'DailyPeriodResolver':
+		day_start_offset = _get_day_start_offset_utc(location)
+		return cls(day_start_offset)

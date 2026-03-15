@@ -7,7 +7,6 @@ from app.config.constants import VIEW_MILESTONES
 from app.config.environments import Settings
 from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.score.calculator import ScoreCalculator
-from app.models.api.activities.action import ActionModel
 from app.models.api.activities.stats import StatsModel
 from app.models.api.context.query import ContextQuery
 from app.models.api.context.responses import ContextResponse
@@ -30,6 +29,7 @@ class ContextService:
 		action_repo: ActionRepository,
 		image_repo: ImageRepository,
 		stats_repo: StatsRepository,
+		period_resolver: DailyPeriodResolver,
 		env: Settings,
 	) -> None:
 		self._session = session
@@ -38,10 +38,7 @@ class ContextService:
 		self._image_repo = image_repo
 		self._stats_repo = stats_repo
 		self._score_calc = ScoreCalculator(env.score)
-		self._period_resolver = DailyPeriodResolver(
-			base_timezone=env.base_timezone,
-			daily_reset_at=env.time.daily_reset_at,
-		)
+		self._period_resolver = period_resolver
 		self._variant_layers = env.variant_layers
 
 	def get_context(

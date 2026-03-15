@@ -28,6 +28,28 @@ from app.models.types import ExecutionEntry, ExecutionsJSON, UTCDateTime, Varian
 
 
 @final
+class SettingsRecord(SQLModel, table=True):
+	__tablename__ = 'settings'
+
+	key: str = SQLField(
+		min_length=4,
+		max_length=8,
+		sa_column=Column(
+			String,
+			CheckConstraint('length(key) BETWEEN 4 AND 8', 'ck_settings_key'),
+			primary_key=True,
+		),
+	)
+	value: str | None = SQLField(
+		min_length=1,
+		sa_column=Column(
+			String,
+			CheckConstraint('length(value) >= 1', 'ck_settings_value'),
+		),
+	)
+
+
+@final
 class IngestRecord(SQLModel, table=True):
 	__tablename__ = 'ingests'
 

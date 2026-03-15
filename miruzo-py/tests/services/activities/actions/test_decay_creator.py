@@ -1,5 +1,4 @@
-from datetime import datetime, time, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 from tests.stubs.action import StubActionRepository
 
@@ -13,10 +12,7 @@ def test_create_returns_action_when_missing() -> None:
 	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
 	repo = StubActionRepository()
 
-	resolver = DailyPeriodResolver(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(5, 0),
-	)
+	resolver = DailyPeriodResolver(timedelta(hours=5))
 	creator = DecayActionCreator(
 		repository=repo,
 		period_resolver=resolver,
@@ -48,10 +44,7 @@ def test_create_returns_none_when_existing() -> None:
 	repo = StubActionRepository()
 	repo.actions = [existing]
 
-	resolver = DailyPeriodResolver(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(5, 0),
-	)
+	resolver = DailyPeriodResolver(timedelta(hours=5))
 	creator = DecayActionCreator(
 		repository=repo,
 		period_resolver=resolver,

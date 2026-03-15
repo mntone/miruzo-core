@@ -1,5 +1,4 @@
-from datetime import datetime, time, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 from tests.services.activities.stats.factory import build_stats_record
 
@@ -12,10 +11,7 @@ from app.services.activities.stats.score_updater import update_score_from_action
 
 
 def _make_resolver() -> DailyPeriodResolver:
-	return DailyPeriodResolver(
-		base_timezone=ZoneInfo('UTC'),
-		daily_reset_at=time(0, 0),
-	)
+	return DailyPeriodResolver(timedelta())
 
 
 def _make_action(kind: ActionKind, occurred_at: datetime) -> ActionRecord:

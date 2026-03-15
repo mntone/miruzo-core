@@ -1,12 +1,20 @@
 # pyright: reportMissingTypeStubs=false
 
-from datetime import time
+from datetime import time, timedelta
 
 from apscheduler.job import Job as APJob
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.jobs.protocol import Job
 from app.services.jobs.manager import JobManager
+
+
+def _to_time(offset: timedelta) -> time:
+	total_seconds = int(offset.total_seconds()) % (24 * 3600)
+	hours, remainder = divmod(total_seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+
+	return time(hour=hours, minute=minutes, second=seconds)
 
 
 def create_scheduler() -> BackgroundScheduler:
@@ -23,8 +31,9 @@ def register_daily_job(
 	scheduler: BackgroundScheduler,
 	job_manager: JobManager,
 	job: Job,
-	trigger_time: time,
+	trigger_offset: timedelta,
 ) -> APJob:
+	trigger_time = _to_time(trigger_offset)
 	ap_job = scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
 		_dispatch_job,
 		trigger='cron',
