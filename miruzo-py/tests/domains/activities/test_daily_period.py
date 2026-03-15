@@ -2,11 +2,11 @@ from datetime import datetime, time, timedelta, timezone
 
 import pytest
 
-from app.domain.activities.daily_period import (
-	is_since_daily_period_start,
-	resolve_daily_period_range,
-	resolve_daily_period_start,
-)
+from app.domain.activities.daily_period import DailyPeriodResolver
+
+
+def _make_resolver(*, hours: float = 5) -> DailyPeriodResolver:
+	return DailyPeriodResolver(timedelta(hours=hours))
 
 
 @pytest.mark.parametrize(
@@ -26,11 +26,7 @@ def test_resolve_daily_period_start_keeps_time_after_reset(target_time: time) ->
 		microsecond=target_time.microsecond,
 	)
 
-	result = resolve_daily_period_start(
-		evaluated_at,
-		day_start_offset=timedelta(hours=5),
-	)
-
+	result = _make_resolver().resolve_period_start(evaluated_at)
 	assert result == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)
 
 
@@ -51,11 +47,7 @@ def test_resolve_daily_period_start_shifts_before_reset(target_time: time) -> No
 		microsecond=target_time.microsecond,
 	)
 
-	result = resolve_daily_period_start(
-		evaluated_at,
-		day_start_offset=timedelta(hours=5),
-	)
-
+	result = _make_resolver().resolve_period_start(evaluated_at)
 	assert result == datetime(2026, 1, 1, 5, 0, tzinfo=timezone.utc)
 
 
@@ -63,32 +55,21 @@ def test_resolve_daily_period_start_converts_timezone_to_utc() -> None:
 	jst = timezone(timedelta(hours=9))
 	evaluated_at = datetime(2026, 1, 2, 10, 0, tzinfo=jst)
 
-	result = resolve_daily_period_start(
-		evaluated_at,
-		day_start_offset=timedelta(hours=20),
-	)
-
+	result = _make_resolver(hours=20).resolve_period_start(evaluated_at)
 	assert result == datetime(2026, 1, 1, 20, 0, tzinfo=timezone.utc)
 
 
 def test_resolve_daily_period_start_assumes_utc_for_naive() -> None:
 	evaluated_at = datetime(2026, 1, 2, 6, 0)
 
-	result = resolve_daily_period_start(
-		evaluated_at,
-		day_start_offset=timedelta(hours=5),
-	)
-
+	result = _make_resolver().resolve_period_start(evaluated_at)
 	assert result == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)
 
 
 def test_resolve_daily_period_range_returns_one_day_span() -> None:
 	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
 
-	period_start, period_end = resolve_daily_period_range(
-		evaluated_at,
-		day_start_offset=timedelta(hours=5),
-	)
+	period_start, period_end = _make_resolver().resolve_period_range(evaluated_at)
 
 	assert period_start == datetime(2026, 1, 2, 5, 0, tzinfo=timezone.utc)
 	assert period_end == datetime(2026, 1, 3, 5, 0, tzinfo=timezone.utc)
@@ -97,11 +78,7 @@ def test_resolve_daily_period_range_returns_one_day_span() -> None:
 def test_is_since_daily_period_start_handles_none() -> None:
 	evaluated_at = datetime(2026, 1, 2, 6, 0, tzinfo=timezone.utc)
 
-	result = is_since_daily_period_start(
-		None,
-		evaluated_at=evaluated_at,
-		day_start_offset=timedelta(hours=5),
-	)
+	result = _make_resolver().is_since_period_start(None, evaluated_at=evaluated_at)
 	assert result is False
 
 
@@ -125,9 +102,5 @@ def test_is_since_daily_period_start_checks_period_boundary(
 		microsecond=target_time.microsecond,
 	)
 
-	result = is_since_daily_period_start(
-		target,
-		evaluated_at=evaluated_at,
-		day_start_offset=timedelta(hours=5),
-	)
+	result = _make_resolver().is_since_period_start(target, evaluated_at=evaluated_at)
 	assert result is expected
