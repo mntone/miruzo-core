@@ -88,7 +88,7 @@ func TestDailyResolverPeriodStartHandlesDSTTransition(t *testing.T) {
 
 	resolver := period.NewDailyResolverWithLocation(5*time.Hour, location)
 	got := resolver.PeriodStart(time.Date(2026, 1, 2, 5, 0, 0, 0, location))
-	assert.EqualFn(t, "PeriodStart()", got, time.Date(2026, 1, 2, 5, 0, 0, 0, location))
+	assert.EqualFn(t, "PeriodStart()", got, time.Date(2026, 1, 2, 10, 0, 0, 0, time.UTC))
 }
 
 func TestDailyResolverPeriodEnd(t *testing.T) {

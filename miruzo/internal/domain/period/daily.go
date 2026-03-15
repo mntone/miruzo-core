@@ -30,18 +30,17 @@ func NewDailyResolver(dayStartOffset time.Duration) DailyResolver {
 func (resolv DailyResolver) PeriodStart(evaluatedAt time.Time) time.Time {
 	target := evaluatedAt.In(resolv.location)
 
+	shifted := target.Add(-1 * resolv.dayStartOffset)
+
 	midnight := time.Date(
-		target.Year(),
-		target.Month(),
-		target.Day(),
+		shifted.Year(),
+		shifted.Month(),
+		shifted.Day(),
 		0, 0, 0, 0,
 		resolv.location,
 	)
 
 	candidate := midnight.Add(resolv.dayStartOffset)
-	if candidate.After(target) {
-		candidate = candidate.AddDate(0, 0, -1)
-	}
 
 	return candidate.UTC()
 }
