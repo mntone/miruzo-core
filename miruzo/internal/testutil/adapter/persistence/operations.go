@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"testing"
+	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
@@ -13,18 +14,36 @@ import (
 )
 
 type Operations struct {
-	ctx  context.Context
-	test TestRepository
+	ctx    context.Context
+	Action persist.ActionRepository
+	test   TestRepository
 }
 
 func NewOperations(
 	ctx context.Context,
+	action persist.ActionRepository,
 	test TestRepository,
 ) Operations {
 	return Operations{
-		ctx:  ctx,
-		test: test,
+		ctx:    ctx,
+		Action: action,
+		test:   test,
 	}
+}
+
+func (ops Operations) MustAddAction(
+	t testing.TB,
+	ingestID model.IngestIDType,
+	kind model.ActionType,
+	occurredAt time.Time,
+) model.ActionIDType {
+	t.Helper()
+
+	actionID, err := ops.Action.Create(ops.ctx, ingestID, kind, occurredAt)
+	if err != nil {
+		t.Fatalf("add action: %v", err)
+	}
+	return actionID
 }
 
 func (ops Operations) AddIngest(entry persist.Ingest) error {
@@ -151,5 +170,23 @@ func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed int16) {
 	err := ops.SetDailyLoveUsed(dailyLoveUsed)
 	if err != nil {
 		t.Fatalf("set daily_love_used to user: %v", err)
+	}
+}
+
+func (ops Operations) MustTruncateActions(t testing.TB) {
+	t.Helper()
+
+	err := ops.test.TruncateActions(ops.ctx)
+	if err != nil {
+		t.Fatalf("truncate actions: %v", err)
+	}
+}
+
+func (ops Operations) MustTruncateStats(t testing.TB) {
+	t.Helper()
+
+	err := ops.test.TruncateStats(ops.ctx)
+	if err != nil {
+		t.Fatalf("truncate stats: %v", err)
 	}
 }

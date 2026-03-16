@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -13,11 +14,13 @@ import (
 )
 
 type repository struct {
+	pool    *pgxpool.Pool
 	queries *gen.Queries
 }
 
-func newRepository(queries *gen.Queries) repository {
+func newRepository(pool *pgxpool.Pool, queries *gen.Queries) repository {
 	return repository{
+		pool:    pool,
 		queries: queries,
 	}
 }
@@ -110,6 +113,24 @@ func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16
 
 	if rowCount == 0 {
 		return persist.ErrNotFound
+	}
+
+	return nil
+}
+
+func (repo repository) TruncateActions(ctx context.Context) error {
+	_, err := repo.pool.Exec(ctx, "TRUNCATE TABLE actions")
+	if err != nil {
+		return shared.MapPostgreError("TruncateActions", err)
+	}
+
+	return nil
+}
+
+func (repo repository) TruncateStats(ctx context.Context) error {
+	_, err := repo.pool.Exec(ctx, "TRUNCATE TABLE stats")
+	if err != nil {
+		return shared.MapPostgreError("TruncateStats", err)
 	}
 
 	return nil

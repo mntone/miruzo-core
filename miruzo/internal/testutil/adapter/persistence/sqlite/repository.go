@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -14,11 +15,13 @@ import (
 )
 
 type repository struct {
+	db      *sql.DB
 	queries *gen.Queries
 }
 
-func newRepository(queries *gen.Queries) repository {
+func newRepository(db *sql.DB, queries *gen.Queries) repository {
 	return repository{
+		db:      db,
 		queries: queries,
 	}
 }
@@ -132,6 +135,24 @@ func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16
 
 	if rowCount == 0 {
 		return persist.ErrNotFound
+	}
+
+	return nil
+}
+
+func (repo repository) TruncateActions(ctx context.Context) error {
+	_, err := repo.db.ExecContext(ctx, "DELETE FROM actions")
+	if err != nil {
+		return shared.MapSQLiteError("TruncateActions", err)
+	}
+
+	return nil
+}
+
+func (repo repository) TruncateStats(ctx context.Context) error {
+	_, err := repo.db.ExecContext(ctx, "DELETE FROM stats")
+	if err != nil {
+		return shared.MapSQLiteError("TruncateStats", err)
 	}
 
 	return nil
