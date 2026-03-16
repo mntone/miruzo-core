@@ -37,6 +37,16 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+func TestUserRepositoryUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestUserSchemaRejectsInvalidDailyLoveUsed(t)
+}
+
 func TestUserRepositoryGetSingletonUser(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")

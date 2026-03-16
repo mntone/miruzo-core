@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -8,6 +9,38 @@ import (
 )
 
 type UserSuite SuiteBase[persist.UserRepository]
+
+func (ste UserSuite) RunTestUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name          string
+		dailyLoveUsed int32
+		wantErr       error
+	}{
+		{
+			name:          "daily_love_used=-1",
+			dailyLoveUsed: -1,
+			wantErr:       persist.ErrCheckViolation,
+		},
+		{
+			name:          "daily_love_used=32768",
+			dailyLoveUsed: 32768,
+			wantErr:       persist.ErrCheckViolation,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stmt := fmt.Sprintf(
+				"UPDATE users SET daily_love_used=%d WHERE id=1",
+				tt.dailyLoveUsed,
+			)
+			err := ste.Operations.ExecuteStatement(stmt)
+			assert.ErrorIs(t, "update error", err, tt.wantErr)
+		})
+	}
+}
 
 func (ste UserSuite) RunTestGetSingletonUser(t *testing.T) {
 	t.Helper()

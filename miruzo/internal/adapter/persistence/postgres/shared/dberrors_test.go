@@ -149,6 +149,11 @@ func TestMapPostgreErrorMapsViolations(t *testing.T) {
 		wantErr  error
 	}{
 		{
+			name:     "numeric_value_out_of_range",
+			sqlState: "22003",
+			wantErr:  persist.ErrCheckViolation,
+		},
+		{
 			name:     "not_null_violation",
 			sqlState: "23502",
 			wantErr:  persist.ErrNotNullViolation,

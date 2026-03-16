@@ -6,6 +6,10 @@ import (
 	testutilSQLite "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/sqlite"
 )
 
+func TestUserRepositoryUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestUserSchemaRejectsInvalidDailyLoveUsed(t)
+}
+
 func TestUserRepositoryGetSingletonUser(t *testing.T) {
 	testutilSQLite.NewUserSuite(t).RunTestGetSingletonUser(t)
 }

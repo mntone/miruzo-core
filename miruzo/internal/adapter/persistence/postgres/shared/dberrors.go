@@ -98,7 +98,7 @@ func mapPostgreBaseError(operation string, err error, foreignKeyError error) err
 				err,
 			)
 
-		case pgerrcode.CheckViolation:
+		case pgerrcode.NumericValueOutOfRange, pgerrcode.CheckViolation:
 			return fmt.Errorf(
 				"%w: operation=%s sqlstate=%s: %v",
 				persist.ErrCheckViolation,
