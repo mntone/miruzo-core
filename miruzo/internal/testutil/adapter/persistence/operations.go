@@ -147,6 +147,10 @@ func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Sta
 	return entry
 }
 
+func (ops Operations) ExecuteStatement(stmt string) error {
+	return ops.test.ExecuteStatement(ops.ctx, stmt)
+}
+
 func (ops Operations) RemoveUser() error {
 	return ops.test.DeleteUser(ops.ctx)
 }

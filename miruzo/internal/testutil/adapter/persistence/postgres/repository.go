@@ -105,6 +105,15 @@ func (repo repository) DeleteUser(ctx context.Context) error {
 	return nil
 }
 
+func (repo repository) ExecuteStatement(ctx context.Context, stmt string) error {
+	_, err := repo.pool.Exec(ctx, stmt)
+	if err != nil {
+		return shared.MapPostgreError("ExecuteStatement", err)
+	}
+
+	return nil
+}
+
 func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16) error {
 	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, dailyLoveUsed)
 	if err != nil {

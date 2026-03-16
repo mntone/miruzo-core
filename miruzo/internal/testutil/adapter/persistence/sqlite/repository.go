@@ -127,6 +127,15 @@ func (repo repository) DeleteUser(ctx context.Context) error {
 	return nil
 }
 
+func (repo repository) ExecuteStatement(ctx context.Context, stmt string) error {
+	_, err := repo.db.ExecContext(ctx, stmt)
+	if err != nil {
+		return shared.MapSQLiteError("ExecuteStatement", err)
+	}
+
+	return nil
+}
+
 func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16) error {
 	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, int64(dailyLoveUsed))
 	if err != nil {
