@@ -16,6 +16,14 @@ type StatsRepository interface {
 		periodStartAt time.Time,
 	) (LoveStats, error)
 
+	ApplyLoveCanceled(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		scoreDelta model.ScoreType,
+		periodStartAt time.Time,
+		dayStartOffset time.Duration,
+	) (LoveStats, error)
+
 	ApplyView(
 		ctx context.Context,
 		ingestID model.IngestIDType,

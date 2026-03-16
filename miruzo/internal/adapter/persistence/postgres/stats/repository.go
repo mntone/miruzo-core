@@ -50,6 +50,34 @@ func (repo repository) ApplyLove(
 	}, nil
 }
 
+func (repo repository) ApplyLoveCanceled(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	scoreDelta model.ScoreType,
+	periodStartAt time.Time,
+	dayStartOffset time.Duration,
+) (persist.LoveStats, error) {
+	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
+		IngestID:       ingestID,
+		ScoreDelta:     scoreDelta,
+		PeriodStartAt:  shared.PgtypeTimestampFromTime(periodStartAt),
+		DayStartOffset: shared.PgtypeIntervalFromDuration(dayStartOffset),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return persist.LoveStats{}, persist.ErrConflict
+		}
+
+		return persist.LoveStats{}, shared.MapPostgreError("ApplyLoveCanceled", err)
+	}
+
+	return persist.LoveStats{
+		Score:        loveStats.Score,
+		FirstLovedAt: shared.OptionTimeFromPgtype(loveStats.FirstLovedAt),
+		LastLovedAt:  shared.OptionTimeFromPgtype(loveStats.LastLovedAt),
+	}, nil
+}
+
 func (repo repository) ApplyView(
 	ctx context.Context,
 	ingestID model.IngestIDType,

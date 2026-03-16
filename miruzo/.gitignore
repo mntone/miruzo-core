@@ -1,6 +1,7 @@
 # Distribution / packaging
 bin/
 dist/
-internal/database/*/gen/
+internal/database/*/gen/*
+!internal/database/*/gen/*.manual.go
 internal/database/*/migrations_min/
 tmp/
