@@ -3,46 +3,33 @@ package period
 import "time"
 
 type DailyResolver struct {
-	location       *time.Location
 	dayStartOffset time.Duration
 }
 
-func NewDailyResolverWithLocation(
-	dayStartOffset time.Duration,
-	location *time.Location,
-) DailyResolver {
-	if location == nil {
-		location = time.Local
-	}
-
+func NewDailyResolver(dayStartOffset time.Duration) DailyResolver {
 	return DailyResolver{
-		location:       location,
 		dayStartOffset: dayStartOffset,
 	}
 }
 
-func NewDailyResolver(dayStartOffset time.Duration) DailyResolver {
-	return NewDailyResolverWithLocation(dayStartOffset, time.Local)
-}
-
 // PeriodStart returns the start time of the daily period that contains evaluatedAt.
-// The start is determined by the resolver's dayStartOffset in its location.
+// The start is determined by the resolver's dayStartOffset in UTC.
 func (resolv DailyResolver) PeriodStart(evaluatedAt time.Time) time.Time {
-	target := evaluatedAt.In(resolv.location)
+	utc := evaluatedAt.UTC()
 
-	shifted := target.Add(-1 * resolv.dayStartOffset)
+	shifted := utc.Add(-resolv.dayStartOffset)
 
 	midnight := time.Date(
 		shifted.Year(),
 		shifted.Month(),
 		shifted.Day(),
 		0, 0, 0, 0,
-		resolv.location,
+		time.UTC,
 	)
 
 	candidate := midnight.Add(resolv.dayStartOffset)
 
-	return candidate.UTC()
+	return candidate
 }
 
 // PeriodEnd returns the exclusive end of the daily period containing evaluatedAt.

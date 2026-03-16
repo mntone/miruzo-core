@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api"
@@ -43,6 +45,15 @@ func MountAPI(
 	cfg config.AppConfig,
 	version string,
 ) {
+	dailyResolver, err := newDailyResolver(
+		context.Background(),
+		cfg.Period,
+		manager.Repos().Settings,
+	)
+	if err != nil {
+		log.Fatalf("app: failed to build daily resolver: %v", err)
+	}
+
 	readBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
 	imageListService := imageListService.New(
 		manager.Repos().ImageList,
@@ -58,7 +69,6 @@ func MountAPI(
 	imageListAPI.RegisterRoutes(mux, imageListHandler)
 
 	clockProvider := clock.NewSystemProvider()
-	dailyResolver := period.NewDailyResolver(cfg.Period.DayStartOffset)
 	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
 	viewService := viewService.New(
 		manager,

@@ -12,10 +12,7 @@ import (
 )
 
 var calc = score.New(
-	period.NewDailyResolverWithLocation(
-		5*time.Hour,
-		time.UTC,
-	),
+	period.NewDailyResolver(5*time.Hour),
 	10,
 	[]model.ScoreViewBonusRule{
 		{Days: 1, Bonus: 10},

@@ -36,7 +36,7 @@ func TestDailyResolverPeriodStartKeepsTimeBeforeReset(t *testing.T) {
 	}
 
 	want := time.Date(2026, 1, 1, 5, 0, 0, 0, time.UTC)
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, time.UTC)
+	resolver := period.NewDailyResolver(5 * time.Hour)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := resolver.PeriodStart(tt.time)
@@ -73,7 +73,7 @@ func TestDailyResolverPeriodStartKeepsTimeAfterReset(t *testing.T) {
 	}
 
 	want := time.Date(2026, 1, 2, 5, 0, 0, 0, time.UTC)
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, time.UTC)
+	resolver := period.NewDailyResolver(5 * time.Hour)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := resolver.PeriodStart(tt.time)
@@ -82,23 +82,23 @@ func TestDailyResolverPeriodStartKeepsTimeAfterReset(t *testing.T) {
 	}
 }
 
-func TestDailyResolverPeriodStartHandlesDSTTransition(t *testing.T) {
+func TestDailyResolverPeriodStartNormalizesToUTC(t *testing.T) {
 	location, err := time.LoadLocation("America/New_York")
 	assert.NilError(t, "time.LoadLocation()", err)
 
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, location)
+	resolver := period.NewDailyResolver(10 * time.Hour)
 	got := resolver.PeriodStart(time.Date(2026, 1, 2, 5, 0, 0, 0, location))
 	assert.EqualFn(t, "PeriodStart()", got, time.Date(2026, 1, 2, 10, 0, 0, 0, time.UTC))
 }
 
 func TestDailyResolverPeriodEnd(t *testing.T) {
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, time.UTC)
+	resolver := period.NewDailyResolver(5 * time.Hour)
 	got := resolver.PeriodEnd(time.Date(2026, 1, 2, 6, 0, 0, 0, time.UTC))
 	assert.EqualFn(t, "PeriodEnd()", got, time.Date(2026, 1, 3, 5, 0, 0, 0, time.UTC))
 }
 
 func TestDailyResolverPeriodRangeReturnsOneDaySpan(t *testing.T) {
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, time.UTC)
+	resolver := period.NewDailyResolver(5 * time.Hour)
 	gotStart, gotEnd := resolver.PeriodRange(time.Date(2026, 1, 2, 6, 0, 0, 0, time.UTC))
 	assert.EqualFn(t, "PeriodEnd()[0]", gotStart, time.Date(2026, 1, 2, 5, 0, 0, 0, time.UTC))
 	assert.EqualFn(t, "PeriodEnd()[1]", gotEnd, time.Date(2026, 1, 3, 5, 0, 0, 0, time.UTC))
@@ -138,7 +138,7 @@ func TestDailyResolverSincePeriodStartChecksPeriodBoundary(t *testing.T) {
 	}
 
 	evaluatedAt := time.Date(2026, 1, 2, 6, 0, 0, 0, time.UTC)
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, time.UTC)
+	resolver := period.NewDailyResolver(5 * time.Hour)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := resolver.SincePeriodStart(tt.time, evaluatedAt)
@@ -191,7 +191,7 @@ func TestDailyResolverInPeriodChecksPeriodBoundary(t *testing.T) {
 	}
 
 	evaluatedAt := time.Date(2026, 1, 2, 6, 0, 0, 0, time.UTC)
-	resolver := period.NewDailyResolverWithLocation(5*time.Hour, time.UTC)
+	resolver := period.NewDailyResolver(5 * time.Hour)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
