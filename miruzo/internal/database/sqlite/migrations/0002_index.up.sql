@@ -1,3 +1,12 @@
+-- Create index for action
+CREATE INDEX ix_actions_love_lookup
+ON actions (ingest_id, occurred_at DESC, id DESC)
+WHERE kind=13;
+
+CREATE INDEX ix_actions_love_canceled_lookup
+ON actions (ingest_id, occurred_at)
+WHERE kind=14;
+
 -- Create index for imagelist
 CREATE INDEX ix_images_latest
 ON images (ingested_at DESC, ingest_id DESC);
