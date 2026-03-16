@@ -37,6 +37,16 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+func TestActionRepositoryActionSchemaRejectsInvalidKind(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewAction(t, ctx).RunTestActionSchemaRejectsInvalidKind(t)
+}
+
 func TestActionRepositoryCreateAction(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")

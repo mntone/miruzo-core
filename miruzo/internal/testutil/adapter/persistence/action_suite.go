@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,6 +13,52 @@ import (
 var actionSuiteBaseTimeUTC = time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
 
 type ActionSuite SuiteBase[persist.ActionRepository]
+
+func (ste ActionSuite) RunTestActionSchemaRejectsInvalidKind(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name    string
+		kind    int32
+		wantErr error
+	}{
+		{
+			name:    "kind=2",
+			kind:    2,
+			wantErr: persist.ErrCheckViolation,
+		},
+		{
+			name:    "kind=10",
+			kind:    10,
+			wantErr: persist.ErrCheckViolation,
+		},
+		{
+			name:    "kind=17",
+			kind:    17,
+			wantErr: persist.ErrCheckViolation,
+		},
+		{
+			name:    "kind=999",
+			kind:    999,
+			wantErr: persist.ErrCheckViolation,
+		},
+	}
+
+	ingest := ste.Operations.MustAddIngest(t, NewIngestFixture(1, actionSuiteBaseTimeUTC))
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stmt := fmt.Sprintf(
+				"INSERT INTO actions(ingest_id, kind, occurred_at) VALUES(%d, %d, '%s')",
+				ingest.ID,
+				tt.kind,
+				actionSuiteBaseTimeUTC.Format(time.RFC3339Nano),
+			)
+			err := ste.Operations.ExecuteStatement(stmt)
+			assert.ErrorIs(t, "insert error", err, tt.wantErr)
+		})
+	}
+}
 
 func (ste ActionSuite) RunTestCreateAction(t *testing.T) {
 	t.Helper()

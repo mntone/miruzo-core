@@ -71,7 +71,7 @@ func (ste *SuiteFactory) Close() error {
 }
 
 func (ste *SuiteFactory) Reset(ctx context.Context) error {
-	_, err := ste.pool.Exec(ctx, "TRUNCATE TABLE stats, images, ingests RESTART IDENTITY CASCADE")
+	_, err := ste.pool.Exec(ctx, "TRUNCATE TABLE actions, stats, images, ingests RESTART IDENTITY CASCADE")
 	if err != nil {
 		return fmt.Errorf("reset postgres database: %w", err)
 	}
