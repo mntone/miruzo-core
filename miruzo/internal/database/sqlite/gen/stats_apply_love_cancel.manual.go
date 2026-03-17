@@ -9,7 +9,7 @@ const applyLoveCanceledToStats = `WITH latest AS(SELECT a.occurred_at FROM actio
 
 type ApplyLoveCanceledToStatsParams struct {
 	IngestID       int64
-	ScoreDelta     int64
+	ScoreDelta     int16
 	PeriodStartAt  sql.NullTime
 	DayStartOffset int64
 }

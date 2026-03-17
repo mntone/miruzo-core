@@ -31,7 +31,7 @@ func (repo repository) ApplyLove(
 ) (persist.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
 		IngestID:      ingestID,
-		ScoreDelta:    int64(scoreDelta),
+		ScoreDelta:    scoreDelta,
 		LovedAt:       shared.NullTimeFromTime(lovedAt),
 		PeriodStartAt: shared.NullTimeFromTime(periodStartAt),
 	})
@@ -59,7 +59,7 @@ func (repo repository) ApplyLoveCanceled(
 ) (persist.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
-		ScoreDelta:     int64(scoreDelta),
+		ScoreDelta:     scoreDelta,
 		PeriodStartAt:  shared.NullTimeFromTime(periodStartAt),
 		DayStartOffset: int64(dayStartOffset.Seconds()),
 	})
@@ -86,7 +86,7 @@ func (repo repository) ApplyView(
 ) error {
 	rowCount, err := repo.queries.ApplyViewToStats(ctx, gen.ApplyViewToStatsParams{
 		IngestID:   ingestID,
-		ScoreDelta: int64(scoreDelta),
+		ScoreDelta: scoreDelta,
 		ViewedAt:   shared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
@@ -108,7 +108,7 @@ func (repo repository) ApplyViewWithMilestone(
 ) error {
 	rowCount, err := repo.queries.ApplyViewToStatsWithMilestone(ctx, gen.ApplyViewToStatsWithMilestoneParams{
 		IngestID:   ingestID,
-		ScoreDelta: int64(scoreDelta),
+		ScoreDelta: scoreDelta,
 		ViewedAt:   shared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {

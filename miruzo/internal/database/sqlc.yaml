@@ -50,3 +50,7 @@ sql:
         - column: "images.variants"
           go_type:
             type: "[]byte"
+        - column: "stats.score"
+          go_type: int16
+        - column: "stats.score_evaluated"
+          go_type: int16

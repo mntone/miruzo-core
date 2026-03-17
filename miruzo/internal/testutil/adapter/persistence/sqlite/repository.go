@@ -104,8 +104,8 @@ func (repo repository) CreateStat(
 ) error {
 	return repo.queries.CreateStat(ctx, gen.CreateStatParams{
 		IngestID:       id,
-		Score:          int64(score),
-		ScoreEvaluated: int64(scoreEvaluated),
+		Score:          score,
+		ScoreEvaluated: scoreEvaluated,
 		FirstLovedAt:   shared.NullTimeFromOption(firstLovedAt),
 		LastLovedAt:    shared.NullTimeFromOption(lastLovedAt),
 		HallOfFameAt:   shared.NullTimeFromOption(hallOfFameAt),

@@ -43,7 +43,7 @@ func (repo repository) ListEngaged(
 			ctx,
 			gen.ListImagesEngagedParams{
 				Limit:          int64(spec.Limit),
-				ScoreThreshold: int64(spec.ScoreThreshold),
+				ScoreThreshold: spec.ScoreThreshold,
 			},
 		)
 		if err != nil {
@@ -56,9 +56,9 @@ func (repo repository) ListEngaged(
 	rows, err := repo.queries.ListImagesEngagedAfter(
 		ctx,
 		gen.ListImagesEngagedAfterParams{
-			ScoreEvaluated: int64(cursor),
+			ScoreEvaluated: cursor,
 			Limit:          int64(spec.Limit),
-			ScoreThreshold: int64(spec.ScoreThreshold),
+			ScoreThreshold: spec.ScoreThreshold,
 		},
 	)
 	if err != nil {
