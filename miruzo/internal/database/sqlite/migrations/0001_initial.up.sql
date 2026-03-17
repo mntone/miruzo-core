@@ -1,10 +1,10 @@
 -- Create settings table
 CREATE TABLE settings(
-	key VARCHAR PRIMARY KEY
+	key TEXT PRIMARY KEY
 		CONSTRAINT ck_settings_key
 			NOT NULL
 			CHECK (length(key) BETWEEN 2 AND 8),
-	value VARCHAR NOT NULL
+	value TEXT NOT NULL
 );
 
 -- Create ingests table
@@ -22,11 +22,11 @@ CREATE TABLE ingests(
 			NOT NULL
 			CHECK (visibility IN (0, 1))
 			DEFAULT 0,
-	relative_path VARCHAR
+	relative_path TEXT
 		CONSTRAINT ck_ingests_relative_path
 			NOT NULL
 			CHECK (length(relative_path) >= 4 AND relative_path NOT LIKE '/%'),
-	fingerprint VARCHAR(64)
+	fingerprint TEXT
 		CONSTRAINT uq_ingests_fingerprint
 			NOT NULL
 			UNIQUE,
@@ -139,7 +139,7 @@ CREATE TABLE users(
 		CONSTRAINT ck_users_id
 			NOT NULL
 			CHECK (id BETWEEN 1 AND 32767),
-	daily_love_used SMALLINT
+	daily_love_used INTEGER
 		CONSTRAINT ck_users_daily_love_used
 			NOT NULL
 			CHECK (daily_love_used BETWEEN 0 AND 32767)
