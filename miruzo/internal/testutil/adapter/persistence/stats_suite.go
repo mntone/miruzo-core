@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -21,6 +22,85 @@ type StatsSuite struct {
 	Operations     Operations
 	Repository     persist.StatsRepository
 	ViewRepository persist.ViewRepository
+}
+
+// --- schema ---
+
+func (ste StatsSuite) RunTestStatsSchemaRejectsInvalidScore(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name    string
+		score   int32
+		wantErr error
+	}{
+		{
+			name:    "score=-32769",
+			score:   -32769,
+			wantErr: persist.ErrCheckViolation,
+		},
+		{
+			name:    "score=32768",
+			score:   32768,
+			wantErr: persist.ErrCheckViolation,
+		},
+	}
+
+	ingest := ste.Operations.MustAddIngest(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+
+	for _, tt := range tests {
+		ste.Operations.MustTruncateStats(t)
+
+		t.Run(tt.name, func(t *testing.T) {
+			stmt := fmt.Sprintf(
+				"INSERT INTO stats(ingest_id, score, score_evaluated) VALUES(%d, %d, 100)",
+				ingest.ID, tt.score,
+			)
+			err := ste.Operations.ExecuteStatement(stmt)
+			assert.ErrorIs(t, "insert error", err, tt.wantErr)
+		})
+	}
+}
+
+func (ste StatsSuite) RunTestStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name    string
+		score   int32
+		scoreAt time.Time
+		wantErr error
+	}{
+		{
+			name:    "score_evaluated=-32769",
+			score:   -32769,
+			scoreAt: statsSuiteBaseTimeUTC.Add(20 * time.Minute),
+			wantErr: persist.ErrCheckViolation,
+		},
+		{
+			name:    "score_evaluated=32768",
+			score:   32768,
+			scoreAt: statsSuiteBaseTimeUTC.Add(40 * time.Minute),
+			wantErr: persist.ErrCheckViolation,
+		},
+	}
+
+	ingest := ste.Operations.MustAddIngest(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+
+	for _, tt := range tests {
+		ste.Operations.MustTruncateStats(t)
+
+		t.Run(tt.name, func(t *testing.T) {
+			stmt := fmt.Sprintf(
+				"INSERT INTO stats(ingest_id, score, score_evaluated, score_evaluated_at) VALUES(%d, 100, %d, '%s')",
+				ingest.ID,
+				tt.score,
+				tt.scoreAt.Format(time.RFC3339Nano),
+			)
+			err := ste.Operations.ExecuteStatement(stmt)
+			assert.ErrorIs(t, "insert error", err, tt.wantErr)
+		})
+	}
 }
 
 // --- love ---
