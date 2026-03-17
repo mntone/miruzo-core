@@ -11,7 +11,7 @@ CREATE TABLE settings(
 CREATE TABLE ingests(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
 		CONSTRAINT ck_ingests_id
-			CHECK (id >= 1 AND id <= 9007199254740991),
+			CHECK (id BETWEEN 1 AND 9007199254740991),
 	process INTEGER
 		CONSTRAINT ck_ingests_process
 			NOT NULL
@@ -76,11 +76,11 @@ CREATE TABLE stats(
 	score INTEGER
 		CONSTRAINT ck_stats_score
 			NOT NULL
-			CHECK (score >= -32768 AND score <= 32767),
+			CHECK (score BETWEEN -32768 AND 32767),
 	score_evaluated INTEGER
 		CONSTRAINT ck_stats_score_evaluated
 			NOT NULL
-			CHECK (score_evaluated >= -32768 AND score_evaluated <= 32767),
+			CHECK (score_evaluated BETWEEN -32768 AND 32767),
 	score_evaluated_at DATETIME,
 	first_loved_at DATETIME,
 	last_loved_at DATETIME,
@@ -138,11 +138,11 @@ CREATE TABLE users(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
 		CONSTRAINT ck_users_id
 			NOT NULL
-			CHECK (id >= 1 AND id <= 32767),
+			CHECK (id BETWEEN 1 AND 32767),
 	daily_love_used SMALLINT
 		CONSTRAINT ck_users_daily_love_used
 			NOT NULL
-			CHECK (daily_love_used >= 0 AND daily_love_used <= 32767)
+			CHECK (daily_love_used BETWEEN 0 AND 32767)
 			DEFAULT 0
 );
 INSERT INTO users(id) VALUES(1);
