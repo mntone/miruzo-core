@@ -16,7 +16,7 @@ func mapRecentlyRows(rows []gen.ListImagesRecentlyRow) ([]persist.ImageWithCurso
 			return row.Image
 		},
 		func(row gen.ListImagesRecentlyRow) time.Time {
-			return shared.TimeFromPgtype(row.LastViewedAt)
+			return *row.LastViewedAt
 		},
 	)
 }
@@ -28,7 +28,7 @@ func mapRecentlyAfterRows(rows []gen.ListImagesRecentlyAfterRow) ([]persist.Imag
 			return row.Image
 		},
 		func(row gen.ListImagesRecentlyAfterRow) time.Time {
-			return shared.TimeFromPgtype(row.LastViewedAt)
+			return *row.LastViewedAt
 		},
 	)
 }
@@ -53,7 +53,7 @@ func (repo repository) ListRecently(
 	rows, err := repo.queries.ListImagesRecentlyAfter(
 		ctx,
 		gen.ListImagesRecentlyAfterParams{
-			LastViewedAt: shared.PgtypeTimestampFromTime(cursor),
+			LastViewedAt: &cursor,
 			Limit:        int32(spec.Limit),
 		},
 	)

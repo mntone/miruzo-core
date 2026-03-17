@@ -57,6 +57,16 @@ func TestStatsRepositoryStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
 	factory.NewStats(t, ctx).RunTestStatsSchemaRejectsInvalidScoreEvaluated(t)
 }
 
+func TestStatsRepositoryStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestStatsSchemaRejectsInvalidOccurredAt(t)
+}
+
 func TestStatsRepositoryApplyLoveUpdatesWhenEmpty(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")

@@ -16,7 +16,7 @@ func mapChronologicalRows(rows []gen.ListImagesChronologicalRow) ([]persist.Imag
 			return row.Image
 		},
 		func(row gen.ListImagesChronologicalRow) time.Time {
-			return shared.TimeFromPgtype(row.CapturedAt)
+			return row.CapturedAt
 		},
 	)
 }
@@ -28,7 +28,7 @@ func mapChronologicalAfterRows(rows []gen.ListImagesChronologicalAfterRow) ([]pe
 			return row.Image
 		},
 		func(row gen.ListImagesChronologicalAfterRow) time.Time {
-			return shared.TimeFromPgtype(row.CapturedAt)
+			return row.CapturedAt
 		},
 	)
 }
@@ -53,7 +53,7 @@ func (repo repository) ListChronological(
 	rows, err := repo.queries.ListImagesChronologicalAfter(
 		ctx,
 		gen.ListImagesChronologicalAfterParams{
-			CapturedAt: shared.PgtypeTimestampFromTime(cursor),
+			CapturedAt: cursor,
 			Limit:      int32(spec.Limit),
 		},
 	)

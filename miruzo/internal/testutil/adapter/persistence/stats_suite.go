@@ -103,6 +103,48 @@ func (ste StatsSuite) RunTestStatsSchemaRejectsInvalidScoreEvaluated(t *testing.
 	}
 }
 
+// PostgreSQL only
+func (ste StatsSuite) RunTestStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name string
+		stmt string
+	}{
+		{
+			name: "score_evaluated_at=infinity",
+			stmt: "INSERT INTO stats(ingest_id, score, score_evaluated, score_evaluated_at) VALUES(%d, 100, 100, 'infinity')",
+		},
+		{
+			name: "first_loved_at=infinity",
+			stmt: "INSERT INTO stats(ingest_id, score, score_evaluated, first_loved_at, last_loved_at) VALUES(%d, 100, 100, 'infinity', 'infinity')",
+		},
+		{
+			name: "last_loved_at=-infinity",
+			stmt: "INSERT INTO stats(ingest_id, score, score_evaluated, first_loved_at, last_loved_at) VALUES(%d, 100, 100, '-infinity', '-infinity')",
+		},
+		{
+			name: "hall_of_fame_at=infinity",
+			stmt: "INSERT INTO stats(ingest_id, score, score_evaluated, hall_of_fame_at) VALUES(%d, 100, 100, 'infinity')",
+		},
+		{
+			name: "last_viewed_at=infinity",
+			stmt: "INSERT INTO stats(ingest_id, score, score_evaluated, last_viewed_at, view_count) VALUES(%d, 100, 100, 'infinity', 1)",
+		},
+	}
+
+	ingest := ste.Operations.MustAddIngest(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+
+	for _, tt := range tests {
+		ste.Operations.MustTruncateStats(t)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := ste.Operations.ExecuteStatement(fmt.Sprintf(tt.stmt, ingest.ID))
+			assert.ErrorIs(t, "insert error", err, persist.ErrCheckViolation)
+		})
+	}
+}
+
 // --- love ---
 
 func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {

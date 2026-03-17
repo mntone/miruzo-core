@@ -16,7 +16,7 @@ func mapHallOfFameRows(rows []gen.ListImagesHallOfFameRow) ([]persist.ImageWithC
 			return row.Image
 		},
 		func(row gen.ListImagesHallOfFameRow) time.Time {
-			return shared.TimeFromPgtype(row.HallOfFameAt)
+			return *row.HallOfFameAt
 		},
 	)
 }
@@ -28,7 +28,7 @@ func mapHallOfFameAfterRows(rows []gen.ListImagesHallOfFameAfterRow) ([]persist.
 			return row.Image
 		},
 		func(row gen.ListImagesHallOfFameAfterRow) time.Time {
-			return shared.TimeFromPgtype(row.HallOfFameAt)
+			return *row.HallOfFameAt
 		},
 	)
 }
@@ -53,7 +53,7 @@ func (repo repository) ListHallOfFame(
 	rows, err := repo.queries.ListImagesHallOfFameAfter(
 		ctx,
 		gen.ListImagesHallOfFameAfterParams{
-			HallOfFameAt: shared.PgtypeTimestampFromTime(cursor),
+			HallOfFameAt: &cursor,
 			Limit:        int32(spec.Limit),
 		},
 	)

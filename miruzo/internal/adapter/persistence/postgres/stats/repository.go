@@ -10,6 +10,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/samber/mo"
 )
 
 type repository struct {
@@ -32,8 +33,8 @@ func (repo repository) ApplyLove(
 	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
 		IngestID:      ingestID,
 		ScoreDelta:    scoreDelta,
-		LovedAt:       shared.PgtypeTimestampFromTime(lovedAt),
-		PeriodStartAt: shared.PgtypeTimestampFromTime(periodStartAt),
+		LovedAt:       &lovedAt,
+		PeriodStartAt: &periodStartAt,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -45,8 +46,8 @@ func (repo repository) ApplyLove(
 
 	return persist.LoveStats{
 		Score:        loveStats.Score,
-		FirstLovedAt: shared.OptionTimeFromPgtype(loveStats.FirstLovedAt),
-		LastLovedAt:  shared.OptionTimeFromPgtype(loveStats.LastLovedAt),
+		FirstLovedAt: mo.PointerToOption(loveStats.FirstLovedAt),
+		LastLovedAt:  mo.PointerToOption(loveStats.LastLovedAt),
 	}, nil
 }
 
@@ -60,7 +61,7 @@ func (repo repository) ApplyLoveCanceled(
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
-		PeriodStartAt:  shared.PgtypeTimestampFromTime(periodStartAt),
+		PeriodStartAt:  &periodStartAt,
 		DayStartOffset: shared.PgtypeIntervalFromDuration(dayStartOffset),
 	})
 	if err != nil {
@@ -73,8 +74,8 @@ func (repo repository) ApplyLoveCanceled(
 
 	return persist.LoveStats{
 		Score:        loveStats.Score,
-		FirstLovedAt: shared.OptionTimeFromPgtype(loveStats.FirstLovedAt),
-		LastLovedAt:  shared.OptionTimeFromPgtype(loveStats.LastLovedAt),
+		FirstLovedAt: mo.PointerToOption(loveStats.FirstLovedAt),
+		LastLovedAt:  mo.PointerToOption(loveStats.LastLovedAt),
 	}, nil
 }
 
@@ -87,7 +88,7 @@ func (repo repository) ApplyView(
 	rowCount, err := repo.queries.ApplyViewToStats(ctx, gen.ApplyViewToStatsParams{
 		IngestID:   ingestID,
 		ScoreDelta: scoreDelta,
-		ViewedAt:   shared.PgtypeTimestampFromTime(viewedAt),
+		ViewedAt:   &viewedAt,
 	})
 	if err != nil {
 		return shared.MapPostgreError("ApplyView", err)
@@ -109,7 +110,7 @@ func (repo repository) ApplyViewWithMilestone(
 	rowCount, err := repo.queries.ApplyViewToStatsWithMilestone(ctx, gen.ApplyViewToStatsWithMilestoneParams{
 		IngestID:   ingestID,
 		ScoreDelta: scoreDelta,
-		ViewedAt:   shared.PgtypeTimestampFromTime(viewedAt),
+		ViewedAt:   &viewedAt,
 	})
 	if err != nil {
 		return shared.MapPostgreError("ApplyViewWithMilestone", err)

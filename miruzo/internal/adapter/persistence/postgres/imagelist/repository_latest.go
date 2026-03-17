@@ -13,7 +13,7 @@ func mapLatestRows(rows []gen.Image) ([]persist.ImageWithCursor[time.Time], erro
 	imagesWithCursor := make([]persist.ImageWithCursor[time.Time], len(rows))
 
 	for i, row := range rows {
-		imageWithCursor, err := mapRow(row, row.IngestedAt.Time)
+		imageWithCursor, err := mapRow(row, row.IngestedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func (repo repository) ListLatest(
 	rows, err := repo.queries.ListImagesLatestAfter(
 		ctx,
 		gen.ListImagesLatestAfterParams{
-			IngestedAt: shared.PgtypeTimestampFromTime(cursor),
+			IngestedAt: cursor,
 			Limit:      int32(spec.Limit),
 		},
 	)

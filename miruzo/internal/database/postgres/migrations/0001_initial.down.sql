@@ -12,3 +12,6 @@ DROP TABLE ingests;
 
 -- Drop settings table
 DROP TABLE settings;
+
+-- Drop FINITE_TIMESTAMP domain
+DROP DOMAIN FINITE_TIMESTAMP;

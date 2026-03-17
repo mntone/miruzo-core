@@ -136,6 +136,19 @@ func (ste *SuiteFactory) NewImageList(
 	}
 }
 
+func (ste *SuiteFactory) NewIngest(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.IngestSuite {
+	t.Helper()
+
+	queries := gen.New(ste.pool)
+	return testutilPersistence.IngestSuite{
+		Context:    ctx,
+		Operations: ste.newOperations(ctx, ste.pool, queries),
+	}
+}
+
 func (ste *SuiteFactory) NewUser(
 	t *testing.T,
 	ctx context.Context,

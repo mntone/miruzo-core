@@ -1,9 +1,9 @@
 package stats
 
 import (
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/samber/mo"
 )
 
 func MapStats(r gen.Stat) persist.Stats {
@@ -11,15 +11,15 @@ func MapStats(r gen.Stat) persist.Stats {
 		IngestID:         r.IngestID,
 		Score:            r.Score,
 		ScoreEvaluated:   r.ScoreEvaluated,
-		ScoreEvaluatedAt: shared.OptionTimeFromPgtype(r.ScoreEvaluatedAt),
+		ScoreEvaluatedAt: mo.PointerToOption(r.ScoreEvaluatedAt),
 
-		LastViewedAt: shared.OptionTimeFromPgtype(r.LastViewedAt),
-		FirstLovedAt: shared.OptionTimeFromPgtype(r.FirstLovedAt),
-		LastLovedAt:  shared.OptionTimeFromPgtype(r.LastLovedAt),
-		HallOfFameAt: shared.OptionTimeFromPgtype(r.HallOfFameAt),
+		LastViewedAt: mo.PointerToOption(r.LastViewedAt),
+		FirstLovedAt: mo.PointerToOption(r.FirstLovedAt),
+		LastLovedAt:  mo.PointerToOption(r.LastLovedAt),
+		HallOfFameAt: mo.PointerToOption(r.HallOfFameAt),
 
 		ViewCount:               r.ViewCount,
 		ViewMilestoneCount:      r.ViewMilestoneCount,
-		ViewMilestoneArchivedAt: shared.OptionTimeFromPgtype(r.ViewMilestoneArchivedAt),
+		ViewMilestoneArchivedAt: mo.PointerToOption(r.ViewMilestoneArchivedAt),
 	}
 }

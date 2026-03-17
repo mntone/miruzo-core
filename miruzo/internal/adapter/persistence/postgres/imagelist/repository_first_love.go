@@ -16,7 +16,7 @@ func mapFirstLoveRows(rows []gen.ListImagesFirstLoveRow) ([]persist.ImageWithCur
 			return row.Image
 		},
 		func(row gen.ListImagesFirstLoveRow) time.Time {
-			return shared.TimeFromPgtype(row.FirstLovedAt)
+			return *row.FirstLovedAt
 		},
 	)
 }
@@ -28,7 +28,7 @@ func mapFirstLoveAfterRows(rows []gen.ListImagesFirstLoveAfterRow) ([]persist.Im
 			return row.Image
 		},
 		func(row gen.ListImagesFirstLoveAfterRow) time.Time {
-			return shared.TimeFromPgtype(row.FirstLovedAt)
+			return *row.FirstLovedAt
 		},
 	)
 }
@@ -53,7 +53,7 @@ func (repo repository) ListFirstLove(
 	rows, err := repo.queries.ListImagesFirstLoveAfter(
 		ctx,
 		gen.ListImagesFirstLoveAfterParams{
-			FirstLovedAt: shared.PgtypeTimestampFromTime(cursor),
+			FirstLovedAt: &cursor,
 			Limit:        int32(spec.Limit),
 		},
 	)

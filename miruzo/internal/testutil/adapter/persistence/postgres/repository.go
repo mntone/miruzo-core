@@ -37,8 +37,8 @@ func (repo repository) CreateIngest(
 		ID:           id,
 		RelativePath: relativePath,
 		Fingerprint:  fingerprint,
-		IngestedAt:   shared.PgtypeTimestampFromTime(ingestedAt),
-		CapturedAt:   shared.PgtypeTimestampFromTime(capturedAt),
+		IngestedAt:   ingestedAt,
+		CapturedAt:   capturedAt,
 	})
 	if err != nil {
 		return shared.MapPostgreError("Create", err)
@@ -57,7 +57,7 @@ func (repo repository) CreateImage(
 ) error {
 	err := repo.queries.CreateImage(ctx, gen.CreateImageParams{
 		IngestID:   id,
-		IngestedAt: shared.PgtypeTimestampFromTime(ingestedAt),
+		IngestedAt: ingestedAt,
 		Original:   original,
 		Fallback:   fallback.ToPointer(),
 		Variants:   variants,
@@ -84,10 +84,10 @@ func (repo repository) CreateStat(
 		IngestID:       id,
 		Score:          score,
 		ScoreEvaluated: scoreEvaluated,
-		FirstLovedAt:   shared.PgtypeTimestampFromOption(firstLovedAt),
-		LastLovedAt:    shared.PgtypeTimestampFromOption(lastLovedAt),
-		HallOfFameAt:   shared.PgtypeTimestampFromOption(hallOfFameAt),
-		LastViewedAt:   shared.PgtypeTimestampFromOption(lastViewedAt),
+		FirstLovedAt:   firstLovedAt.ToPointer(),
+		LastLovedAt:    lastLovedAt.ToPointer(),
+		HallOfFameAt:   hallOfFameAt.ToPointer(),
+		LastViewedAt:   lastViewedAt.ToPointer(),
 		ViewCount:      viewCount,
 	})
 }

@@ -22,7 +22,7 @@ func MapImage(r gen.Image) (persist.Image, error) {
 
 	return persist.Image{
 		IngestID:   r.IngestID,
-		IngestedAt: r.IngestedAt.Time,
+		IngestedAt: r.IngestedAt,
 		Type:       imageType,
 		Original:   r.Original,
 		Fallback:   mo.PointerToOption(r.Fallback),

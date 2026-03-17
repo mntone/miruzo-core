@@ -28,7 +28,7 @@ func (repo repository) Create(
 	actionID, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
 		IngestID:   ingestID,
 		Kind:       int16(kind),
-		OccurredAt: shared.PgtypeTimestampFromTime(occurredAt),
+		OccurredAt: occurredAt,
 	})
 	if err != nil {
 		return 0, shared.MapPostgreError("Create", err)

@@ -10,6 +10,13 @@ sql:
         sql_package: pgx/v5
         emit_interface: false
         overrides:
+        - db_type: finite_timestamp
+          go_type: time.Time
+        - db_type: finite_timestamp
+          nullable: true
+          go_type:
+            type: time.Time
+            pointer: true
         - column: "ingests.executions"
           go_type:
             import: github.com/mntone/miruzo-core/miruzo/internal/model

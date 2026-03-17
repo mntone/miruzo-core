@@ -1,3 +1,7 @@
+-- Create FINITE_TIMESTAMP domain
+CREATE DOMAIN FINITE_TIMESTAMP AS TIMESTAMP
+CHECK (VALUE <> 'infinity' AND VALUE <> '-infinity');
+
 -- Create settings table
 CREATE TABLE settings(
 	key VARCHAR PRIMARY KEY
@@ -30,9 +34,9 @@ CREATE TABLE ingests(
 		CONSTRAINT uq_ingests_fingerprint
 			NOT NULL
 			UNIQUE,
-	ingested_at TIMESTAMP NOT NULL,
-	captured_at TIMESTAMP NOT NULL CHECK (captured_at <= ingested_at),
-	updated_at  TIMESTAMP NOT NULL CHECK (updated_at >= ingested_at),
+	ingested_at FINITE_TIMESTAMP NOT NULL,
+	captured_at FINITE_TIMESTAMP NOT NULL CHECK (captured_at <= ingested_at),
+	updated_at  FINITE_TIMESTAMP NOT NULL CHECK (updated_at >= ingested_at),
 	executions JSONB
 		CONSTRAINT ck_ingests_executions
 			NOT NULL
@@ -47,7 +51,7 @@ CREATE TABLE images(
 		CONSTRAINT ck_images_ingest_id
 			PRIMARY KEY
 			REFERENCES ingests(id),
-	ingested_at TIMESTAMP NOT NULL,
+	ingested_at FINITE_TIMESTAMP NOT NULL,
 	kind SMALLINT
 		CONSTRAINT ck_images_kind
 			NOT NULL
@@ -75,11 +79,11 @@ CREATE TABLE stats(
 			ON DELETE CASCADE,
 	score SMALLINT NOT NULL,
 	score_evaluated SMALLINT NOT NULL,
-	score_evaluated_at TIMESTAMP,
-	first_loved_at TIMESTAMP,
-	last_loved_at TIMESTAMP,
-	hall_of_fame_at TIMESTAMP,
-	last_viewed_at TIMESTAMP
+	score_evaluated_at FINITE_TIMESTAMP,
+	first_loved_at FINITE_TIMESTAMP,
+	last_loved_at FINITE_TIMESTAMP,
+	hall_of_fame_at FINITE_TIMESTAMP,
+	last_viewed_at FINITE_TIMESTAMP
 		CONSTRAINT ck_stats_last_viewed_at
 			CHECK (
 				(view_count <> 0::BIGINT AND last_viewed_at IS NOT NULL)
@@ -94,7 +98,7 @@ CREATE TABLE stats(
 		NOT NULL
 		CHECK (view_milestone_count >= 0 AND view_milestone_count <= view_count)
 		DEFAULT 0,
-	view_milestone_archived_at TIMESTAMP
+	view_milestone_archived_at FINITE_TIMESTAMP
 		CONSTRAINT ck_stats_view_milestone_archived_at
 			CHECK (
 				(view_milestone_count <> 0::BIGINT AND view_milestone_archived_at IS NOT NULL)
@@ -124,7 +128,7 @@ CREATE TABLE actions(
 			NOT NULL
 			CHECK (kind IN (0, 1, 11, 12, 13, 14, 15, 16))
 			DEFAULT 0,
-	occurred_at TIMESTAMP NOT NULL
+	occurred_at FINITE_TIMESTAMP NOT NULL
 );
 
 -- Create users table

@@ -1,4 +1,4 @@
-package action_test
+package ingest_test
 
 import (
 	"context"
@@ -37,32 +37,12 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func TestActionRepositoryActionSchemaRejectsInvalidKind(t *testing.T) {
+func TestIngestSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")
 	}
 
 	ctx := context.Background()
 	factory.MustReset(t, ctx)
-	factory.NewAction(t, ctx).RunTestActionSchemaRejectsInvalidKind(t)
-}
-
-func TestActionRepositoryActionSchemaRejectsInvalidOccurredAt(t *testing.T) {
-	if factory == nil {
-		t.Fatal("suite is nil")
-	}
-
-	ctx := context.Background()
-	factory.MustReset(t, ctx)
-	factory.NewAction(t, ctx).RunTestActionSchemaRejectsInvalidOccurredAt(t)
-}
-
-func TestActionRepositoryCreateAction(t *testing.T) {
-	if factory == nil {
-		t.Fatal("suite is nil")
-	}
-
-	ctx := context.Background()
-	factory.MustReset(t, ctx)
-	factory.NewAction(t, ctx).RunTestCreateAction(t)
+	factory.NewIngest(t, ctx).RunTestIngestSchemaRejectsInvalidOccurredAt(t)
 }
