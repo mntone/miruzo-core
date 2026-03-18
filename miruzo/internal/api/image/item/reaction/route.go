@@ -12,4 +12,10 @@ func RegisterRoutes(mux *http.ServeMux, handler *handler) {
 			m.RequireMethodPost(handler.love),
 		),
 	)
+
+	mux.HandleFunc("/api/i/{ingest_id}/love/cancel",
+		m.RequireAcceptJson(
+			m.RequireMethodPost(handler.loveCancel),
+		),
+	)
 }

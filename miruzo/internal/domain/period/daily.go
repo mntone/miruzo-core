@@ -12,6 +12,10 @@ func NewDailyResolver(dayStartOffset time.Duration) DailyResolver {
 	}
 }
 
+func (resolv DailyResolver) StartOffset() time.Duration {
+	return resolv.dayStartOffset
+}
+
 // PeriodStart returns the start time of the daily period that contains evaluatedAt.
 // The start is determined by the resolver's dayStartOffset in UTC.
 func (resolv DailyResolver) PeriodStart(evaluatedAt time.Time) time.Time {

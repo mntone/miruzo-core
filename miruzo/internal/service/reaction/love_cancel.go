@@ -2,19 +2,23 @@ package reaction
 
 import (
 	"context"
+	"errors"
+	"log"
+	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
-func (srv Service) Love(
+func (srv Service) LoveCancel(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
 ) (LoveResult, error) {
-	lovedAt := srv.clk.Now()
-	periodStartAt, periodEndAt := srv.dailyPeriodResolver.PeriodRange(lovedAt)
-	scoreDelta := srv.scoreCalculator.LoveDelta()
+	canceledAt := srv.clk.Now()
+	periodStartAt, periodEndAt := srv.dailyPeriodResolver.PeriodRange(canceledAt)
+	dayStartOffset := srv.dailyPeriodResolver.StartOffset()
+	scoreDelta := srv.scoreCalculator.LoveCanceledDelta()
 
 	result := LoveResult{
 		Quota: model.Quota{
@@ -25,15 +29,7 @@ func (srv Service) Love(
 		},
 	}
 	err := srv.mgr.Session(requestContext, func(ctx context.Context, repos persist.Repositories) error {
-		dailyLoveUsed, err := repos.User.IncrementDailyLoveUsed(ctx, srv.dailyLoveLimit)
-		if err != nil {
-			return err
-		}
-		if dailyLoveUsed < srv.dailyLoveLimit {
-			result.Quota.Remaining = srv.dailyLoveLimit - dailyLoveUsed
-		}
-
-		stats, err := repos.Stats.ApplyLove(ctx, ingestID, scoreDelta, lovedAt, periodStartAt)
+		stats, err := repos.Stats.ApplyLoveCanceled(ctx, ingestID, scoreDelta, periodStartAt, dayStartOffset)
 		if err != nil {
 			return err
 		}
@@ -41,13 +37,27 @@ func (srv Service) Love(
 		_, err = repos.Action.Create(
 			ctx,
 			ingestID,
-			model.ActionTypeLove,
-			lovedAt,
+			model.ActionTypeLoveCanceled,
+			canceledAt,
 		)
 		if err != nil {
 			return err
 		}
 
+		dailyLoveUsed, err := repos.User.DecrementDailyLoveUsed(ctx)
+		if err != nil {
+			if !errors.Is(err, persist.ErrQuotaUnderflow) {
+				return err
+			}
+
+			log.Printf(
+				"daily love used underflow: ingest_id=%d love_canceled_at=%s",
+				ingestID,
+				canceledAt.Format(time.RFC3339Nano),
+			)
+		}
+
+		result.Quota.Remaining = srv.dailyLoveLimit - dailyLoveUsed
 		result.Stats = stats
 		return nil
 	})
