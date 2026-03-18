@@ -64,14 +64,14 @@ func TestParseSQLiteVersionReturnsErrorForInvalidFormat(t *testing.T) {
 	}
 }
 
-func TestSupportsSQLiteReturningVersionAcceptsBoundary(t *testing.T) {
-	if !supportsSQLiteReturningVersion(sqliteVersion{3, 35, 0}) {
-		t.Fatalf("supportsSQLiteReturningVersion(%q) = false, want true", "3.35.0")
+func TestSupportsSQLiteReturningAndStrictVersionAcceptsBoundary(t *testing.T) {
+	if !supportsSQLiteReturningAndStrictVersion(sqliteVersion{3, 37, 0}) {
+		t.Fatalf("supportsSQLiteReturningAndStrictVersion(%q) = false, want true", "3.37.0")
 	}
 }
 
-func TestSupportsSQLiteReturningVersionRejectsOlderVersion(t *testing.T) {
-	if supportsSQLiteReturningVersion(sqliteVersion{3, 34, 1}) {
-		t.Fatalf("supportsSQLiteReturningVersion(%q) = true, want false", "3.34.1")
+func TestSupportsSQLiteReturningAndStrictVersionRejectsOlderVersion(t *testing.T) {
+	if supportsSQLiteReturningAndStrictVersion(sqliteVersion{3, 34, 1}) {
+		t.Fatalf("supportsSQLiteReturningAndStrictVersion(%q) = true, want false", "3.34.1")
 	}
 }

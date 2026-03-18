@@ -5,7 +5,7 @@ CREATE TABLE settings(
 			NOT NULL
 			CHECK (length(key) BETWEEN 2 AND 8),
 	value TEXT NOT NULL
-);
+) STRICT;
 
 -- Create ingests table
 CREATE TABLE ingests(
@@ -130,8 +130,8 @@ CREATE TABLE actions(
 			NOT NULL
 			CHECK (kind IN (0, 1, 11, 12, 13, 14, 15, 16))
 			DEFAULT 0,
-	occurred_at DATETIME NOT NULL
-);
+	occurred_at TEXT NOT NULL
+) STRICT;
 
 -- Create users table
 CREATE TABLE users(
@@ -144,5 +144,5 @@ CREATE TABLE users(
 			NOT NULL
 			CHECK (daily_love_used BETWEEN 0 AND 32767)
 			DEFAULT 0
-);
+) STRICT;
 INSERT INTO users(id) VALUES(1);

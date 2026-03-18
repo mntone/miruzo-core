@@ -48,17 +48,17 @@ func verifySQLiteVersion(ctx context.Context, db *sql.DB, min sqliteVersion) err
 	return nil
 }
 
-var minSQLiteForReturning = sqliteVersion{
+var minSQLiteForReturningAndStrict = sqliteVersion{
 	major: 3,
-	minor: 35,
+	minor: 37,
 	patch: 0,
 }
 
-func supportsSQLiteReturningVersion(version sqliteVersion) bool {
-	return !version.LessThan(minSQLiteForReturning)
+func supportsSQLiteReturningAndStrictVersion(version sqliteVersion) bool {
+	return !version.LessThan(minSQLiteForReturningAndStrict)
 }
 
-func verifySQLiteSupportsReturning(ctx context.Context, db *sql.DB) error {
+func verifySQLiteSupportsReturningAndStrict(ctx context.Context, db *sql.DB) error {
 	var raw string
 	if err := db.QueryRowContext(ctx, "SELECT sqlite_version()").Scan(&raw); err != nil {
 		return fmt.Errorf("read sqlite_version: %w", err)
@@ -68,8 +68,8 @@ func verifySQLiteSupportsReturning(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	if !supportsSQLiteReturningVersion(version) {
-		return fmt.Errorf("sqlite RETURNING requires version >= %s (detected %s)", minSQLiteForReturning, version)
+	if !supportsSQLiteReturningAndStrictVersion(version) {
+		return fmt.Errorf("sqlite RETURNING & STRICT requires version >= %s (detected %s)", minSQLiteForReturningAndStrict, version)
 	}
 
 	return nil

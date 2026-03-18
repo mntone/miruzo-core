@@ -61,3 +61,5 @@ sql:
           go_type: int16
         - column: "stats.score_evaluated"
           go_type: int16
+        - column: "actions.occurred_at"
+          go_type: time.Time

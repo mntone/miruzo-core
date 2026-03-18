@@ -27,7 +27,7 @@ func OpenDatabase(
 		_ = db.Close()
 		return nil, err
 	}
-	if err := verifySQLiteSupportsReturning(timeoutContext, db); err != nil {
+	if err := verifySQLiteSupportsReturningAndStrict(timeoutContext, db); err != nil {
 		_ = db.Close()
 		return nil, err
 	}
