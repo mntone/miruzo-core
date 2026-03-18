@@ -1,6 +1,10 @@
 package persist
 
-import "context"
+import (
+	"context"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
+)
 
 type UserRepository interface {
 	GetSingletonUser(
@@ -9,8 +13,8 @@ type UserRepository interface {
 
 	IncrementDailyLoveUsed(
 		requestContext context.Context,
-		dailyLoveLimit int16,
-	) (int16, error)
+		dailyLoveLimit model.QuotaInt,
+	) (model.QuotaInt, error)
 
-	DecrementDailyLoveUsed(ctx context.Context) (int16, error)
+	DecrementDailyLoveUsed(ctx context.Context) (model.QuotaInt, error)
 }

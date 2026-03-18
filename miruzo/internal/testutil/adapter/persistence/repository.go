@@ -44,7 +44,7 @@ type TestRepository interface {
 
 	ExecuteStatement(ctx context.Context, stmt string) error
 
-	SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16) error
+	SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model.QuotaInt) error
 
 	TruncateActions(ctx context.Context) error
 	TruncateStats(ctx context.Context) error

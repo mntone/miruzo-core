@@ -9,9 +9,14 @@ const (
 	PeriodTypeDaily
 )
 
+type QuotaInt int32
+
+// Keep in sync with database CHECK constraints (users.daily_love_used).
+const MaxQuotaInt QuotaInt = 100
+
 type Quota struct {
 	Period    PeriodType
 	ResetAt   time.Time
-	Limit     int16
-	Remaining int16
+	Limit     QuotaInt
+	Remaining QuotaInt
 }

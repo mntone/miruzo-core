@@ -142,7 +142,7 @@ CREATE TABLE users(
 	daily_love_used INTEGER
 		CONSTRAINT ck_users_daily_love_used
 			NOT NULL
-			CHECK (daily_love_used BETWEEN 0 AND 32767)
+			CHECK (daily_love_used BETWEEN 0 AND 100)
 			DEFAULT 0
 ) STRICT;
 INSERT INTO users(id) VALUES(1);

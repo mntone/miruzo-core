@@ -43,5 +43,9 @@ func LoadConfig() (config.AppConfig, error) {
 		return config.AppConfig{}, fmt.Errorf("unmarshal config: %w", err)
 	}
 
+	if err := cfg.Validate(); err != nil {
+		return config.AppConfig{}, fmt.Errorf("validate config: %w", err)
+	}
+
 	return cfg, nil
 }

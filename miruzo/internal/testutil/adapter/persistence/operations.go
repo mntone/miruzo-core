@@ -164,11 +164,11 @@ func (ops Operations) MustRemoveUser(t testing.TB) {
 	}
 }
 
-func (ops Operations) SetDailyLoveUsed(dailyLoveUsed int16) error {
+func (ops Operations) SetDailyLoveUsed(dailyLoveUsed model.QuotaInt) error {
 	return ops.test.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
 }
 
-func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed int16) {
+func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed model.QuotaInt) {
 	t.Helper()
 
 	err := ops.SetDailyLoveUsed(dailyLoveUsed)

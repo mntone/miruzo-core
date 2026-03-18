@@ -80,22 +80,28 @@ func MountAPI(
 	imageItemHandler := contextAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
 	contextAPI.RegisterRoutes(mux, imageItemHandler)
 
-	reactionService := reactionService.New(
+	reactionService, err := reactionService.New(
 		manager,
 		clockProvider,
 		dailyResolver,
 		scoreCalculator,
 		cfg.Quota.DailyLoveLimit,
 	)
+	if err != nil {
+		log.Fatalf("app: failed to build reaction service: %v", err)
+	}
 	reactionHandler := reactionAPI.NewHandler(reactionService)
 	reactionAPI.RegisterRoutes(mux, reactionHandler)
 
-	userService := userService.New(
+	userService, err := userService.New(
 		manager.Repos().User,
 		clockProvider,
 		dailyResolver,
 		cfg.Quota.DailyLoveLimit,
 	)
+	if err != nil {
+		log.Fatalf("app: failed to build user service: %v", err)
+	}
 	quotaHandler := quotaAPI.NewHandler(userService)
 	quotaAPI.RegisterRoutes(mux, quotaHandler)
 

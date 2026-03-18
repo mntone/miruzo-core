@@ -24,8 +24,8 @@ func (ste UserSuite) RunTestUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) 
 			wantErr:       persist.ErrCheckViolation,
 		},
 		{
-			name:          "daily_love_used=32768",
-			dailyLoveUsed: 32768,
+			name:          "daily_love_used=101",
+			dailyLoveUsed: 101,
 			wantErr:       persist.ErrCheckViolation,
 		},
 	}

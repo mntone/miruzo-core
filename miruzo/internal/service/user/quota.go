@@ -22,7 +22,7 @@ func (srv Service) GetQuota(
 	}
 
 	loveUsed := user.DailyLoveUsed
-	loveRemaining := int16(0)
+	loveRemaining := model.QuotaInt(0)
 	if loveUsed < srv.dailyLoveLimit {
 		loveRemaining = srv.dailyLoveLimit - loveUsed
 	}

@@ -136,8 +136,8 @@ func (repo repository) ExecuteStatement(ctx context.Context, stmt string) error 
 	return nil
 }
 
-func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed int16) error {
-	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, int64(dailyLoveUsed))
+func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model.QuotaInt) error {
+	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, int32(dailyLoveUsed))
 	if err != nil {
 		return shared.MapSQLiteError("SetDailyLoveUsed", err)
 	}

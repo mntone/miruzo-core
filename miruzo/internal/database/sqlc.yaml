@@ -35,6 +35,8 @@ sql:
             import: github.com/mntone/miruzo-core/miruzo/internal/model/media
             type: Variant
             slice: true
+        - column: "users.daily_love_used"
+          go_type: int32
   - engine: sqlite
     queries: sqlite/queries/
     schema: sqlite/migrations
@@ -63,3 +65,5 @@ sql:
           go_type: int16
         - column: "actions.occurred_at"
           go_type: time.Time
+        - column: "users.daily_love_used"
+          go_type: int32

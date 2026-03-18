@@ -7,6 +7,7 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
@@ -30,15 +31,15 @@ func (repo repository) GetSingletonUser(
 
 	return persist.User{
 		ID:            int16(user.ID),
-		DailyLoveUsed: int16(user.DailyLoveUsed),
+		DailyLoveUsed: model.QuotaInt(user.DailyLoveUsed),
 	}, nil
 }
 
 func (repo repository) IncrementDailyLoveUsed(
 	ctx context.Context,
-	dailyLoveLimit int16,
-) (int16, error) {
-	dailyLoveUsed, err := repo.queries.IncrementDailyLoveUsed(ctx, int64(dailyLoveLimit))
+	dailyLoveLimit model.QuotaInt,
+) (model.QuotaInt, error) {
+	dailyLoveUsed, err := repo.queries.IncrementDailyLoveUsed(ctx, int32(dailyLoveLimit))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, persist.ErrQuotaExceeded
@@ -47,10 +48,10 @@ func (repo repository) IncrementDailyLoveUsed(
 		return 0, shared.MapSQLiteError("IncrementDailyLoveUsed", err)
 	}
 
-	return int16(dailyLoveUsed), nil
+	return model.QuotaInt(dailyLoveUsed), nil
 }
 
-func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (int16, error) {
+func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (model.QuotaInt, error) {
 	dailyLoveUsed, err := repo.queries.DecrementDailyLoveUsed(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -64,5 +65,5 @@ func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (int16, error
 		return 0, mapError
 	}
 
-	return int16(dailyLoveUsed), nil
+	return model.QuotaInt(dailyLoveUsed), nil
 }
