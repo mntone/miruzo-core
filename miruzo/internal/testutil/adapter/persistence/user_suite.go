@@ -78,3 +78,31 @@ func (ste UserSuite) RunTestIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitR
 	_, err := ste.Repository.IncrementDailyLoveUsed(ste.Context, 2)
 	assert.ErrorIs(t, "IncrementDailyLoveUsed() error", err, persist.ErrQuotaExceeded)
 }
+
+// --- decrement daily_love_used ---
+
+func (ste UserSuite) RunTestDecrementDailyLoveUsedDecrements(t *testing.T) {
+	t.Helper()
+
+	ste.Operations.MustSetDailyLoveUsed(t, 1)
+
+	dailyLoveUsed, err := ste.Repository.DecrementDailyLoveUsed(ste.Context)
+	assert.NilError(t, "DecrementDailyLoveUsed() error", err)
+	assert.Equal(t, "DecrementDailyLoveUsed()", dailyLoveUsed, 0)
+}
+
+func (ste UserSuite) RunTestDecrementDailyLoveUsedReturnsNotFound(t *testing.T) {
+	t.Helper()
+
+	ste.Operations.MustRemoveUser(t)
+
+	_, err := ste.Repository.DecrementDailyLoveUsed(ste.Context)
+	assert.ErrorIs(t, "DecrementDailyLoveUsed() error", err, persist.ErrNotFound)
+}
+
+func (ste UserSuite) RunTestDecrementDailyLoveUsedReturnsQuotaUnderflow(t *testing.T) {
+	t.Helper()
+
+	_, err := ste.Repository.DecrementDailyLoveUsed(ste.Context)
+	assert.ErrorIs(t, "DecrementDailyLoveUsed() error", err, persist.ErrQuotaUnderflow)
+}

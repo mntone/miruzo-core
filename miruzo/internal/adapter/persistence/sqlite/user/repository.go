@@ -49,3 +49,20 @@ func (repo repository) IncrementDailyLoveUsed(
 
 	return int16(dailyLoveUsed), nil
 }
+
+func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (int16, error) {
+	dailyLoveUsed, err := repo.queries.DecrementDailyLoveUsed(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, persist.ErrNotFound
+		}
+
+		mapError := shared.MapSQLiteError("DecrementDailyLoveUsed", err)
+		if errors.Is(mapError, persist.ErrCheckViolation) {
+			return 0, persist.ErrQuotaUnderflow
+		}
+		return 0, mapError
+	}
+
+	return int16(dailyLoveUsed), nil
+}

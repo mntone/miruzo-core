@@ -86,3 +86,33 @@ func TestUserRepositoryIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitReache
 	factory.MustReset(t, ctx)
 	factory.NewUser(t, ctx).RunTestIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitReached(t)
 }
+
+func TestUserRepositoryDecrementDailyLoveUsedDecrements(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestDecrementDailyLoveUsedDecrements(t)
+}
+
+func TestUserRepositoryDecrementDailyLoveUsedReturnsNotFound(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestDecrementDailyLoveUsedReturnsNotFound(t)
+}
+
+func TestUserRepositoryDecrementDailyLoveUsedReturnsQuotaUnderflow(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestDecrementDailyLoveUsedReturnsQuotaUnderflow(t)
+}

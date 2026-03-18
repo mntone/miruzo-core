@@ -11,4 +11,6 @@ type UserRepository interface {
 		requestContext context.Context,
 		dailyLoveLimit int16,
 	) (int16, error)
+
+	DecrementDailyLoveUsed(ctx context.Context) (int16, error)
 }

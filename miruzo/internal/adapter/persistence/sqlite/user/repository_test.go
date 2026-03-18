@@ -25,3 +25,15 @@ func TestUserRepositoryIncrementDailyLoveUsedReturnsQuotaExceededWhenMissing(t *
 func TestUserRepositoryIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitReached(t *testing.T) {
 	testutilSQLite.NewUserSuite(t).RunTestIncrementDailyLoveUsedReturnsQuotaExceededWhenLimitReached(t)
 }
+
+func TestUserRepositoryDecrementDailyLoveUsedDecrements(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestDecrementDailyLoveUsedDecrements(t)
+}
+
+func TestUserRepositoryDecrementDailyLoveUsedReturnsNotFound(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestDecrementDailyLoveUsedReturnsNotFound(t)
+}
+
+func TestUserRepositoryDecrementDailyLoveUsedReturnsQuotaUnderflow(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestDecrementDailyLoveUsedReturnsQuotaUnderflow(t)
+}

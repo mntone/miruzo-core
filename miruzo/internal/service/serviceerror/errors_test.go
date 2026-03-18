@@ -7,6 +7,7 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
+	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
 func TestMapPersistErrorMapsNotFound(t *testing.T) {
@@ -45,33 +46,18 @@ func TestMapPersistErrorMapsUnavailable(t *testing.T) {
 }
 
 func TestMapPersistErrorMapsConflict(t *testing.T) {
-	conflictErr := serviceerror.MapPersistError(fmt.Errorf("conflict: %w", persist.ErrConflict))
-	if !errors.Is(conflictErr, serviceerror.ErrConflict) {
-		t.Fatalf("expected ErrConflict, got %v", conflictErr)
-	}
-
-	uniqueErr := serviceerror.MapPersistError(fmt.Errorf("conflict: %w", persist.ErrUniqueViolation))
-	if !errors.Is(uniqueErr, serviceerror.ErrConflict) {
-		t.Fatalf("expected ErrConflict, got %v", uniqueErr)
-	}
-
-	recoverableErr := serviceerror.MapPersistError(
+	tests := []error{
+		fmt.Errorf("conflict: %w", persist.ErrConflict),
 		fmt.Errorf("recoverable conflict: %w", persist.ErrRecoverableConflict),
-	)
-	if !errors.Is(recoverableErr, serviceerror.ErrConflict) {
-		t.Fatalf("expected ErrConflict, got %v", recoverableErr)
+		fmt.Errorf("unique violation: %w", persist.ErrUniqueViolation),
+		fmt.Errorf("exclusion violation: %w", persist.ErrExclusionViolation),
+		fmt.Errorf("foreign key referenced: %w", persist.ErrForeignKeyReferenced),
+		fmt.Errorf("quota underflow: %w", persist.ErrQuotaUnderflow),
 	}
 
-	foreignKeyReferencedErr := serviceerror.MapPersistError(
-		fmt.Errorf("conflict: %w", persist.ErrForeignKeyReferenced),
-	)
-	if !errors.Is(foreignKeyReferencedErr, serviceerror.ErrConflict) {
-		t.Fatalf("expected ErrConflict, got %v", foreignKeyReferencedErr)
-	}
-
-	exclusionErr := serviceerror.MapPersistError(fmt.Errorf("conflict: %w", persist.ErrExclusionViolation))
-	if !errors.Is(exclusionErr, serviceerror.ErrConflict) {
-		t.Fatalf("expected ErrConflict, got %v", exclusionErr)
+	for _, tt := range tests {
+		gotErr := serviceerror.MapPersistError(tt)
+		assert.ErrorIs(t, gotErr.Error(), gotErr, serviceerror.ErrConflict)
 	}
 }
 

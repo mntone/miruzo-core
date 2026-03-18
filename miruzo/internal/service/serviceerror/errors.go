@@ -37,7 +37,8 @@ func MapPersistError(err error) error {
 		errors.Is(err, persist.ErrRecoverableConflict),
 		errors.Is(err, persist.ErrUniqueViolation),
 		errors.Is(err, persist.ErrExclusionViolation),
-		errors.Is(err, persist.ErrForeignKeyReferenced):
+		errors.Is(err, persist.ErrForeignKeyReferenced),
+		errors.Is(err, persist.ErrQuotaUnderflow):
 		return fmt.Errorf("%w: %v", ErrConflict, err)
 
 	case errors.Is(err, persist.ErrNotNullViolation),
