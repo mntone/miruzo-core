@@ -51,6 +51,15 @@ func (ste UserSuite) RunTestGetSingletonUser(t *testing.T) {
 	assert.Equal(t, "user.DailyLoveUsed", user.DailyLoveUsed, 0)
 }
 
+func (ste UserSuite) RunTestGetSingletonUserReturnsNotFoundWhenMissing(t *testing.T) {
+	t.Helper()
+
+	ste.Operations.MustRemoveUser(t)
+
+	_, err := ste.Repository.GetSingletonUser(ste.Context)
+	assert.ErrorIs(t, "GetSingletonUser() error", err, persist.ErrNotFound)
+}
+
 // --- increment daily_love_used ---
 
 func (ste UserSuite) RunTestIncrementDailyLoveUsedIncrements(t *testing.T) {

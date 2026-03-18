@@ -14,6 +14,10 @@ func TestUserRepositoryGetSingletonUser(t *testing.T) {
 	testutilSQLite.NewUserSuite(t).RunTestGetSingletonUser(t)
 }
 
+func TestUserRepositoryGetSingletonUserReturnsNotFoundWhenMissing(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestGetSingletonUserReturnsNotFoundWhenMissing(t)
+}
+
 func TestUserRepositoryIncrementDailyLoveUsedIncrements(t *testing.T) {
 	testutilSQLite.NewUserSuite(t).RunTestIncrementDailyLoveUsedIncrements(t)
 }

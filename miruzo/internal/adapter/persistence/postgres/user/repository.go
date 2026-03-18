@@ -26,6 +26,10 @@ func (repo repository) GetSingletonUser(
 ) (persist.User, error) {
 	user, err := repo.queries.GetSingletonUser(ctx)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return persist.User{}, persist.ErrNotFound
+		}
+
 		return persist.User{}, shared.MapPostgreError("GetSingletonUser", err)
 	}
 
