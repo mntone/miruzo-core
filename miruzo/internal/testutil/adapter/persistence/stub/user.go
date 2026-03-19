@@ -21,7 +21,7 @@ func NewStubUserRepository(dailyLoveUsed int32) *UserRepository {
 	}
 }
 
-func (repo UserRepository) GetSingletonUser(
+func (repo UserRepository) Get(
 	ctx context.Context,
 ) (persist.User, error) {
 	if repo.GetError != nil {

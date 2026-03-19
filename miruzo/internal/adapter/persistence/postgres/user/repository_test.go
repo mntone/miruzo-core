@@ -47,14 +47,14 @@ func TestUserRepositoryUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 	factory.NewUser(t, ctx).RunTestUserSchemaRejectsInvalidDailyLoveUsed(t)
 }
 
-func TestUserRepositoryGetSingletonUser(t *testing.T) {
+func TestUserRepositoryGetReturnsUser(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")
 	}
 
 	ctx := context.Background()
 	factory.MustReset(t, ctx)
-	factory.NewUser(t, ctx).RunTestGetSingletonUser(t)
+	factory.NewUser(t, ctx).RunTestGetReturnsUser(t)
 }
 
 func TestUserRepositoryGetSingletonUserReturnsNotFoundWhenMissing(t *testing.T) {
@@ -64,7 +64,7 @@ func TestUserRepositoryGetSingletonUserReturnsNotFoundWhenMissing(t *testing.T) 
 
 	ctx := context.Background()
 	factory.MustReset(t, ctx)
-	factory.NewUser(t, ctx).RunTestGetSingletonUserReturnsNotFoundWhenMissing(t)
+	factory.NewUser(t, ctx).RunTestGetReturnsNotFoundWhenMissing(t)
 }
 
 func TestUserRepositoryIncrementDailyLoveUsedIncrements(t *testing.T) {

@@ -7,12 +7,12 @@ import (
 )
 
 type UserRepository interface {
-	GetSingletonUser(
-		requestContext context.Context,
+	Get(
+		ctx context.Context,
 	) (User, error)
 
 	IncrementDailyLoveUsed(
-		requestContext context.Context,
+		ctx context.Context,
 		dailyLoveLimit model.QuotaInt,
 	) (model.QuotaInt, error)
 

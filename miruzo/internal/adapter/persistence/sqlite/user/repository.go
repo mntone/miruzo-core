@@ -21,16 +21,16 @@ func NewRepository(queries *gen.Queries) repository {
 	}
 }
 
-func (repo repository) GetSingletonUser(
+func (repo repository) Get(
 	ctx context.Context,
 ) (persist.User, error) {
-	user, err := repo.queries.GetSingletonUser(ctx)
+	user, err := repo.queries.GetUser(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return persist.User{}, persist.ErrNotFound
 		}
 
-		return persist.User{}, shared.MapSQLiteError("GetSingletonUser", err)
+		return persist.User{}, shared.MapSQLiteError("Get", err)
 	}
 
 	return persist.User{

@@ -10,12 +10,12 @@ func TestUserRepositoryUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 	testutilSQLite.NewUserSuite(t).RunTestUserSchemaRejectsInvalidDailyLoveUsed(t)
 }
 
-func TestUserRepositoryGetSingletonUser(t *testing.T) {
-	testutilSQLite.NewUserSuite(t).RunTestGetSingletonUser(t)
+func TestUserRepositoryGetReturnsUser(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestGetReturnsUser(t)
 }
 
-func TestUserRepositoryGetSingletonUserReturnsNotFoundWhenMissing(t *testing.T) {
-	testutilSQLite.NewUserSuite(t).RunTestGetSingletonUserReturnsNotFoundWhenMissing(t)
+func TestUserRepositoryGetReturnsNotFoundWhenMissing(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestGetReturnsNotFoundWhenMissing(t)
 }
 
 func TestUserRepositoryIncrementDailyLoveUsedIncrements(t *testing.T) {

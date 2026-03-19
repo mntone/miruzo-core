@@ -42,22 +42,22 @@ func (ste UserSuite) RunTestUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) 
 	}
 }
 
-func (ste UserSuite) RunTestGetSingletonUser(t *testing.T) {
+func (ste UserSuite) RunTestGetReturnsUser(t *testing.T) {
 	t.Helper()
 
-	user, err := ste.Repository.GetSingletonUser(ste.Context)
-	assert.NilError(t, "GetSingletonUser() error", err)
+	user, err := ste.Repository.Get(ste.Context)
+	assert.NilError(t, "Get() error", err)
 	assert.Equal(t, "user.ID", user.ID, 1)
 	assert.Equal(t, "user.DailyLoveUsed", user.DailyLoveUsed, 0)
 }
 
-func (ste UserSuite) RunTestGetSingletonUserReturnsNotFoundWhenMissing(t *testing.T) {
+func (ste UserSuite) RunTestGetReturnsNotFoundWhenMissing(t *testing.T) {
 	t.Helper()
 
 	ste.Operations.MustRemoveUser(t)
 
-	_, err := ste.Repository.GetSingletonUser(ste.Context)
-	assert.ErrorIs(t, "GetSingletonUser() error", err, persist.ErrNotFound)
+	_, err := ste.Repository.Get(ste.Context)
+	assert.ErrorIs(t, "Get() error", err, persist.ErrNotFound)
 }
 
 // --- increment daily_love_used ---

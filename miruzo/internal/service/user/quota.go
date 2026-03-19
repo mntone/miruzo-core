@@ -16,7 +16,7 @@ func (srv Service) GetQuota(
 ) (QuotaResult, error) {
 	current := srv.clk.Now()
 
-	user, err := srv.repository.GetSingletonUser(requestContext)
+	user, err := srv.repository.Get(requestContext)
 	if err != nil {
 		return QuotaResult{}, serviceerror.MapPersistError(err)
 	}
