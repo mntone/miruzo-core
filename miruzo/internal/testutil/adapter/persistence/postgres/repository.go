@@ -130,7 +130,7 @@ func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model
 func (repo repository) TruncateActions(ctx context.Context) error {
 	_, err := repo.pool.Exec(ctx, "TRUNCATE TABLE actions")
 	if err != nil {
-		return shared.MapPostgreError("TruncateActions", err)
+		return shared.MapPostgreDeleteError("TruncateActions", err)
 	}
 
 	return nil
@@ -139,7 +139,7 @@ func (repo repository) TruncateActions(ctx context.Context) error {
 func (repo repository) TruncateStats(ctx context.Context) error {
 	_, err := repo.pool.Exec(ctx, "TRUNCATE TABLE stats")
 	if err != nil {
-		return shared.MapPostgreError("TruncateStats", err)
+		return shared.MapPostgreDeleteError("TruncateStats", err)
 	}
 
 	return nil

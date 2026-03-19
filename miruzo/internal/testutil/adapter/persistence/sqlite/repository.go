@@ -152,7 +152,7 @@ func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model
 func (repo repository) TruncateActions(ctx context.Context) error {
 	_, err := repo.db.ExecContext(ctx, "DELETE FROM actions")
 	if err != nil {
-		return shared.MapSQLiteError("TruncateActions", err)
+		return shared.MapSQLiteDeleteError("TruncateActions", err)
 	}
 
 	return nil
@@ -161,7 +161,7 @@ func (repo repository) TruncateActions(ctx context.Context) error {
 func (repo repository) TruncateStats(ctx context.Context) error {
 	_, err := repo.db.ExecContext(ctx, "DELETE FROM stats")
 	if err != nil {
-		return shared.MapSQLiteError("TruncateStats", err)
+		return shared.MapSQLiteDeleteError("TruncateStats", err)
 	}
 
 	return nil
