@@ -15,7 +15,7 @@ func OpenTestDatabase(t testing.TB, ctx context.Context) *sql.DB {
 
 	conf := config.DefaultDatabaseConfig()
 	conf.DSN = fmt.Sprintf(
-		"file:%s?mode=memory&cache=shared&_foreign_keys=on",
+		"file:%s?mode=memory&cache=shared",
 		t.Name(),
 	)
 	conf.MaxOpenConnections = 1

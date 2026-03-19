@@ -3,16 +3,40 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"net/url"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 )
 
+func buildSQLiteDSN(dsn string) (string, error) {
+	parsed, err := url.Parse(dsn)
+	if err != nil {
+		return "", err
+	}
+
+	queries := parsed.Query()
+	if !queries.Has("_foreign_keys") {
+		queries.Set("_foreign_keys", "1") // 1=ON
+	}
+	if !queries.Has("_journal_mode") && !queries.Has("_synchronous") {
+		queries.Set("_journal_mode", "WAL")
+	}
+
+	parsed.RawQuery = queries.Encode()
+	return parsed.String(), nil
+}
+
 func OpenDatabase(
 	ctx context.Context,
 	conf config.DatabaseConfig,
 ) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", conf.DSN)
+	dsn, err := buildSQLiteDSN(conf.DSN)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -33,9 +57,7 @@ func OpenDatabase(
 	}
 
 	pragmas := []string{
-		"PRAGMA journal_mode=WAL;",
-		"PRAGMA synchronous=NORMAL;",
-		"PRAGMA wal_autocheckpoint=1000;",
+		"PRAGMA wal_autocheckpoint=100;", // Default: 1000
 	}
 	for _, pragma := range pragmas {
 		if _, err := db.ExecContext(timeoutContext, pragma); err != nil {
