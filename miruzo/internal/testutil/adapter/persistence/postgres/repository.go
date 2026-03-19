@@ -9,7 +9,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
@@ -92,39 +91,30 @@ func (repo repository) CreateStat(
 	})
 }
 
-func (repo repository) DeleteUser(ctx context.Context) error {
-	rowCount, err := repo.queries.DeleteUser(ctx)
-	if err != nil {
-		return shared.MapPostgreDeleteError("DeleteUser", err)
-	}
-
-	if rowCount == 0 {
-		return persist.ErrNotFound
-	}
-
-	return nil
-}
-
-func (repo repository) ExecuteStatement(ctx context.Context, stmt string) error {
+func (repo repository) ExecuteStatement(ctx context.Context, stmt string, delete bool) error {
 	_, err := repo.pool.Exec(ctx, stmt)
 	if err != nil {
+		if delete {
+			return shared.MapPostgreDeleteError("ExecuteStatement", err)
+		}
+
 		return shared.MapPostgreError("ExecuteStatement", err)
 	}
 
 	return nil
 }
 
-func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model.QuotaInt) error {
-	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, int32(dailyLoveUsed))
+func (repo repository) ExecuteStatementAndReturnRowCount(ctx context.Context, stmt string, delete bool) (int64, error) {
+	result, err := repo.pool.Exec(ctx, stmt)
 	if err != nil {
-		return shared.MapPostgreError("SetDailyLoveUsed", err)
+		if delete {
+			return 0, shared.MapPostgreDeleteError("ExecuteStatementAndReturnRowCount", err)
+		}
+
+		return 0, shared.MapPostgreError("ExecuteStatementAndReturnRowCount", err)
 	}
 
-	if rowCount == 0 {
-		return persist.ErrNotFound
-	}
-
-	return nil
+	return result.RowsAffected(), nil
 }
 
 func (repo repository) TruncateActions(ctx context.Context) error {

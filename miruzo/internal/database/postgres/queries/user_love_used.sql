@@ -1,6 +1,3 @@
--- name: SetDailyLoveUsed :execrows
-UPDATE users SET daily_love_used=$1 WHERE id=1;
-
 -- name: IncrementDailyLoveUsed :one
 UPDATE users
 SET daily_love_used=daily_love_used+1

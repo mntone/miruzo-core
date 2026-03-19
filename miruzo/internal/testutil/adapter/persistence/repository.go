@@ -40,11 +40,8 @@ type TestRepository interface {
 		viewCount int64,
 	) error
 
-	DeleteUser(ctx context.Context) error
-
-	ExecuteStatement(ctx context.Context, stmt string) error
-
-	SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model.QuotaInt) error
+	ExecuteStatement(ctx context.Context, stmt string, delete bool) error
+	ExecuteStatementAndReturnRowCount(ctx context.Context, stmt string, delete bool) (int64, error)
 
 	TruncateActions(ctx context.Context) error
 	TruncateStats(ctx context.Context) error

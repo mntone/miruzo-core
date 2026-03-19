@@ -10,7 +10,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
@@ -114,39 +113,39 @@ func (repo repository) CreateStat(
 	})
 }
 
-func (repo repository) DeleteUser(ctx context.Context) error {
-	rowCount, err := repo.queries.DeleteUser(ctx)
-	if err != nil {
-		return shared.MapSQLiteDeleteError("DeleteUser", err)
-	}
-
-	if rowCount == 0 {
-		return persist.ErrNotFound
-	}
-
-	return nil
-}
-
-func (repo repository) ExecuteStatement(ctx context.Context, stmt string) error {
+func (repo repository) ExecuteStatement(ctx context.Context, stmt string, delete bool) error {
 	_, err := repo.db.ExecContext(ctx, stmt)
 	if err != nil {
+		if delete {
+			return shared.MapSQLiteDeleteError("ExecuteStatement", err)
+		}
+
 		return shared.MapSQLiteError("ExecuteStatement", err)
 	}
 
 	return nil
 }
 
-func (repo repository) SetDailyLoveUsed(ctx context.Context, dailyLoveUsed model.QuotaInt) error {
-	rowCount, err := repo.queries.SetDailyLoveUsed(ctx, int32(dailyLoveUsed))
+func (repo repository) ExecuteStatementAndReturnRowCount(ctx context.Context, stmt string, delete bool) (int64, error) {
+	result, err := repo.db.ExecContext(ctx, stmt)
 	if err != nil {
-		return shared.MapSQLiteError("SetDailyLoveUsed", err)
+		if delete {
+			return 0, shared.MapSQLiteDeleteError("ExecuteStatementAndReturnRowCount", err)
+		}
+
+		return 0, shared.MapSQLiteError("ExecuteStatementAndReturnRowCount", err)
 	}
 
-	if rowCount == 0 {
-		return persist.ErrNotFound
+	rowCount, err := result.RowsAffected()
+	if err != nil {
+		if delete {
+			return 0, shared.MapSQLiteDeleteError("ExecuteStatementAndReturnRowCount", err)
+		}
+
+		return 0, shared.MapSQLiteError("ExecuteStatementAndReturnRowCount", err)
 	}
 
-	return nil
+	return rowCount, nil
 }
 
 func (repo repository) TruncateActions(ctx context.Context) error {

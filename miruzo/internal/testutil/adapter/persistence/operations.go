@@ -144,24 +144,34 @@ func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Sta
 }
 
 func (ops Operations) ExecuteStatement(stmt string) error {
-	return ops.test.ExecuteStatement(ops.ctx, stmt)
+	return ops.test.ExecuteStatement(ops.ctx, stmt, false)
 }
 
 func (ops Operations) MustRemoveUser(t testing.TB) {
 	t.Helper()
 
-	err := ops.test.DeleteUser(ops.ctx)
+	rowCount, err := ops.test.ExecuteStatementAndReturnRowCount(ops.ctx, "DELETE FROM users WHERE id=1", true)
 	if err != nil {
 		t.Fatalf("remove user: %v", err)
+	}
+	if rowCount != 1 {
+		t.Fatalf("remove user: row_count=%d", rowCount)
 	}
 }
 
 func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed model.QuotaInt) {
 	t.Helper()
 
-	err := ops.test.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
+	rowCount, err := ops.test.ExecuteStatementAndReturnRowCount(
+		ops.ctx,
+		fmt.Sprintf("UPDATE users SET daily_love_used=%d WHERE id=1", dailyLoveUsed),
+		false,
+	)
 	if err != nil {
 		t.Fatalf("set daily_love_used to user: %v", err)
+	}
+	if rowCount != 1 {
+		t.Fatalf("set daily_love_used to user: row_count=%d", rowCount)
 	}
 }
 
