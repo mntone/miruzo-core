@@ -17,6 +17,13 @@ type statsRepositoryApplyLoveArgs struct {
 	PeriodStartAt time.Time
 }
 
+type statsRepositoryApplyLoveCanceledArgs struct {
+	IngestID       model.IngestIDType
+	ScoreDelta     model.ScoreType
+	PeriodStartAt  time.Time
+	DayStartOffset time.Duration
+}
+
 type statsRepositoryApplyViewArgs struct {
 	IngestID   model.IngestIDType
 	ScoreDelta model.ScoreType
@@ -30,10 +37,12 @@ type statsStorage struct {
 type statsRepository struct {
 	statsStorage
 
-	ApplyLoveError error
-	ApplyLoveArgs  []statsRepositoryApplyLoveArgs
-	ApplyViewError error
-	ApplyViewArgs  []statsRepositoryApplyViewArgs
+	ApplyLoveError         error
+	ApplyLoveArgs          []statsRepositoryApplyLoveArgs
+	ApplyLoveCanceledError error
+	ApplyLoveCanceledArgs  []statsRepositoryApplyLoveCanceledArgs
+	ApplyViewError         error
+	ApplyViewArgs          []statsRepositoryApplyViewArgs
 }
 
 func NewStubStatsRepository(stats ...persist.Stats) *statsRepository {
@@ -104,14 +113,48 @@ func (repo *statsRepository) ApplyLove(
 	}, nil
 }
 
-func (repo statsRepository) ApplyLoveCanceled(
-	ctx context.Context,
+func (repo *statsRepository) ApplyLoveCanceled(
+	_ context.Context,
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
 	periodStartAt time.Time,
 	dayStartOffset time.Duration,
 ) (persist.LoveStats, error) {
-	return persist.LoveStats{}, persist.ErrUnavailable
+	repo.ApplyLoveCanceledArgs = append(repo.ApplyLoveCanceledArgs, statsRepositoryApplyLoveCanceledArgs{
+		IngestID:       ingestID,
+		ScoreDelta:     scoreDelta,
+		PeriodStartAt:  periodStartAt,
+		DayStartOffset: dayStartOffset,
+	})
+
+	if repo.ApplyLoveCanceledError != nil {
+		return persist.LoveStats{}, repo.ApplyLoveCanceledError
+	}
+
+	stats, ok := repo.Store[ingestID]
+	if !ok {
+		return persist.LoveStats{}, persist.ErrConflict
+	}
+
+	lastLovedAt, present := stats.LastLovedAt.Get()
+	if !present || lastLovedAt.Compare(periodStartAt) < 0 {
+		return persist.LoveStats{}, persist.ErrConflict
+	}
+	stats.Score += scoreDelta
+
+	latest := mo.None[time.Time]()
+	if firstLovedAt, firstPresent := stats.FirstLovedAt.Get(); firstPresent && firstLovedAt.Compare(periodStartAt) < 0 {
+		latest = mo.Some(firstLovedAt)
+	}
+	stats.FirstLovedAt = latest
+	stats.LastLovedAt = latest
+
+	repo.Store[ingestID] = stats
+	return persist.LoveStats{
+		Score:        stats.Score,
+		FirstLovedAt: stats.FirstLovedAt,
+		LastLovedAt:  stats.LastLovedAt,
+	}, nil
 }
 
 func (repo *statsRepository) ApplyView(
