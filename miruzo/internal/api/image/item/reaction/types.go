@@ -3,7 +3,6 @@ package reaction
 import (
 	"time"
 
-	apiModel "github.com/mntone/miruzo-core/miruzo/internal/api/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
@@ -14,6 +13,6 @@ type statModel struct {
 }
 
 type loveResponse struct {
-	Quota apiModel.Quota `json:"quota"`
-	Stats statModel      `json:"stats"`
+	Quota model.Quota `json:"quota"`
+	Stats statModel   `json:"stats"`
 }

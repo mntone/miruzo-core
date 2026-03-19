@@ -30,11 +30,5 @@ func (hdl *handler) getQuota(
 		return
 	}
 
-	res, mapError := mapQuota(result)
-	if mapError != nil {
-		httperror.WriteInternalServerError(responseWriter)
-		return
-	}
-
-	_ = response.WriteJSON(responseWriter, http.StatusOK, res)
+	_ = response.WriteJSON(responseWriter, http.StatusOK, mapQuota(result))
 }

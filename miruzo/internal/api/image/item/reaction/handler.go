@@ -43,13 +43,7 @@ func (hdl *handler) love(
 		return
 	}
 
-	res, mapError := mapLoveResponse(result)
-	if mapError != nil {
-		httperror.WriteInternalServerError(responseWriter)
-		return
-	}
-
-	_ = response.WriteJSON(responseWriter, http.StatusOK, res)
+	_ = response.WriteJSON(responseWriter, http.StatusOK, mapLoveResponse(result))
 }
 
 func (hdl *handler) loveCancel(
@@ -72,11 +66,5 @@ func (hdl *handler) loveCancel(
 		return
 	}
 
-	res, mapError := mapLoveResponse(result)
-	if mapError != nil {
-		httperror.WriteInternalServerError(responseWriter)
-		return
-	}
-
-	_ = response.WriteJSON(responseWriter, http.StatusOK, res)
+	_ = response.WriteJSON(responseWriter, http.StatusOK, mapLoveResponse(result))
 }
