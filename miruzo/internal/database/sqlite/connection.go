@@ -16,6 +16,9 @@ func buildSQLiteDSN(dsn string) (string, error) {
 	}
 
 	queries := parsed.Query()
+	if !queries.Has("_txlock") {
+		queries.Set("_txlock", "immediate")
+	}
 	if !queries.Has("_foreign_keys") {
 		queries.Set("_foreign_keys", "1") // 1=ON
 	}

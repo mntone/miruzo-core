@@ -38,7 +38,7 @@ func (srv Service) GetContext(
 				ctx,
 				srv.backoff,
 				func(requestContext context.Context) (persist.ImageWithStats, error) {
-					return repos.View.GetImageWithStats(requestContext, ingestID)
+					return repos.View.GetImageWithStatsForUpdate(requestContext, ingestID)
 				},
 			)
 			if err != nil {

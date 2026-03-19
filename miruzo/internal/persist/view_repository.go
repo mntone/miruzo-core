@@ -7,7 +7,7 @@ import (
 )
 
 type ViewRepository interface {
-	GetImageWithStats(
+	GetImageWithStatsForUpdate(
 		ctx context.Context,
 		ingestID model.IngestIDType,
 	) (ImageWithStats, error)

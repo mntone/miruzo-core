@@ -21,13 +21,13 @@ func NewViewRepository(queries *gen.Queries) viewRepository {
 	}
 }
 
-func (repo viewRepository) GetImageWithStats(
+func (repo viewRepository) GetImageWithStatsForUpdate(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 ) (persist.ImageWithStats, error) {
-	row, err := repo.queries.GetImageWithStats(ctx, ingestID)
+	row, err := repo.queries.GetImageWithStatsForUpdate(ctx, ingestID)
 	if err != nil {
-		return persist.ImageWithStats{}, shared.MapPostgreError("GetImageWithStats", err)
+		return persist.ImageWithStats{}, shared.MapPostgreError("GetImageWithStatsForUpdate", err)
 	}
 
 	imageResult, err := image.MapImage(row.Image)

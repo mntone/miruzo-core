@@ -466,7 +466,7 @@ func (ste StatsSuite) RunTestApplyView(t *testing.T) {
 	err := ste.Repository.ApplyView(ste.Context, ingest.ID, scoreDelta, evaluatedAt)
 	assert.NilError(t, "ApplyView() error", err)
 
-	imageWithStats, err := ste.ViewRepository.GetImageWithStats(ste.Context, ingest.ID)
+	imageWithStats, err := ste.ViewRepository.GetImageWithStatsForUpdate(ste.Context, ingest.ID)
 	assert.NilError(t, "GetImageWithStats() error", err)
 	assert.Equal(t, "imageWithStats.Stats.Score", imageWithStats.Stats.Score, baseStats.Score+scoreDelta)
 	assert.IsPresent(t, "imageWithStats.Stats.LastViewedAt", imageWithStats.Stats.LastViewedAt)
@@ -510,7 +510,7 @@ func (ste StatsSuite) RunTestApplyViewWithMilestone(t *testing.T) {
 	err := ste.Repository.ApplyViewWithMilestone(ste.Context, ingest.ID, scoreDelta, evaluatedAt)
 	assert.NilError(t, "ApplyViewWithMilestone() error", err)
 
-	imageWithStats, err := ste.ViewRepository.GetImageWithStats(ste.Context, ingest.ID)
+	imageWithStats, err := ste.ViewRepository.GetImageWithStatsForUpdate(ste.Context, ingest.ID)
 	assert.NilError(t, "GetImageWithStats() error", err)
 	assert.Equal(t, "imageWithStats.Stats.Score", imageWithStats.Stats.Score, baseStats.Score+scoreDelta)
 	assert.IsPresent(t, "imageWithStats.Stats.LastViewedAt", imageWithStats.Stats.LastViewedAt)

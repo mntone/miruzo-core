@@ -22,7 +22,7 @@ func (ste ViewSuite) RunTestGetImageWithStats(t *testing.T) {
 		viewSuiteBaseTimeUTC.Add(30*time.Minute),
 	))
 
-	imageWithStats, err := ste.Repository.GetImageWithStats(ste.Context, ingest.ID)
+	imageWithStats, err := ste.Repository.GetImageWithStatsForUpdate(ste.Context, ingest.ID)
 	assert.NilError(t, "GetImageWithStats() error", err)
 	assert.Equal(t, "imageWithStats.IngestID", imageWithStats.IngestID, ingest.ID)
 	assert.Equal(t, "imageWithStats.IngestedAt", imageWithStats.IngestedAt, viewSuiteBaseTimeUTC)
