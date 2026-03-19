@@ -122,8 +122,10 @@ func (ops Operations) MustAddIngestAndImage(t testing.TB, entry persist.Ingest) 
 	return entry
 }
 
-func (ops Operations) AddStat(entry persist.Stats) error {
-	return ops.test.CreateStat(
+func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Stats {
+	t.Helper()
+
+	err := ops.test.CreateStat(
 		ops.ctx,
 		entry.IngestID,
 		entry.Score,
@@ -134,12 +136,6 @@ func (ops Operations) AddStat(entry persist.Stats) error {
 		entry.HallOfFameAt,
 		entry.ViewCount,
 	)
-}
-
-func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Stats {
-	t.Helper()
-
-	err := ops.AddStat(entry)
 	if err != nil {
 		t.Fatalf("add stat: %v", err)
 	}
@@ -151,27 +147,19 @@ func (ops Operations) ExecuteStatement(stmt string) error {
 	return ops.test.ExecuteStatement(ops.ctx, stmt)
 }
 
-func (ops Operations) RemoveUser() error {
-	return ops.test.DeleteUser(ops.ctx)
-}
-
 func (ops Operations) MustRemoveUser(t testing.TB) {
 	t.Helper()
 
-	err := ops.RemoveUser()
+	err := ops.test.DeleteUser(ops.ctx)
 	if err != nil {
 		t.Fatalf("remove user: %v", err)
 	}
 }
 
-func (ops Operations) SetDailyLoveUsed(dailyLoveUsed model.QuotaInt) error {
-	return ops.test.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
-}
-
 func (ops Operations) MustSetDailyLoveUsed(t testing.TB, dailyLoveUsed model.QuotaInt) {
 	t.Helper()
 
-	err := ops.SetDailyLoveUsed(dailyLoveUsed)
+	err := ops.test.SetDailyLoveUsed(ops.ctx, dailyLoveUsed)
 	if err != nil {
 		t.Fatalf("set daily_love_used to user: %v", err)
 	}
