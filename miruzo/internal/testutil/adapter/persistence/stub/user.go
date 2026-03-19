@@ -7,17 +7,30 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type UserRepository struct {
+type userStorage struct {
 	DailyLoveUsed model.QuotaInt
+}
 
-	GetError       error
-	IncrementError error
-	DecrementError error
+type UserRepository struct {
+	userStorage
+
+	GetError                 error
+	IncrementError           error
+	IncrementDailyLoveLimits []model.QuotaInt
+	DecrementError           error
 }
 
 func NewStubUserRepository(dailyLoveUsed int32) *UserRepository {
 	return &UserRepository{
-		DailyLoveUsed: model.QuotaInt(dailyLoveUsed),
+		userStorage: userStorage{
+			DailyLoveUsed: model.QuotaInt(dailyLoveUsed),
+		},
+	}
+}
+
+func (repo UserRepository) snapshot() userStorage {
+	return userStorage{
+		DailyLoveUsed: repo.DailyLoveUsed,
 	}
 }
 
@@ -38,6 +51,8 @@ func (repo *UserRepository) IncrementDailyLoveUsed(
 	ctx context.Context,
 	dailyLoveLimit model.QuotaInt,
 ) (model.QuotaInt, error) {
+	repo.IncrementDailyLoveLimits = append(repo.IncrementDailyLoveLimits, dailyLoveLimit)
+
 	if repo.IncrementError != nil {
 		return model.QuotaInt(0), repo.IncrementError
 	}

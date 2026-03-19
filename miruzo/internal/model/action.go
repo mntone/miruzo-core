@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type ActionIDType = int64
 
 type ActionType uint32
@@ -14,3 +16,10 @@ const (
 	ActionTypeHallOfFameAdded   ActionType = 15
 	ActionTypeHallOfFameRemoved ActionType = 16
 )
+
+type Action struct {
+	ID         ActionIDType
+	IngestID   IngestIDType
+	Type       ActionType
+	OccurredAt time.Time
+}
