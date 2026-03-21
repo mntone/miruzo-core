@@ -12,18 +12,18 @@ import (
 )
 
 type handler struct {
-	service reaction.Service
+	service *reaction.Service
 }
 
 func NewHandler(
-	srv reaction.Service,
-) *handler {
-	return &handler{
+	srv *reaction.Service,
+) handler {
+	return handler{
 		service: srv,
 	}
 }
 
-func (hdl *handler) love(
+func (hdl handler) love(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -46,7 +46,7 @@ func (hdl *handler) love(
 	_ = response.WriteJSON(responseWriter, http.StatusOK, mapLoveResponse(result))
 }
 
-func (hdl *handler) loveCancel(
+func (hdl handler) loveCancel(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {

@@ -9,18 +9,18 @@ import (
 )
 
 type handler struct {
-	service user.Service
+	service *user.Service
 }
 
 func NewHandler(
-	srv user.Service,
-) *handler {
-	return &handler{
+	srv *user.Service,
+) handler {
+	return handler{
 		service: srv,
 	}
 }
 
-func (hdl *handler) getQuota(
+func (hdl handler) getQuota(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {

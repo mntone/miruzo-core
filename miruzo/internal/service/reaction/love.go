@@ -8,7 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
-func (srv Service) Love(
+func (srv *Service) Love(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
 ) (LoveResult, error) {

@@ -21,12 +21,12 @@ func New(
 	clockProvider clock.Provider,
 	dailyPeriodResolver period.DailyResolver,
 	dailyLoveLimit model.QuotaInt,
-) (Service, error) {
+) (*Service, error) {
 	if dailyLoveLimit < 1 || dailyLoveLimit > model.MaxQuotaInt {
-		return Service{}, fmt.Errorf("invalid daily_love_limit: %d", dailyLoveLimit)
+		return nil, fmt.Errorf("invalid daily_love_limit: %d", dailyLoveLimit)
 	}
 
-	return Service{
+	return &Service{
 		repository:          repo,
 		clk:                 clockProvider,
 		dailyPeriodResolver: dailyPeriodResolver,

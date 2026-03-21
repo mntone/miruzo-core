@@ -24,12 +24,12 @@ func New(
 	dailyPeriodResolver period.DailyResolver,
 	scoreCalculator score.Calculator,
 	dailyLoveLimit model.QuotaInt,
-) (Service, error) {
+) (*Service, error) {
 	if dailyLoveLimit < 1 || dailyLoveLimit > model.MaxQuotaInt {
-		return Service{}, fmt.Errorf("invalid daily_love_limit: %d", dailyLoveLimit)
+		return nil, fmt.Errorf("invalid daily_love_limit: %d", dailyLoveLimit)
 	}
 
-	return Service{
+	return &Service{
 		mgr:                 persistenceManager,
 		clk:                 clockProvider,
 		dailyPeriodResolver: dailyPeriodResolver,

@@ -11,7 +11,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
-func (srv Service) LoveCancel(
+func (srv *Service) LoveCancel(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
 ) (LoveResult, error) {

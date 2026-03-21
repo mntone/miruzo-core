@@ -16,13 +16,13 @@ type handler struct {
 
 func NewHandler(
 	version string,
-) *handler {
-	return &handler{
+) handler {
+	return handler{
 		version: version,
 	}
 }
 
-func (hdl *handler) getHealth(
+func (hdl handler) getHealth(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {

@@ -11,7 +11,7 @@ type QuotaResult struct {
 	Love model.Quota
 }
 
-func (srv Service) GetQuota(
+func (srv *Service) GetQuota(
 	requestContext context.Context,
 ) (QuotaResult, error) {
 	current := srv.clk.Now()
