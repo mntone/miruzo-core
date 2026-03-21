@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
-	"github.com/mntone/miruzo-core/miruzo/internal/api/httperror"
+	httperror "github.com/mntone/miruzo-core/miruzo/internal/api/http/error"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/response"
 )
 
