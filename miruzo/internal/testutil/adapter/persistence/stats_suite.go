@@ -199,7 +199,7 @@ func toTime(d mo.Option[time.Duration]) mo.Option[time.Time] {
 		return mo.None[time.Time]()
 	}
 
-	return mo.Some(statsSuiteBaseTimeUTC.Add(value))
+	return mo.Some(statsSuitePeriodStartTimeUTC.Add(value))
 }
 
 func (ste StatsSuite) RunTestApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
@@ -350,7 +350,7 @@ func (ste StatsSuite) RunTestApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 					t,
 					ingest.ID,
 					a.kind,
-					statsSuiteBaseTimeUTC.Add(a.offset),
+					statsSuitePeriodStartTimeUTC.Add(a.offset),
 				)
 			}
 
@@ -377,6 +377,8 @@ func (ste StatsSuite) RunTestApplyLoveCanceledReturnsConflict(t *testing.T) {
 		name    string
 		actions []testActions
 		period  time.Duration
+		first   mo.Option[time.Duration]
+		last    mo.Option[time.Duration]
 		wantErr error
 	}{
 		{
@@ -400,6 +402,59 @@ func (ste StatsSuite) RunTestApplyLoveCanceledReturnsConflict(t *testing.T) {
 			period:  0,
 			wantErr: persist.ErrConflict,
 		},
+		{
+			name: "IgnorePreviousPeriod",
+			actions: []testActions{
+				{
+					kind:   model.ActionTypeLove,
+					offset: 30 * time.Minute,
+				},
+			},
+			period:  24 * time.Hour,
+			first:   mo.Some(30 * time.Minute),
+			last:    mo.Some(30 * time.Minute),
+			wantErr: persist.ErrConflict,
+		},
+		{
+			name: "DayBoundaryBeforeDayStart",
+			actions: []testActions{
+				{
+					kind:   model.ActionTypeLove,
+					offset: 23*time.Hour + 30*time.Minute,
+				},
+			},
+			period:  24 * time.Hour,
+			first:   mo.Some(23*time.Hour + 30*time.Minute),
+			last:    mo.Some(23*time.Hour + 30*time.Minute),
+			wantErr: persist.ErrConflict,
+		},
+		{
+			name: "IgnoresPreviousPeriodCandidates",
+			actions: []testActions{
+				// -- Day 1
+				{
+					kind:   model.ActionTypeLove,
+					offset: 6 * time.Minute,
+				},
+				// -- Day 2
+				{
+					kind:   model.ActionTypeLove,
+					offset: 24*time.Hour + 12*time.Minute,
+				},
+				{
+					kind:   model.ActionTypeLoveCanceled,
+					offset: 24*time.Hour + 24*time.Minute,
+				},
+				{
+					kind:   model.ActionTypeLove,
+					offset: 24*time.Hour + 48*time.Minute,
+				},
+			},
+			period:  2 * 24 * time.Hour,
+			first:   mo.Some(6 * time.Minute),
+			last:    mo.Some(24*time.Hour + 48*time.Minute),
+			wantErr: persist.ErrConflict,
+		},
 	}
 
 	// ingest
@@ -412,7 +467,10 @@ func (ste StatsSuite) RunTestApplyLoveCanceledReturnsConflict(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			// stats
-			ste.Operations.MustAddStat(t, NewStatFixture(ingest.ID))
+			s := NewStatFixture(ingest.ID)
+			s.FirstLovedAt = toTime(tt.first)
+			s.LastLovedAt = toTime(tt.last)
+			ste.Operations.MustAddStat(t, s)
 
 			// actions
 			for _, a := range tt.actions {
@@ -420,7 +478,7 @@ func (ste StatsSuite) RunTestApplyLoveCanceledReturnsConflict(t *testing.T) {
 					t,
 					ingest.ID,
 					a.kind,
-					statsSuiteBaseTimeUTC.Add(a.offset),
+					statsSuitePeriodStartTimeUTC.Add(a.offset),
 				)
 			}
 
