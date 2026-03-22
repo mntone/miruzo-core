@@ -23,8 +23,12 @@ type Stats struct {
 	ViewMilestoneArchivedAt mo.Option[time.Time]
 }
 
+// Love statistics for a single image.
 type LoveStats struct {
-	Score        model.ScoreType
+	// Score is a user-adjustable ranking score.
+	Score model.ScoreType
+	// FirstLovedAt is the time of the first love action, or unset if never loved.
 	FirstLovedAt mo.Option[time.Time]
-	LastLovedAt  mo.Option[time.Time]
+	// LastLovedAt is the time of the latest love action, or unset if never loved.
+	LastLovedAt mo.Option[time.Time]
 }

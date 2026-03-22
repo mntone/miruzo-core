@@ -12,7 +12,10 @@ type statModel struct {
 	LastLovedAt  *time.Time      `json:"last_loved_at"`
 }
 
+// Response payload for love actions.
 type loveResponse struct {
+	// Quota is the current quota status after the action.
 	Quota model.Quota `json:"quota"`
-	Stats statModel   `json:"stats"`
+	// Stats is the latest statistics for the image.
+	Stats statModel `json:"stats"`
 }
