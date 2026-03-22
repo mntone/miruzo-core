@@ -1,13 +1,10 @@
 from enum import Enum
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.config.constants import DAILY_LOVE_USED_MAXIMUM
 from app.config.period import PeriodConfig
-from app.config.quota import QuotaConfig
 from app.config.score import ScoreConfig
 from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
 from app.utils.files.permissions import ensure_directory_access
@@ -44,7 +41,6 @@ class Settings(BaseSettings):
 	gataku_assets_root: Path = Path('../../gataku/out/downloads')
 	gataku_symlink_dirname: str = 'gataku'
 
-	quota: QuotaConfig = QuotaConfig()
 	score: ScoreConfig = ScoreConfig()
 	period: PeriodConfig = PeriodConfig()
 	variant_layers: tuple[VariantLayerSpec, ...] = DEFAULT_VARIANT_LAYERS
@@ -92,16 +88,6 @@ class Settings(BaseSettings):
 			raise ValueError(info.field_name.__str__() + ' must be a path')
 
 		return path
-
-	@classmethod
-	@field_validator('quota')
-	def _validate_quota(cls, value: QuotaConfig) -> QuotaConfig:
-		if value.daily_love_limit > DAILY_LOVE_USED_MAXIMUM:
-			raise ValueError(
-				f'quota.daily_love_limit must be <= {DAILY_LOVE_USED_MAXIMUM}',
-			)
-
-		return value
 
 	@model_validator(mode='after')
 	def _normalize(self) -> 'Settings':
