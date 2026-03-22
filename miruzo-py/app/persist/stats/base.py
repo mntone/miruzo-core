@@ -5,10 +5,9 @@
 # pyright: reportUnknownVariableType=false
 
 from collections.abc import Iterable
-from datetime import datetime
 from typing import TypeVar, final
 
-from sqlalchemy import or_, true, update
+from sqlalchemy import true
 from sqlmodel import Session, SQLModel, select
 
 from app.models.records import StatsRecord
@@ -41,49 +40,6 @@ class BaseStatsRepository:
 		self._session.flush()
 		self._session.refresh(stats)
 		return stats
-
-	def try_set_last_loved_at(
-		self,
-		ingest_id: int,
-		*,
-		last_loved_at: datetime,
-		since_occurred_at: datetime,
-	) -> bool:
-		statement = (
-			update(StatsRecord)
-			.where(StatsRecord.ingest_id == ingest_id)
-			.where(
-				or_(
-					StatsRecord.last_loved_at.is_(None),
-					StatsRecord.last_loved_at < since_occurred_at,
-				),
-			)
-			.values(last_loved_at=last_loved_at)
-		)
-
-		result = self._session.exec(statement)
-
-		return result.rowcount == 1
-
-	def try_unset_last_loved_at(
-		self,
-		ingest_id: int,
-		*,
-		since_occurred_at: datetime,
-	) -> bool:
-		statement = (
-			update(StatsRecord)
-			.where(StatsRecord.ingest_id == ingest_id)
-			.where(
-				StatsRecord.last_loved_at.is_not(None),
-				StatsRecord.last_loved_at >= since_occurred_at,
-			)
-			.values(last_loved_at=None)
-		)
-
-		result = self._session.exec(statement)
-
-		return result.rowcount == 1
 
 	def iterable(self) -> Iterable[StatsRecord]:
 		last_ingest_id = None

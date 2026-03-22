@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from datetime import datetime
 from typing import Callable, final
 
 from tests.stubs.session import StubSession
@@ -17,12 +16,6 @@ class StubStatsRepository:
 		self.create_called_with: int | None = None
 		self.create_initial_score: int | None = None
 		self.create_response: StatsRecord | None = None
-
-		self.try_set_last_loved_at_called_with: tuple[int, datetime, datetime] | None = None
-		self.try_set_last_loved_at_response: bool = True
-
-		self.try_unset_last_loved_at_called_with: tuple[int, datetime] | None = None
-		self.try_unset_last_loved_at_response: bool = True
 
 	def get_one(self, ingest_id: int) -> StatsRecord:
 		self.get_one_called_with = ingest_id
@@ -42,25 +35,6 @@ class StubStatsRepository:
 		self.create_response = stats
 		self.stats_list_response.append(stats)
 		return stats
-
-	def try_set_last_loved_at(
-		self,
-		ingest_id: int,
-		*,
-		last_loved_at: datetime,
-		since_occurred_at: datetime,
-	) -> bool:
-		self.try_set_last_loved_at_called_with = (ingest_id, last_loved_at, since_occurred_at)
-		return self.try_set_last_loved_at_response
-
-	def try_unset_last_loved_at(
-		self,
-		ingest_id: int,
-		*,
-		since_occurred_at: datetime,
-	) -> bool:
-		self.try_unset_last_loved_at_called_with = (ingest_id, since_occurred_at)
-		return self.try_unset_last_loved_at_response
 
 	def iterable(self) -> Iterable[StatsRecord]:
 		return sorted(self.stats_list_response, key=lambda record: record.ingest_id)
