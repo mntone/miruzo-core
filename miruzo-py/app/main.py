@@ -17,7 +17,6 @@ from app.jobs.daily_decay import DailyDecayJob
 from app.persist.jobs.factory import create_job_repository
 from app.routers.health import router as health
 from app.routers.images import router as images
-from app.routers.quota import router as quota
 from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.images.variants.bootstrap import configure_pillow
 from app.services.ingests.bootstrap import ensure_ingest_layout
@@ -74,7 +73,6 @@ app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=9)
 register_exception_handlers(app)
 app.include_router(images, prefix='/api')
 app.include_router(health, prefix='/api')
-app.include_router(quota, prefix='/api')
 
 app.add_middleware(
 	CORSMiddleware,
