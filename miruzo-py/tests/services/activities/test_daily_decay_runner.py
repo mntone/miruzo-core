@@ -4,7 +4,7 @@ from typing import final
 import pytest
 
 from tests.services.activities.stats.factory import build_stats_record
-from tests.stubs.score import StubScoreCalculator
+from tests.stubs.decay_score import StubDecayScoreCalculator
 from tests.stubs.session import StubSession
 from tests.stubs.stats import StubStatsRepository, create_stub_stats_repository_factory
 from tests.stubs.user import StubUserRepository
@@ -43,7 +43,7 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 	stats_repo.stats_list_response = [stats_one, stats_two]
 
 	decay_creator = _StubDecayCreator()
-	score_calculator = StubScoreCalculator()
+	score_calculator = StubDecayScoreCalculator()
 	user_repo = StubUserRepository()
 	user = user_repo.create_singleton_if_missing()
 	user.daily_love_used = 3
@@ -89,16 +89,12 @@ def test_apply_daily_decay_updates_scores(monkeypatch: pytest.MonkeyPatch) -> No
 		(2, evaluated_at),
 	]
 
-	first_action, first_score, first_context = score_calculator.apply_called_with[0]
-	assert first_action.kind == ActionKind.DECAY
+	first_score, first_context = score_calculator.apply_called_with[0]
 	assert first_score == 10
-	assert first_context.evaluated_at == evaluated_at
 	assert first_context.has_view_today is False
 
-	second_action, second_score, second_context = score_calculator.apply_called_with[1]
-	assert second_action.kind == ActionKind.DECAY
+	second_score, second_context = score_calculator.apply_called_with[1]
 	assert second_score == 20
-	assert second_context.evaluated_at == evaluated_at
 	assert second_context.has_view_today is True
 
 	assert user.daily_love_used == 0
@@ -112,7 +108,7 @@ def test_apply_daily_decay_skips_when_no_action(monkeypatch: pytest.MonkeyPatch)
 	stats_repo = StubStatsRepository()
 	stats_repo.stats_list_response = [stats_one, stats_two]
 
-	score_calculator = StubScoreCalculator()
+	score_calculator = StubDecayScoreCalculator()
 	user_repo = StubUserRepository()
 	user = user_repo.create_singleton_if_missing()
 	user.daily_love_used = 2

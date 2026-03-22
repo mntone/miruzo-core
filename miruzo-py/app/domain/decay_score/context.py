@@ -1,16 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import final
 
 
 @dataclass(frozen=True, slots=True)
 @final
-class ScoreContext:
+class DecayScoreContext:
 	"""Snapshot used to compute score adjustments for a single evaluation."""
-
-	evaluated_at: datetime
-
-	last_viewed_at: datetime | None
 
 	days_since_last_view: int
 

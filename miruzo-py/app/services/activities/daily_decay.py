@@ -4,12 +4,12 @@ from typing import final
 from sqlmodel import Session
 
 from app.domain.activities.daily_period import DailyPeriodResolver
-from app.domain.score.calculator import ScoreCalculator
+from app.domain.decay_score.calculator import DecayScoreCalculator
 from app.persist.actions.factory import create_action_repository
 from app.persist.stats.factory import create_stats_repository
 from app.persist.users.factory import create_user_repository
 from app.services.activities.actions.decay_creator import DecayActionCreator
-from app.services.activities.stats.score_updater import update_score_from_action
+from app.services.activities.stats.decay_score_updater import update_decay_score
 
 
 @final
@@ -20,7 +20,7 @@ class DailyDecayRunner:
 		self,
 		*,
 		period_resolver: DailyPeriodResolver,
-		score_calculator: ScoreCalculator,
+		score_calculator: DecayScoreCalculator,
 	) -> None:
 		self._period_resolver = period_resolver
 		self._score_calculator = score_calculator
@@ -43,13 +43,11 @@ class DailyDecayRunner:
 			if new_action is None:
 				continue
 
-			update_score_from_action(
+			update_decay_score(
 				stats=stats,
-				action=new_action,
 				evaluated_at=evaluated_at,
 				resolver=self._period_resolver,
-				score_calculator=self._score_calculator,
-				update_evaluated=True,
+				decay_score_calculator=self._score_calculator,
 			)
 
 		user_repo = create_user_repository(session)

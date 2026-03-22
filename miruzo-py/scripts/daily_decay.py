@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from app.config.environments import env
 from app.databases import create_session, init_database
-from app.domain.score.calculator import ScoreCalculator
+from app.domain.decay_score.calculator import DecayScoreCalculator
 from app.jobs.daily_decay import DailyDecayJob
 from app.persist.jobs.factory import create_job_repository
 from app.services.activities.daily_decay import DailyDecayRunner
@@ -41,7 +41,7 @@ def main() -> None:
 				day_start_offset=env.period.day_start_offset,
 				initial_location=env.period.initial_location,
 			),
-			score_calculator=ScoreCalculator(env.score),
+			score_calculator=DecayScoreCalculator(env.score),
 		),
 		session_factory=create_session,
 	)

@@ -1,17 +1,17 @@
 from datetime import datetime
 
 from app.domain.activities.daily_period import DailyPeriodResolver
-from app.domain.score.context import ScoreContext
+from app.domain.decay_score.context import DecayScoreContext
 from app.errors import InvariantViolationError
 from app.models.records import StatsRecord
 
 
-def make_score_context(
+def make_decay_score_context(
 	*,
 	stats: StatsRecord,
 	evaluated_at: datetime,
 	resolver: DailyPeriodResolver,
-) -> ScoreContext:
+) -> DecayScoreContext:
 	last_viewed_at = stats.last_viewed_at
 
 	if last_viewed_at is None:
@@ -30,9 +30,7 @@ def make_score_context(
 		evaluated_at=evaluated_at,
 	)
 
-	context = ScoreContext(
-		evaluated_at=evaluated_at,
-		last_viewed_at=last_viewed_at,
+	context = DecayScoreContext(
 		days_since_last_view=days_since_last_view,
 		has_view_today=has_view_today,
 	)

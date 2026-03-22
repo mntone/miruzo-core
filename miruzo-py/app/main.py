@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config.environments import env
 from app.databases import create_session, init_database
-from app.domain.score.calculator import ScoreCalculator
+from app.domain.decay_score.calculator import DecayScoreCalculator
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
 from app.jobs.daily_decay import DailyDecayJob
 from app.persist.jobs.factory import create_job_repository
@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 	score_decay = DailyDecayJob(
 		DailyDecayRunner(
 			period_resolver=period_resolver,
-			score_calculator=ScoreCalculator(env.score),
+			score_calculator=DecayScoreCalculator(env.score),
 		),
 		session_factory=create_session,
 	)
