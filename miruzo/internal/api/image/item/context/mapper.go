@@ -20,10 +20,12 @@ func mapRichImage(
 	mediaURLBuilder variant.MediaURLBuilder,
 ) imageRichModel {
 	return imageRichModel{
-		Level:              "rich",
-		IngestID:           e.IngestID,
-		IngestedAt:         e.IngestedAt,
-		Type:               e.Type,
+		Level: "rich",
+		imageSummaryModel: imageSummaryModel{
+			IngestID:   e.IngestID,
+			IngestedAt: e.IngestedAt,
+			Type:       e.Type,
+		},
 		VariantLayersModel: variant.MapVariantLayers(e, cfg, mediaURLBuilder),
 	}
 }
