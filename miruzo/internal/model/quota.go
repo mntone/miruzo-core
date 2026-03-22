@@ -49,9 +49,14 @@ type QuotaInt int32
 // Keep in sync with database CHECK constraints (users.daily_love_used).
 const MaxQuotaInt QuotaInt = 100
 
+// Quota represents quota status for a single period.
 type Quota struct {
-	Period    PeriodType `json:"period,omitempty"`
-	ResetAt   time.Time  `json:"reset_at"`
-	Limit     QuotaInt   `json:"limit"`
-	Remaining QuotaInt   `json:"remaining"`
+	// Period is the quota period this status applies to.
+	Period PeriodType `json:"period,omitempty"`
+	// ResetAt is the timestamp when the quota resets.
+	ResetAt time.Time `json:"reset_at"`
+	// Limit is the maximum number of actions per period.
+	Limit QuotaInt `json:"limit"`
+	// Remaining is the number of actions left in the current period.
+	Remaining QuotaInt `json:"remaining"`
 }
