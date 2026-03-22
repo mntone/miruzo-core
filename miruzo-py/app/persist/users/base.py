@@ -1,8 +1,4 @@
 # pyright: reportAttributeAccessIssue=false
-# pyright: reportArgumentType=false
-# pyright: reportUnknownArgumentType=false
-# pyright: reportUnknownMemberType=false
-# pyright: reportUnknownVariableType=false
 
 from abc import ABC, abstractmethod
 from typing import TypeVar
@@ -53,13 +49,6 @@ class BaseUserRepository(ABC):
 
 	def create_singleton_if_missing(self) -> UserRecord:
 		return self._create_if_missing(_UNIQUE_USER_ID)
-
-	def get_singleton(self) -> UserRecord:
-		user = self._session.get(UserRecord, _UNIQUE_USER_ID)
-		if user is None:
-			raise SingletonUserMissingError('singleton user row is missing')
-
-		return user
 
 	def reset_daily_love_used(self) -> None:
 		self._session.flush()

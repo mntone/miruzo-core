@@ -21,14 +21,9 @@ class StubUserRepository:
 	def create_singleton_if_missing(self) -> UserRecord:
 		return self.create_if_missing(1)
 
-	def get_singleton(self) -> UserRecord:
-		self.get_called_with.append(1)
+	def reset_daily_love_used(self) -> None:
 		user_record = self.users.get(1)
 		if user_record is None:
 			raise SingletonUserMissingError('singleton user row is missing')
 
-		return user_record
-
-	def reset_daily_love_used(self) -> None:
-		user_record = self.get_singleton()
 		user_record.daily_love_used = 0

@@ -8,6 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app.errors import SingletonUserMissingError
 from app.models.records import UserRecord
+from app.persist.users.base import _UNIQUE_USER_ID
 from app.persist.users.sqlite import SQLiteUserRepository
 
 
@@ -74,13 +75,6 @@ def test_create_singleton_if_missing_recovers_from_unique_violation(
 	assert user.daily_love_used == 4
 
 
-def test_get_singleton_raises_when_missing(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-
-	with pytest.raises(SingletonUserMissingError):
-		repo.get_singleton()
-
-
 def test_reset_daily_love_used_sets_zero(session: Session) -> None:
 	repo = SQLiteUserRepository(session)
 	user = repo.create_singleton_if_missing()
@@ -88,7 +82,7 @@ def test_reset_daily_love_used_sets_zero(session: Session) -> None:
 
 	repo.reset_daily_love_used()
 
-	user = repo.get_singleton()
+	user = session.get_one(UserRecord, _UNIQUE_USER_ID)
 	assert user.daily_love_used == 0
 
 
