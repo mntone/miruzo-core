@@ -21,6 +21,6 @@ func DefaultServerConfig() ServerConfig {
 		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       90 * time.Second,
 		ShutdownTimeout:   30 * time.Second,
-		MaxHeaderBytes:    1 << 12, // 4 KiB
+		MaxHeaderBytes:    1 << 10, // 1 KiB
 	}
 }
