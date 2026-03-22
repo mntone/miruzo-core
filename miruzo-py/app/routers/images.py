@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -7,13 +6,11 @@ from starlette.responses import Response
 
 from app.config.environments import env
 from app.databases import get_session
-from app.domain.activities.daily_period import DailyPeriodResolver
 from app.domain.images.cursor import (
 	DatetimeImageListCursor,
 	ImageListCursorMode,
 	UInt8ImageListCursor,
 )
-from app.models.api.activities.responses import LoveStatsResponse
 from app.models.api.context.query import ContextQuery
 from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
@@ -22,8 +19,6 @@ from app.persist.actions.factory import create_action_repository
 from app.persist.images.factory import create_image_repository
 from app.persist.images.list.factory import create_image_list_repository
 from app.persist.stats.factory import create_stats_repository
-from app.services.activities.love import LoveRunner
-from app.services.activities.love_cancel import LoveCancelRunner
 from app.services.images.cursor_codec import (
 	CursorDecodeError,
 	decode_datetime_image_list_cursor,
@@ -58,21 +53,6 @@ def _get_context_service(
 		stats_repo=create_stats_repository(session),
 		period_resolver=request.app.state['period_resolver'],
 		env=env,
-	)
-
-
-def _get_love_runner(request: Request) -> LoveRunner:
-	return LoveRunner(
-		period_resolver=request.app.state['period_resolver'],
-		daily_love_limit=env.quota.daily_love_limit,
-		score_config=env.score,
-	)
-
-
-def _get_love_cancel_runner(request: Request) -> LoveCancelRunner:
-	return LoveCancelRunner(
-		period_resolver=request.app.state['period_resolver'],
-		score_config=env.score,
 	)
 
 
@@ -209,31 +189,3 @@ def get_context(
 		raise HTTPException(404)
 
 	return build_response(response)
-
-
-@router.post('/{ingest_id}/love', response_model=LoveStatsResponse)
-def post_love(
-	ingest_id: int,
-	session: Annotated[Session, Depends(get_session)],
-	runner: Annotated[LoveRunner, Depends(_get_love_runner)],
-) -> Response:
-	current = datetime.now(timezone.utc)
-
-	with session.begin():
-		response = runner.run(session, ingest_id=ingest_id, evaluated_at=current)
-
-	return build_response(response, exclude_none=False)
-
-
-@router.post('/{ingest_id}/love/cancel', response_model=LoveStatsResponse)
-def post_love_cancel(
-	ingest_id: int,
-	session: Annotated[Session, Depends(get_session)],
-	runner: Annotated[LoveCancelRunner, Depends(_get_love_cancel_runner)],
-) -> Response:
-	current = datetime.now(timezone.utc)
-
-	with session.begin():
-		response = runner.run(session, ingest_id=ingest_id, evaluated_at=current)
-
-	return build_response(response, exclude_none=False)
