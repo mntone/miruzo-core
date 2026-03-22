@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from starlette.responses import Response
 
@@ -11,14 +11,9 @@ from app.domain.images.cursor import (
 	ImageListCursorMode,
 	UInt8ImageListCursor,
 )
-from app.models.api.context.query import ContextQuery
-from app.models.api.context.responses import ContextResponse
 from app.models.api.images.query import ListQuery
 from app.models.api.images.responses import ImageListResponse
-from app.persist.actions.factory import create_action_repository
-from app.persist.images.factory import create_image_repository
 from app.persist.images.list.factory import create_image_list_repository
-from app.persist.stats.factory import create_stats_repository
 from app.services.images.cursor_codec import (
 	CursorDecodeError,
 	decode_datetime_image_list_cursor,
@@ -26,7 +21,6 @@ from app.services.images.cursor_codec import (
 	encode_image_list_cursor,
 )
 from app.services.images.list import ImageListService
-from app.services.views.context import ContextService
 from app.utils.http.response_builder import build_response
 
 
@@ -39,20 +33,6 @@ def _get_image_list_service(
 			engaged_score_threshold=env.score.engaged_score_threshold,
 		),
 		variant_layers=env.variant_layers,
-	)
-
-
-def _get_context_service(
-	request: Request,
-	session: Annotated[Session, Depends(get_session)],
-) -> ContextService:
-	return ContextService(
-		session,
-		action_repo=create_action_repository(session),
-		image_repo=create_image_repository(session),
-		stats_repo=create_stats_repository(session),
-		period_resolver=request.app.state['period_resolver'],
-		env=env,
 	)
 
 
@@ -175,17 +155,3 @@ def get_engaged(
 		exclude_formats=query.exclude_formats,
 	)
 	return build_response(_encode_list_response_cursor(response))
-
-
-@router.get('/{ingest_id}', response_model=ContextResponse)
-def get_context(
-	ingest_id: int,
-	query: Annotated[ContextQuery, Depends()],
-	service: Annotated[ContextService, Depends(_get_context_service)],
-) -> Response:
-	response = service.get_context(ingest_id, query=query)
-
-	if response is None:
-		raise HTTPException(404)
-
-	return build_response(response)
