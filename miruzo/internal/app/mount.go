@@ -10,6 +10,7 @@ import (
 	contextAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/item/context"
 	reactionAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/item/reaction"
 	imageListAPI "github.com/mntone/miruzo-core/miruzo/internal/api/image/list"
+	"github.com/mntone/miruzo-core/miruzo/internal/api/middleware"
 	quotaAPI "github.com/mntone/miruzo-core/miruzo/internal/api/quota"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
@@ -54,6 +55,7 @@ func MountAPI(
 		log.Fatalf("app: failed to build daily resolver: %v", err)
 	}
 
+	cors := middleware.NewCORSFactory(cfg.CORS.AllowOrigins, cfg.CORS.MaxAge)
 	readBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
 	imageListService := imageListService.New(
 		manager.Repos().ImageList,
@@ -66,7 +68,7 @@ func MountAPI(
 		cfg.API.VariantLayers,
 		mediaURLBuilder,
 	)
-	imageListAPI.RegisterRoutes(mux, imageListHandler)
+	imageListAPI.RegisterRoutes(mux, cors, imageListHandler)
 
 	clockProvider := clock.NewSystemProvider()
 	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
@@ -78,7 +80,7 @@ func MountAPI(
 		cfg.View.Milestones,
 	)
 	imageItemHandler := contextAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
-	contextAPI.RegisterRoutes(mux, imageItemHandler)
+	contextAPI.RegisterRoutes(mux, cors, imageItemHandler)
 
 	reactionService, err := reactionService.New(
 		manager,
@@ -91,7 +93,7 @@ func MountAPI(
 		log.Fatalf("app: failed to build reaction service: %v", err)
 	}
 	reactionHandler := reactionAPI.NewHandler(reactionService)
-	reactionAPI.RegisterRoutes(mux, reactionHandler)
+	reactionAPI.RegisterRoutes(mux, cors, reactionHandler)
 
 	userService, err := userService.New(
 		manager.Repos().User,
@@ -103,10 +105,10 @@ func MountAPI(
 		log.Fatalf("app: failed to build user service: %v", err)
 	}
 	quotaHandler := quotaAPI.NewHandler(userService)
-	quotaAPI.RegisterRoutes(mux, quotaHandler)
+	quotaAPI.RegisterRoutes(mux, cors, quotaHandler)
 
 	healthHandler := healthAPI.NewHandler(version)
-	healthAPI.RegisterRoutes(mux, healthHandler)
+	healthAPI.RegisterRoutes(mux, cors, healthHandler)
 
 	api.RegisterNotFoundRoute(mux)
 }

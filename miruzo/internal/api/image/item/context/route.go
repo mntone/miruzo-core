@@ -6,10 +6,12 @@ import (
 	m "github.com/mntone/miruzo-core/miruzo/internal/api/middleware"
 )
 
-func RegisterRoutes(mux *http.ServeMux, handler *handler) {
+func RegisterRoutes(mux *http.ServeMux, cors *m.CORSFactory, handler *handler) {
 	mux.HandleFunc("/api/i/{ingest_id}",
-		m.RequireAcceptJson(
-			m.RequireMethodGet(handler.getContext),
+		cors.GET(
+			m.RequireAcceptJson(
+				m.RequireMethodGet(handler.getContext),
+			),
 		),
 	)
 }
