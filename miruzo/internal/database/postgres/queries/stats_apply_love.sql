@@ -36,13 +36,17 @@ SET
 	score=stats.score+sqlc.arg(score_delta),
 	first_loved_at=
 		CASE
-			WHEN (SELECT occurred_at FROM latest) IS NULL THEN NULL
+			WHEN l.occurred_at IS NULL THEN NULL
 			WHEN stats.first_loved_at IS NULL
-			  OR stats.first_loved_at > (SELECT occurred_at FROM latest)
-			THEN (SELECT occurred_at FROM latest)
+			  OR stats.first_loved_at > l.occurred_at
+			THEN l.occurred_at
 			ELSE stats.first_loved_at
 		END,
-	last_loved_at=(SELECT occurred_at FROM latest)
+	last_loved_at=l.occurred_at
+FROM (
+	SELECT MAX(occurred_at) AS occurred_at
+	FROM latest
+) l
 WHERE stats.ingest_id=$1
   AND stats.last_loved_at IS NOT NULL
   AND stats.last_loved_at >= sqlc.arg(period_start_at)
