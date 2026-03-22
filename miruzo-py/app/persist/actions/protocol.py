@@ -19,16 +19,6 @@ class ActionRepository(Protocol):
 		require_unique: bool = False,
 	) -> ActionRecord | None: ...
 
-	def select_latest_one_by_multiple_kinds(
-		self,
-		ingest_id: int,
-		*,
-		kinds: Collection[ActionKind],
-		since_occurred_at: datetime | None = None,
-		until_occurred_at: datetime | None = None,
-		require_unique: bool = False,
-	) -> ActionRecord | None: ...
-
 	def insert(
 		self,
 		ingest_id: int,

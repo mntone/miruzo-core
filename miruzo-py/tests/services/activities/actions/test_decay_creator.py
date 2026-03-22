@@ -28,7 +28,7 @@ def test_create_returns_action_when_missing() -> None:
 	expected_since, expected_until = resolver.resolve_period_range(evaluated_at)
 	assert repo.select_one_called_with is not None
 	assert repo.select_one_called_with.ingest_id == 1
-	assert repo.select_one_called_with.kinds == (ActionKind.DECAY,)
+	assert repo.select_one_called_with.kind == ActionKind.DECAY
 	assert repo.select_one_called_with.since_occurred_at == expected_since
 	assert repo.select_one_called_with.until_occurred_at == expected_until
 

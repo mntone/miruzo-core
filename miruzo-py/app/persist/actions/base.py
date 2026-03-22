@@ -68,51 +68,6 @@ class BaseActionRepository:
 
 		return row
 
-	def select_latest_one_by_multiple_kinds(
-		self,
-		ingest_id: int,
-		*,
-		kinds: Collection[ActionKind],
-		since_occurred_at: datetime | None = None,
-		until_occurred_at: datetime | None = None,
-		require_unique: bool = False,
-	) -> ActionRecord | None:
-		"""
-		Return the latest matching ActionRecord.
-		Time range is interpreted as [since_occurred_at, until_occurred_at).
-		When require_unique is True, raise if multiple rows exist.
-		"""
-
-		if not kinds:
-			return None
-
-		statement = (
-			select(ActionRecord)
-			.where(
-				ActionRecord.ingest_id == ingest_id,
-				ActionRecord.kind.in_(kinds),
-			)
-			.order_by(
-				ActionRecord.occurred_at.desc(),
-				ActionRecord.id.desc(),
-			)
-			.limit(2 if require_unique else 1)
-		)
-
-		if since_occurred_at is not None:
-			statement = statement.where(
-				ActionRecord.occurred_at >= since_occurred_at,
-			)
-
-		if until_occurred_at is not None:
-			statement = statement.where(
-				ActionRecord.occurred_at < until_occurred_at,
-			)
-
-		row = self._session.exec(statement).one_or_none()
-
-		return row
-
 	def insert(
 		self,
 		ingest_id: int,
