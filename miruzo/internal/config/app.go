@@ -4,6 +4,7 @@ import "fmt"
 
 type AppConfig struct {
 	API      APIConfig
+	CORS     CORSConfig     `mapstructure:"cors"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Period   PeriodConfig   `mapstructure:"period"`
 	Quota    QuotaConfig    `mapstructure:"quota"`
@@ -15,6 +16,7 @@ type AppConfig struct {
 func DefaultAppConfig() AppConfig {
 	return AppConfig{
 		API:      DefaultAPIConfig(),
+		CORS:     DefaultCORSConfig(),
 		Database: DefaultDatabaseConfig(),
 		Period:   DefaultPeriodConfig(),
 		Quota:    DefaultQuotaConfig(),
