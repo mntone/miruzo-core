@@ -29,22 +29,6 @@ class StubUserRepository:
 
 		return user_record
 
-	def increment_daily_love_used(self, *, limit: int) -> bool:
-		user_record = self.get_singleton()
-		if user_record.daily_love_used >= limit:
-			return False
-
-		user_record.daily_love_used += 1
-		return True
-
-	def decrement_daily_love_used(self) -> bool:
-		user_record = self.get_singleton()
-		if user_record.daily_love_used <= 0:
-			return False
-
-		user_record.daily_love_used -= 1
-		return True
-
 	def reset_daily_love_used(self) -> None:
 		user_record = self.get_singleton()
 		user_record.daily_love_used = 0

@@ -81,68 +81,6 @@ def test_get_singleton_raises_when_missing(session: Session) -> None:
 		repo.get_singleton()
 
 
-def test_increment_daily_love_used_respects_limit(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-	user = repo.create_singleton_if_missing()
-	user.daily_love_used = 1
-
-	assert repo.increment_daily_love_used(limit=2) is True
-	assert repo.increment_daily_love_used(limit=2) is False
-
-	user = repo.get_singleton()
-	assert user.daily_love_used == 2
-
-
-def test_increment_daily_love_used_works_without_singleton_in_identity_map(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-	repo.create_singleton_if_missing()
-	session.expunge_all()
-
-	assert repo.increment_daily_love_used(limit=2) is True
-
-	user = repo.get_singleton()
-	assert user.daily_love_used == 1
-
-
-def test_increment_daily_love_used_raises_when_missing(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-
-	with pytest.raises(SingletonUserMissingError):
-		repo.increment_daily_love_used(limit=1)
-
-
-def test_decrement_daily_love_used_stops_at_zero(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-	user = repo.create_singleton_if_missing()
-	user.daily_love_used = 1
-
-	assert repo.decrement_daily_love_used() is True
-	assert repo.decrement_daily_love_used() is False
-
-	user = repo.get_singleton()
-	assert user.daily_love_used == 0
-
-
-def test_decrement_daily_love_used_works_without_singleton_in_identity_map(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-	user = repo.create_singleton_if_missing()
-	user.daily_love_used = 1
-	session.flush()
-	session.expunge_all()
-
-	assert repo.decrement_daily_love_used() is True
-
-	user = repo.get_singleton()
-	assert user.daily_love_used == 0
-
-
-def test_decrement_daily_love_used_raises_when_missing(session: Session) -> None:
-	repo = SQLiteUserRepository(session)
-
-	with pytest.raises(SingletonUserMissingError):
-		repo.decrement_daily_love_used()
-
-
 def test_reset_daily_love_used_sets_zero(session: Session) -> None:
 	repo = SQLiteUserRepository(session)
 	user = repo.create_singleton_if_missing()

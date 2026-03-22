@@ -61,56 +61,6 @@ class BaseUserRepository(ABC):
 
 		return user
 
-	def increment_daily_love_used(self, *, limit: int) -> bool:
-		self._session.flush()
-
-		user_table = UserRecord.__table__
-
-		statement = (
-			update(user_table)
-			.where(
-				user_table.c.id == _UNIQUE_USER_ID,
-				user_table.c.daily_love_used < limit,
-			)
-			.values(daily_love_used=user_table.c.daily_love_used + 1)
-			.returning(user_table.c.id)
-		)
-
-		updated_id = self._session.exec(statement).scalar_one_or_none()
-		if updated_id is not None:
-			self._expire_singleton_daily_love_used()
-			return True
-
-		# Distinguish quota exhaustion from missing singleton.
-		self.get_singleton()
-
-		return False
-
-	def decrement_daily_love_used(self) -> bool:
-		self._session.flush()
-
-		user_table = UserRecord.__table__
-
-		statement = (
-			update(user_table)
-			.where(
-				user_table.c.id == _UNIQUE_USER_ID,
-				user_table.c.daily_love_used > 0,
-			)
-			.values(daily_love_used=user_table.c.daily_love_used - 1)
-			.returning(user_table.c.id)
-		)
-
-		updated_id = self._session.exec(statement).scalar_one_or_none()
-		if updated_id is not None:
-			self._expire_singleton_daily_love_used()
-			return True
-
-		# Distinguish lower-bound exhaustion from missing singleton.
-		self.get_singleton()
-
-		return False
-
 	def reset_daily_love_used(self) -> None:
 		self._session.flush()
 
