@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
+	mb "github.com/mntone/miruzo-core/miruzo/internal/testutil/modelbuilder"
 	"github.com/samber/mo"
 )
 
@@ -115,15 +116,17 @@ func (ste ImageListSuite) RunTestListChronological(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListRecently(t *testing.T) {
-	withoutLastViewedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
-	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
-	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+	baseTime := mb.GetDefaultStatsBaseTime()
 
-	ste.Operations.MustAddStat(t, NewStatFixture(withoutLastViewedAt.ID))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(latest.ID, 1, suiteBaseTimeUTC))
-	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(middle.ID, 1, suiteBaseTimeUTC.Add(-1*time.Hour)))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(oldest.ID, 1, suiteBaseTimeUTC.Add(-2*time.Hour)))
+	withoutLastViewedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(24*time.Hour)))
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, baseTime))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, baseTime.Add(4*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime.Add(-2*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, mb.Stats(withoutLastViewedAt.ID).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(latest.ID).ViewedOffset(1, 0).Build())
+	middleStat := ste.Operations.MustAddStat(t, mb.Stats(middle.ID).ViewedOffset(1, -1*time.Hour).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(oldest.ID).ViewedOffset(1, -2*time.Hour).Build())
 
 	rows, err := ste.Repository.ListRecently(ste.Context, persist.ImageListSpec[time.Time]{
 		Limit: 2,
@@ -143,15 +146,17 @@ func (ste ImageListSuite) RunTestListRecently(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListFirstLove(t *testing.T) {
-	withoutFirstLovedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
-	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
-	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+	baseTime := mb.GetDefaultStatsBaseTime()
 
-	ste.Operations.MustAddStat(t, NewStatFixture(withoutFirstLovedAt.ID))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(latest.ID, suiteBaseTimeUTC))
-	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(middle.ID, suiteBaseTimeUTC.Add(-1*time.Hour)))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(oldest.ID, suiteBaseTimeUTC.Add(-2*time.Hour)))
+	withoutFirstLovedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(24*time.Hour)))
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, baseTime))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, baseTime.Add(4*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime.Add(-2*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, mb.Stats(withoutFirstLovedAt.ID).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(latest.ID).LovedOffset(0).Build())
+	middleStat := ste.Operations.MustAddStat(t, mb.Stats(middle.ID).LovedOffset(-1*time.Hour).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(oldest.ID).LovedOffset(-2*time.Hour).Build())
 
 	rows, err := ste.Repository.ListFirstLove(ste.Context, persist.ImageListSpec[time.Time]{
 		Limit: 2,
@@ -171,15 +176,17 @@ func (ste ImageListSuite) RunTestListFirstLove(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListHallOfFame(t *testing.T) {
-	withoutHallOfFameAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(24*time.Hour)))
-	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC))
-	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(4*24*time.Hour)))
-	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
+	baseTime := mb.GetDefaultStatsBaseTime()
 
-	ste.Operations.MustAddStat(t, NewStatFixture(withoutHallOfFameAt.ID))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithHallOfFameAt(latest.ID, suiteBaseTimeUTC))
-	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithHallOfFameAt(middle.ID, suiteBaseTimeUTC.Add(-1*time.Hour)))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithHallOfFameAt(oldest.ID, suiteBaseTimeUTC.Add(-2*time.Hour)))
+	withoutHallOfFameAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(24*time.Hour)))
+	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, baseTime))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, baseTime.Add(4*24*time.Hour)))
+	oldest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime.Add(-2*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, mb.Stats(withoutHallOfFameAt.ID).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(latest.ID).HallOfFameOffset(0).Build())
+	middleStat := ste.Operations.MustAddStat(t, mb.Stats(middle.ID).HallOfFameOffset(-1*time.Hour).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(oldest.ID).HallOfFameOffset(-2*time.Hour).Build())
 
 	rows, err := ste.Repository.ListHallOfFame(ste.Context, persist.ImageListSpec[time.Time]{
 		Limit: 2,
@@ -199,19 +206,24 @@ func (ste ImageListSuite) RunTestListHallOfFame(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListEngaged(t *testing.T) {
-	hiddenHighest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC.Add(-3*24*time.Hour)))
-	high := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, suiteBaseTimeUTC.Add(-5*24*time.Hour)))
-	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
-	low := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(6, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
-	lowest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-4*24*time.Hour)))
+	baseTime := mb.GetDefaultStatsBaseTime()
+	evaluatedAt := baseTime.Add(2 * time.Hour)
 
-	hiddenHighestStat := NewStatFixtureWithScoreAndEvaluated(hiddenHighest.ID, 190, suiteBaseTimeUTC)
-	hiddenHighestStat.HallOfFameAt = mo.Some(suiteBaseTimeUTC)
-	ste.Operations.MustAddStat(t, hiddenHighestStat)
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(high.ID, 180, suiteBaseTimeUTC))
-	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(middle.ID, 165, suiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(low.ID, 160, suiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(lowest.ID, 150, suiteBaseTimeUTC))
+	hiddenHighest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, baseTime.Add(-3*24*time.Hour)))
+	high := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime.Add(-5*24*time.Hour)))
+	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(-2*24*time.Hour)))
+	low := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(6, baseTime.Add(-1*24*time.Hour)))
+	lowest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, baseTime.Add(-4*24*time.Hour)))
+
+	ste.Operations.MustAddStat(t, mb.Stats(hiddenHighest.ID).
+		Score(190).
+		EvaluateScore(evaluatedAt).
+		HallOfFameOffset(0).
+		Build())
+	ste.Operations.MustAddStat(t, mb.Stats(high.ID).Score(180).EvaluateScore(evaluatedAt).Build())
+	middleStat := ste.Operations.MustAddStat(t, mb.Stats(middle.ID).Score(165).EvaluateScore(evaluatedAt).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(low.ID).Score(160).EvaluateScore(evaluatedAt).Build())
+	ste.Operations.MustAddStat(t, mb.Stats(lowest.ID).Score(150).EvaluateScore(evaluatedAt).Build())
 
 	rows, err := ste.Repository.ListEngaged(ste.Context, persist.EngagedImageListSpec{
 		ImageListSpec: persist.ImageListSpec[int16]{

@@ -9,6 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
+	mb "github.com/mntone/miruzo-core/miruzo/internal/testutil/modelbuilder"
 	"github.com/samber/mo"
 )
 
@@ -151,7 +152,7 @@ func (ste StatsSuite) RunTestApplyHallOfFameGrantedUpdates(t *testing.T) {
 	t.Helper()
 
 	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(ingest.ID, 180))
+	ste.Operations.MustAddStat(t, mb.Stats(ingest.ID).Score(180).Build())
 	hallOfFameAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
 	scoreThreshold := model.ScoreType(180)
 
@@ -202,10 +203,11 @@ func (ste StatsSuite) RunTestApplyHallOfFameGrantedReturnsConflict(t *testing.T)
 		ste.Operations.MustTruncateStats(t)
 
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewStatFixture(ingest.ID)
-			s.Score = tt.score
-			s.HallOfFameAt = toTime(tt.offset)
-			ste.Operations.MustAddStat(t, s)
+			ste.Operations.MustAddStat(t, mb.
+				Stats(ingest.ID).
+				Score(tt.score).
+				HallOfFameOffset(tt.offset).
+				Build())
 
 			err := ste.Repository.ApplyHallOfFameGranted(
 				ste.Context,
@@ -239,11 +241,13 @@ func (ste StatsSuite) RunTestApplyHallOfFameGrantedReturnsConflictWithoutStats(t
 func (ste StatsSuite) RunTestApplyHallOfFameRevokedUpdates(t *testing.T) {
 	t.Helper()
 
-	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	s := NewStatFixture(ingest.ID)
-	s.Score = 180
-	s.HallOfFameAt = mo.Some(statsSuiteBaseTimeUTC.Add(20 * time.Minute))
-	ste.Operations.MustAddStat(t, s)
+	baseTime := mb.GetDefaultStatsBaseTime()
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime))
+	ste.Operations.MustAddStat(t, mb.
+		Stats(ingest.ID).
+		Score(180).
+		HallOfFameOffset(20*time.Minute).
+		Build())
 
 	err := ste.Repository.ApplyHallOfFameRevoked(ste.Context, ingest.ID)
 	assert.NilError(t, "ApplyHallOfFameRevoked() error", err)
@@ -257,7 +261,10 @@ func (ste StatsSuite) RunTestApplyHallOfFameRevokedReturnsConflict(t *testing.T)
 	t.Helper()
 
 	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(ingest.ID, 180))
+	ste.Operations.MustAddStat(t, mb.
+		Stats(ingest.ID).
+		Score(180).
+		Build())
 
 	err := ste.Repository.ApplyHallOfFameRevoked(ste.Context, ingest.ID)
 	assert.ErrorIs(t, "ApplyHallOfFameRevoked() error", err, persist.ErrConflict)
@@ -278,7 +285,7 @@ func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {
 	t.Helper()
 
 	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	baseStats := ste.Operations.MustAddStat(t, NewStatFixture(ingest.ID))
+	baseStats := ste.Operations.MustAddStat(t, mb.Stats(ingest.ID).Build())
 	scoreDelta := model.ScoreType(20)
 	lovedAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
 
@@ -298,17 +305,23 @@ func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {
 func (ste StatsSuite) RunTestApplyLoveRejectsCurrentPeriod(t *testing.T) {
 	t.Helper()
 
-	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithLastLovedAt(ingest.ID, statsSuitePeriodStartTimeUTC.Add(2*time.Hour)))
+	baseTime := mb.GetDefaultStatsBaseTime()
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime))
+	ste.Operations.MustAddStat(t, mb.
+		Stats(ingest.ID).
+		ChangeBaseTime(baseTime).
+		FirstLovedOffset(0).
+		LastLovedOffset(24*time.Hour).
+		Build())
 	scoreDelta := model.ScoreType(20)
-	lovedAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
+	lovedAt := baseTime.Add(24*time.Hour + 20*time.Minute)
 
 	_, err := ste.Repository.ApplyLove(
 		ste.Context,
 		ingest.ID,
 		scoreDelta,
 		lovedAt,
-		statsSuitePeriodStartTimeUTC,
+		baseTime.Add(24*time.Hour),
 	)
 	assert.ErrorIs(t, "ApplyLove() error", err, persist.ErrConflict)
 }
@@ -465,11 +478,13 @@ func (ste StatsSuite) RunTestApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			// stats
-			s := NewStatFixture(ingest.ID)
-			s.Score = 120
-			s.FirstLovedAt = toTime(tt.first)
-			s.LastLovedAt = toTime(tt.last)
-			baseStats := ste.Operations.MustAddStat(t, s)
+			baseStats := ste.Operations.MustAddStat(t, mb.
+				Stats(ingest.ID).
+				ChangeBaseTime(statsSuitePeriodStartTimeUTC).
+				Score(120).
+				FirstLovedOffset(tt.first).
+				LastLovedOffset(tt.last).
+				Build())
 
 			// actions
 			for _, a := range tt.actions {
@@ -594,10 +609,12 @@ func (ste StatsSuite) RunTestApplyLoveCanceledReturnsConflict(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			// stats
-			s := NewStatFixture(ingest.ID)
-			s.FirstLovedAt = toTime(tt.first)
-			s.LastLovedAt = toTime(tt.last)
-			ste.Operations.MustAddStat(t, s)
+			ste.Operations.MustAddStat(t, mb.
+				Stats(ingest.ID).
+				ChangeBaseTime(statsSuitePeriodStartTimeUTC).
+				FirstLovedOffset(tt.first).
+				LastLovedOffset(tt.last).
+				Build())
 
 			// actions
 			for _, a := range tt.actions {
@@ -644,7 +661,7 @@ func (ste StatsSuite) RunTestApplyView(t *testing.T) {
 	t.Helper()
 
 	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	baseStats := ste.Operations.MustAddStat(t, NewStatFixture(ingest.ID))
+	baseStats := ste.Operations.MustAddStat(t, mb.Stats(ingest.ID).Build())
 	evaluatedAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
 	scoreDelta := model.ScoreType(5)
 
@@ -683,12 +700,13 @@ func (ste StatsSuite) RunTestApplyViewNotFound(t *testing.T) {
 func (ste StatsSuite) RunTestApplyViewWithMilestone(t *testing.T) {
 	t.Helper()
 
-	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
-	baseStats := ste.Operations.MustAddStat(t, NewStatFixtureWithLastViewedAt(
-		ingest.ID,
-		23,
-		statsSuiteBaseTimeUTC.Add(-15*time.Minute),
-	))
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuitePeriodStartTimeUTC))
+
+	baseStats := ste.Operations.MustAddStat(t, mb.
+		Stats(ingest.ID).
+		ChangeBaseTime(statsSuiteBaseTimeUTC).
+		ViewedOffset(23, -15*time.Minute).
+		Build())
 	evaluatedAt := statsSuiteBaseTimeUTC.Add(25 * time.Minute)
 	scoreDelta := model.ScoreType(7)
 
