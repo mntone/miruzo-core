@@ -42,8 +42,8 @@ func TestStatsRepositoryApplyLoveUpdatesWhenEmpty(t *testing.T) {
 	testutilSQLite.NewStatsSuite(t).RunTestApplyLoveUpdatesWhenEmpty(t)
 }
 
-func TestStatsRepositoryApplyLoveRejectsCurrentPeriod(t *testing.T) {
-	testutilSQLite.NewStatsSuite(t).RunTestApplyLoveRejectsCurrentPeriod(t)
+func TestStatsRepositoryApplyLoveReturnsConflict(t *testing.T) {
+	testutilSQLite.NewStatsSuite(t).RunTestApplyLoveReturnsConflict(t)
 }
 
 func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {

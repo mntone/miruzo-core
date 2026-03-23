@@ -25,6 +25,7 @@ type StatsRepository interface {
 		ingestID model.IngestIDType,
 		scoreDelta model.ScoreType,
 		lovedAt time.Time,
+		loveScoreThreshold model.ScoreType,
 		periodStartAt time.Time,
 	) (LoveStats, error)
 

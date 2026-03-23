@@ -33,7 +33,14 @@ func (srv *Service) Love(
 			result.Quota.Remaining = srv.dailyLoveLimit - dailyLoveUsed
 		}
 
-		stats, err := repos.Stats.ApplyLove(ctx, ingestID, scoreDelta, lovedAt, periodStartAt)
+		stats, err := repos.Stats.ApplyLove(
+			ctx,
+			ingestID,
+			scoreDelta,
+			lovedAt,
+			srv.hallOfFameScoreThreshold,
+			periodStartAt,
+		)
 		if err != nil {
 			return err
 		}

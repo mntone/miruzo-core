@@ -65,13 +65,15 @@ func (repo repository) ApplyLove(
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
 	lovedAt time.Time,
+	loveScoreThreshold model.ScoreType,
 	periodStartAt time.Time,
 ) (persist.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
-		IngestID:      ingestID,
-		ScoreDelta:    scoreDelta,
-		LovedAt:       shared.NullTimeFromTime(lovedAt),
-		PeriodStartAt: shared.NullTimeFromTime(periodStartAt),
+		IngestID:           ingestID,
+		ScoreDelta:         scoreDelta,
+		LovedAt:            shared.NullTimeFromTime(lovedAt),
+		PeriodStartAt:      shared.NullTimeFromTime(periodStartAt),
+		LoveScoreThreshold: loveScoreThreshold,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

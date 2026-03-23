@@ -17,10 +17,11 @@ type statsRepositoryApplyHallOfFameGrantedArgs struct {
 }
 
 type statsRepositoryApplyLoveArgs struct {
-	IngestID      model.IngestIDType
-	ScoreDelta    model.ScoreType
-	LovedAt       time.Time
-	PeriodStartAt time.Time
+	IngestID           model.IngestIDType
+	ScoreDelta         model.ScoreType
+	LovedAt            time.Time
+	LoveScoreThreshold model.ScoreType
+	PeriodStartAt      time.Time
 }
 
 type statsRepositoryApplyLoveCanceledArgs struct {
@@ -142,13 +143,15 @@ func (repo *statsRepository) ApplyLove(
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
 	lovedAt time.Time,
+	loveScoreThreshold model.ScoreType,
 	periodStartAt time.Time,
 ) (persist.LoveStats, error) {
 	repo.ApplyLoveArgs = append(repo.ApplyLoveArgs, statsRepositoryApplyLoveArgs{
-		IngestID:      ingestID,
-		ScoreDelta:    scoreDelta,
-		LovedAt:       lovedAt,
-		PeriodStartAt: periodStartAt,
+		IngestID:           ingestID,
+		ScoreDelta:         scoreDelta,
+		LovedAt:            lovedAt,
+		LoveScoreThreshold: loveScoreThreshold,
+		PeriodStartAt:      periodStartAt,
 	})
 
 	if repo.ApplyLoveError != nil {
@@ -162,6 +165,9 @@ func (repo *statsRepository) ApplyLove(
 
 	lastLovedAt, present := stats.LastLovedAt.Get()
 	if present && lastLovedAt.Compare(periodStartAt) >= 0 {
+		return persist.LoveStats{}, persist.ErrConflict
+	}
+	if stats.Score >= loveScoreThreshold {
 		return persist.LoveStats{}, persist.ErrConflict
 	}
 

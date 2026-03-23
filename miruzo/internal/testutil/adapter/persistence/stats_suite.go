@@ -294,6 +294,7 @@ func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {
 		ingest.ID,
 		scoreDelta,
 		lovedAt,
+		180,
 		statsSuitePeriodStartTimeUTC,
 	)
 	assert.NilError(t, "ApplyLove() error", err)
@@ -302,28 +303,59 @@ func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {
 	assert.Equal(t, "ApplyLove().LastLovedAt", loveStats.LastLovedAt.MustGet(), lovedAt)
 }
 
-func (ste StatsSuite) RunTestApplyLoveRejectsCurrentPeriod(t *testing.T) {
+func (ste StatsSuite) RunTestApplyLoveReturnsConflict(t *testing.T) {
 	t.Helper()
 
+	tests := []struct {
+		name   string
+		period time.Duration
+		score  model.ScoreType
+		first  mo.Option[time.Duration]
+		last   mo.Option[time.Duration]
+		love   time.Duration
+	}{
+		{
+			name:  "AlreadyLovedToday",
+			score: 100,
+			first: mo.Some(0 * time.Hour),
+			last:  mo.Some(24 * time.Hour),
+			love:  24*time.Hour + 2*time.Minute,
+		},
+		{
+			name:  "ScoreAboveThreshold",
+			score: 180,
+			love:  24*time.Hour + 45*time.Minute,
+		},
+	}
+
+	// ingest
 	baseTime := mb.GetDefaultStatsBaseTime()
 	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime))
-	ste.Operations.MustAddStat(t, mb.
-		Stats(ingest.ID).
-		ChangeBaseTime(baseTime).
-		FirstLovedOffset(0).
-		LastLovedOffset(24*time.Hour).
-		Build())
-	scoreDelta := model.ScoreType(20)
-	lovedAt := baseTime.Add(24*time.Hour + 20*time.Minute)
 
-	_, err := ste.Repository.ApplyLove(
-		ste.Context,
-		ingest.ID,
-		scoreDelta,
-		lovedAt,
-		baseTime.Add(24*time.Hour),
-	)
-	assert.ErrorIs(t, "ApplyLove() error", err, persist.ErrConflict)
+	scoreDelta := model.ScoreType(20)
+	for _, tt := range tests {
+		ste.Operations.MustTruncateActions(t)
+		ste.Operations.MustTruncateStats(t)
+
+		t.Run(tt.name, func(t *testing.T) {
+			ste.Operations.MustAddStat(t, mb.
+				Stats(ingest.ID).
+				Score(tt.score).
+				FirstLovedOffset(tt.first).
+				LastLovedOffset(tt.last).
+				Build())
+
+			_, err := ste.Repository.ApplyLove(
+				ste.Context,
+				ingest.ID,
+				scoreDelta,
+				baseTime.Add(tt.love),
+				180,
+				baseTime.Add(24*time.Hour),
+			)
+			assert.ErrorIs(t, "ApplyLove() error", err, persist.ErrConflict)
+		})
+	}
 }
 
 // --- love cancel ---

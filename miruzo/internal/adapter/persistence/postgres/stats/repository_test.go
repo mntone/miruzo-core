@@ -137,14 +137,14 @@ func TestStatsRepositoryApplyLoveUpdatesWhenEmpty(t *testing.T) {
 	factory.NewStats(t, ctx).RunTestApplyLoveUpdatesWhenEmpty(t)
 }
 
-func TestStatsRepositoryApplyLoveRejectsCurrentPeriod(t *testing.T) {
+func TestStatsRepositoryApplyLoveReturnsConflict(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")
 	}
 
 	ctx := context.Background()
 	factory.MustReset(t, ctx)
-	factory.NewStats(t, ctx).RunTestApplyLoveRejectsCurrentPeriod(t)
+	factory.NewStats(t, ctx).RunTestApplyLoveReturnsConflict(t)
 }
 
 func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
