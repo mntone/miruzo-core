@@ -10,6 +10,12 @@ import (
 	"github.com/samber/mo"
 )
 
+type statsRepositoryApplyHOFGrantedArgs struct {
+	IngestID                 model.IngestIDType
+	HallOfFameAt             time.Time
+	HallOfFameScoreThreshold model.ScoreType
+}
+
 type statsRepositoryApplyLoveArgs struct {
 	IngestID      model.IngestIDType
 	ScoreDelta    model.ScoreType
@@ -37,6 +43,10 @@ type statsStorage struct {
 type statsRepository struct {
 	statsStorage
 
+	ApplyHOFGrantedError   error
+	ApplyHOFGrantedArgs    []statsRepositoryApplyHOFGrantedArgs
+	ApplyHOFRevokedError   error
+	ApplyHOFRevokedArgs    []model.IngestIDType
 	ApplyLoveError         error
 	ApplyLoveArgs          []statsRepositoryApplyLoveArgs
 	ApplyLoveCanceledError error
@@ -69,6 +79,62 @@ func (repo statsRepository) snapshot() statsStorage {
 	return statsStorage{
 		Store: store,
 	}
+}
+
+func (repo *statsRepository) ApplyHallOfFameGranted(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	hallOfFameAt time.Time,
+	hallOfFameScoreThreshold model.ScoreType,
+) error {
+	repo.ApplyHOFGrantedArgs = append(repo.ApplyHOFGrantedArgs, statsRepositoryApplyHOFGrantedArgs{
+		IngestID:                 ingestID,
+		HallOfFameAt:             hallOfFameAt,
+		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
+	})
+
+	if repo.ApplyHOFGrantedError != nil {
+		return repo.ApplyHOFGrantedError
+	}
+
+	stats, ok := repo.Store[ingestID]
+	if !ok {
+		return persist.ErrConflict
+	}
+
+	if stats.HallOfFameAt.IsPresent() || stats.Score < hallOfFameScoreThreshold {
+		return persist.ErrConflict
+	}
+
+	stats.HallOfFameAt = mo.Some(hallOfFameAt)
+
+	repo.Store[ingestID] = stats
+	return nil
+}
+
+func (repo *statsRepository) ApplyHallOfFameRevoked(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+) error {
+	repo.ApplyHOFRevokedArgs = append(repo.ApplyHOFRevokedArgs, ingestID)
+
+	if repo.ApplyHOFRevokedError != nil {
+		return repo.ApplyHOFRevokedError
+	}
+
+	stats, ok := repo.Store[ingestID]
+	if !ok {
+		return persist.ErrConflict
+	}
+
+	if stats.HallOfFameAt.IsAbsent() {
+		return persist.ErrConflict
+	}
+
+	stats.HallOfFameAt = mo.None[time.Time]()
+
+	repo.Store[ingestID] = stats
+	return nil
 }
 
 func (repo *statsRepository) ApplyLove(

@@ -67,6 +67,66 @@ func TestStatsRepositoryStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	factory.NewStats(t, ctx).RunTestStatsSchemaRejectsInvalidOccurredAt(t)
 }
 
+func TestStatsRepositoryApplyHallOfFameGrantedUpdates(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyHallOfFameGrantedUpdates(t)
+}
+
+func TestStatsRepositoryApplyHallOfFameGrantedReturnsConflict(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyHallOfFameGrantedReturnsConflict(t)
+}
+
+func TestStatsRepositoryApplyHallOfFameGrantedReturnsConflictWithoutStats(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyHallOfFameGrantedReturnsConflictWithoutStats(t)
+}
+
+func TestStatsRepositoryApplyHallOfFameRevokedUpdates(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyHallOfFameRevokedUpdates(t)
+}
+
+func TestStatsRepositoryApplyHallOfFameRevokedReturnsConflict(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyHallOfFameRevokedReturnsConflict(t)
+}
+
+func TestStatsRepositoryApplyHallOfFameRevokedReturnsConflictWithoutStats(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewStats(t, ctx).RunTestApplyHallOfFameRevokedReturnsConflictWithoutStats(t)
+}
+
 func TestStatsRepositoryApplyLoveUpdatesWhenEmpty(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")

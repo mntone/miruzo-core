@@ -145,6 +145,133 @@ func (ste StatsSuite) RunTestStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	}
 }
 
+// --- hall of fame granted ---
+
+func (ste StatsSuite) RunTestApplyHallOfFameGrantedUpdates(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(ingest.ID, 180))
+	hallOfFameAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
+	scoreThreshold := model.ScoreType(180)
+
+	err := ste.Repository.ApplyHallOfFameGranted(
+		ste.Context,
+		ingest.ID,
+		hallOfFameAt,
+		scoreThreshold,
+	)
+	assert.NilError(t, "ApplyHallOfFameGranted() error", err)
+
+	imageWithStats, err := ste.ViewRepository.GetImageWithStatsForUpdate(ste.Context, ingest.ID)
+	assert.NilError(t, "GetImageWithStatsForUpdate() error", err)
+	assert.IsPresent(t, "imageWithStats.Stats.HallOfFameAt", imageWithStats.Stats.HallOfFameAt)
+	assert.Equal(
+		t,
+		"imageWithStats.Stats.HallOfFameAt",
+		imageWithStats.Stats.HallOfFameAt.MustGet(),
+		hallOfFameAt,
+	)
+}
+
+func (ste StatsSuite) RunTestApplyHallOfFameGrantedReturnsConflict(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name   string
+		score  model.ScoreType
+		offset mo.Option[time.Duration]
+	}{
+		{
+			name:  "ScoreBelowThreshold",
+			score: 170,
+		},
+		{
+			name:   "AlreadyGranted",
+			score:  180,
+			offset: mo.Some(2 * time.Hour),
+		},
+	}
+
+	// ingest
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	hallOfFameAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
+	scoreThreshold := model.ScoreType(180)
+
+	for _, tt := range tests {
+		ste.Operations.MustTruncateStats(t)
+
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewStatFixture(ingest.ID)
+			s.Score = tt.score
+			s.HallOfFameAt = toTime(tt.offset)
+			ste.Operations.MustAddStat(t, s)
+
+			err := ste.Repository.ApplyHallOfFameGranted(
+				ste.Context,
+				ingest.ID,
+				hallOfFameAt,
+				scoreThreshold,
+			)
+			assert.ErrorIs(t, "ApplyHallOfFameGranted() error", err, persist.ErrConflict)
+		})
+	}
+}
+
+func (ste StatsSuite) RunTestApplyHallOfFameGrantedReturnsConflictWithoutStats(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	hallOfFameAt := statsSuiteBaseTimeUTC.Add(20 * time.Minute)
+	scoreThreshold := model.ScoreType(180)
+
+	err := ste.Repository.ApplyHallOfFameGranted(
+		ste.Context,
+		ingest.ID,
+		hallOfFameAt,
+		scoreThreshold,
+	)
+	assert.ErrorIs(t, "ApplyHallOfFameGranted() error", err, persist.ErrConflict)
+}
+
+// --- hall of fame revoked ---
+
+func (ste StatsSuite) RunTestApplyHallOfFameRevokedUpdates(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	s := NewStatFixture(ingest.ID)
+	s.Score = 180
+	s.HallOfFameAt = mo.Some(statsSuiteBaseTimeUTC.Add(20 * time.Minute))
+	ste.Operations.MustAddStat(t, s)
+
+	err := ste.Repository.ApplyHallOfFameRevoked(ste.Context, ingest.ID)
+	assert.NilError(t, "ApplyHallOfFameRevoked() error", err)
+
+	imageWithStats, err := ste.ViewRepository.GetImageWithStatsForUpdate(ste.Context, ingest.ID)
+	assert.NilError(t, "GetImageWithStatsForUpdate() error", err)
+	assert.IsAbsent(t, "imageWithStats.Stats.HallOfFameAt", imageWithStats.Stats.HallOfFameAt)
+}
+
+func (ste StatsSuite) RunTestApplyHallOfFameRevokedReturnsConflict(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(ingest.ID, 180))
+
+	err := ste.Repository.ApplyHallOfFameRevoked(ste.Context, ingest.ID)
+	assert.ErrorIs(t, "ApplyHallOfFameRevoked() error", err, persist.ErrConflict)
+}
+
+func (ste StatsSuite) RunTestApplyHallOfFameRevokedReturnsConflictWithoutStats(t *testing.T) {
+	t.Helper()
+
+	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, statsSuiteBaseTimeUTC))
+
+	err := ste.Repository.ApplyHallOfFameRevoked(ste.Context, ingest.ID)
+	assert.ErrorIs(t, "ApplyHallOfFameRevoked() error", err, persist.ErrConflict)
+}
+
 // --- love ---
 
 func (ste StatsSuite) RunTestApplyLoveUpdatesWhenEmpty(t *testing.T) {

@@ -22,6 +22,44 @@ func NewRepository(queries *gen.Queries) repository {
 	}
 }
 
+func (repo repository) ApplyHallOfFameGranted(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	hallOfFameAt time.Time,
+	hallOfFameScoreThreshold model.ScoreType,
+) error {
+	rowCount, err := repo.queries.ApplyHallOfFameGrantedToStats(ctx, gen.ApplyHallOfFameGrantedToStatsParams{
+		IngestID:                 ingestID,
+		HallOfFameAt:             shared.NullTimeFromTime(hallOfFameAt),
+		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
+	})
+	if err != nil {
+		return shared.MapSQLiteError("ApplyHallOfFameGranted", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
+}
+
+func (repo repository) ApplyHallOfFameRevoked(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+) error {
+	rowCount, err := repo.queries.ApplyHallOfFameRevokedToStats(ctx, ingestID)
+	if err != nil {
+		return shared.MapSQLiteError("ApplyHallOfFameRevoked", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
+}
+
 func (repo repository) ApplyLove(
 	ctx context.Context,
 	ingestID model.IngestIDType,

@@ -8,6 +8,18 @@ import (
 )
 
 type StatsRepository interface {
+	ApplyHallOfFameGranted(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		hallOfFameAt time.Time,
+		hallOfFameScoreThreshold model.ScoreType,
+	) error
+
+	ApplyHallOfFameRevoked(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+	) error
+
 	ApplyLove(
 		ctx context.Context,
 		ingestID model.IngestIDType,
