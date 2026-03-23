@@ -16,14 +16,14 @@ func WriteJSON(
 	return json.NewEncoder(responseWriter).Encode(response)
 }
 
-func WriteJSONText(
+func WriteJSONBytes(
 	responseWriter http.ResponseWriter,
 	statusCode int,
-	response string,
+	response []byte,
 ) error {
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(statusCode)
 
-	_, err := responseWriter.Write([]byte(response))
+	_, err := responseWriter.Write(response)
 	return err
 }

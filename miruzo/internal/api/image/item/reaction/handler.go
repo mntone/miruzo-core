@@ -80,11 +80,7 @@ func (hdl handler) hallOfFame(
 	case http.MethodDelete:
 		revoke = true
 	default:
-		response.WriteJSONText(
-			responseWriter,
-			http.StatusMethodNotAllowed,
-			"{\"type\":\"method_not_allowed\"}",
-		)
+		httperror.WriteMethodNotAllowed(responseWriter)
 		return
 	}
 

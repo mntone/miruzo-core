@@ -1,27 +1,61 @@
-package httperror
+package error
 
 import (
 	"context"
 	"errors"
 	"net/http"
+	"unsafe"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/response"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
+const (
+	jsonNotFound             = "{\"type\":\"not_found\"}"
+	jsonMethodNotAllowed     = "{\"type\":\"method_not_allowed\"}"
+	jsonNotAcceptable        = "{\"type\":\"not_acceptable\"}"
+	jsonConflict             = "{\"type\":\"conflict\"}"
+	jsonUnprocessableContent = "{\"type\":\"unprocessable_content\"}"
+	jsonTooManyRequests      = "{\"type\":\"too_many_requests\"}"
+
+	jsonInternalServerError = "{\"type\":\"internal_server_error\"}"
+	jsonServiceUnavailable  = "{\"type\":\"service_unavailable\"}"
+	jsonGatewayTimeout      = "{\"type\":\"gateway_timeout\"}"
+)
+
+func getUnsafeByteSlice(str string) []byte {
+	return unsafe.Slice(unsafe.StringData(str), len(str))
+}
+
 func WriteNotFound(responseWriter http.ResponseWriter) {
-	_ = response.WriteJSONText(
+	_ = response.WriteJSONBytes(
 		responseWriter,
 		http.StatusNotFound,
-		"{\"type\":\"not_found\"}",
+		getUnsafeByteSlice(jsonNotFound),
+	)
+}
+
+func WriteMethodNotAllowed(responseWriter http.ResponseWriter) {
+	_ = response.WriteJSONBytes(
+		responseWriter,
+		http.StatusMethodNotAllowed,
+		getUnsafeByteSlice(jsonMethodNotAllowed),
+	)
+}
+
+func WriteNotAcceptable(responseWriter http.ResponseWriter) {
+	_ = response.WriteJSONBytes(
+		responseWriter,
+		http.StatusNotAcceptable,
+		getUnsafeByteSlice(jsonNotAcceptable),
 	)
 }
 
 func WriteInternalServerError(responseWriter http.ResponseWriter) {
-	_ = response.WriteJSONText(
+	_ = response.WriteJSONBytes(
 		responseWriter,
 		http.StatusInternalServerError,
-		"{\"type\":\"internal_server_error\"}",
+		getUnsafeByteSlice(jsonInternalServerError),
 	)
 }
 
@@ -31,45 +65,45 @@ func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 		return
 
 	case errors.Is(err, serviceerror.ErrNotFound):
-		_ = response.WriteJSONText(
+		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusNotFound,
-			"{\"type\":\"not_found\"}",
+			getUnsafeByteSlice(jsonNotFound),
 		)
 
 	case errors.Is(err, serviceerror.ErrServiceUnavailable):
-		_ = response.WriteJSONText(
+		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusServiceUnavailable,
-			"{\"type\":\"service_unavailable\"}",
+			getUnsafeByteSlice(jsonServiceUnavailable),
 		)
 
 	case errors.Is(err, serviceerror.ErrConflict):
-		_ = response.WriteJSONText(
+		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusConflict,
-			"{\"type\":\"conflict\"}",
+			getUnsafeByteSlice(jsonConflict),
 		)
 
 	case errors.Is(err, serviceerror.ErrUnprocessableContent):
-		_ = response.WriteJSONText(
+		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusUnprocessableEntity,
-			"{\"type\":\"unprocessable_content\"}",
+			getUnsafeByteSlice(jsonUnprocessableContent),
 		)
 
 	case errors.Is(err, serviceerror.ErrTooManyRequests):
-		_ = response.WriteJSONText(
+		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusTooManyRequests,
-			"{\"type\":\"too_many_requests\"}",
+			getUnsafeByteSlice(jsonTooManyRequests),
 		)
 
 	case errors.Is(err, serviceerror.ErrGatewayTimeout), errors.Is(err, context.DeadlineExceeded):
-		_ = response.WriteJSONText(
+		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusGatewayTimeout,
-			"{\"type\":\"gateway_timeout\"}",
+			getUnsafeByteSlice(jsonGatewayTimeout),
 		)
 
 	default:

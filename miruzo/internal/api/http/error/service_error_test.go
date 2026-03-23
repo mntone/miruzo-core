@@ -1,4 +1,4 @@
-package httperror
+package error_test
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	httperror "github.com/mntone/miruzo-core/miruzo/internal/api/http/error"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
 
 func TestWriteServiceErrorWritesNothingForCanceled(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(responseRecorder, context.Canceled)
+	httperror.WriteServiceError(responseRecorder, context.Canceled)
 
 	if responseRecorder.Code != http.StatusOK {
 		t.Fatalf("expected default status 200, got %d", responseRecorder.Code)
@@ -26,7 +27,7 @@ func TestWriteServiceErrorWritesNothingForCanceled(t *testing.T) {
 func TestWriteServiceErrorReturnsNotFoundForNotFound(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(
+	httperror.WriteServiceError(
 		responseRecorder,
 		fmt.Errorf("not found: %w", serviceerror.ErrNotFound),
 	)
@@ -42,7 +43,7 @@ func TestWriteServiceErrorReturnsNotFoundForNotFound(t *testing.T) {
 func TestWriteServiceErrorReturnsConflictForConflict(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(
+	httperror.WriteServiceError(
 		responseRecorder,
 		fmt.Errorf("duplicate key: %w", serviceerror.ErrConflict),
 	)
@@ -58,7 +59,7 @@ func TestWriteServiceErrorReturnsConflictForConflict(t *testing.T) {
 func TestWriteServiceErrorReturnsServiceUnavailableForUnavailable(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(
+	httperror.WriteServiceError(
 		responseRecorder,
 		fmt.Errorf("query failed: %w", serviceerror.ErrServiceUnavailable),
 	)
@@ -74,7 +75,7 @@ func TestWriteServiceErrorReturnsServiceUnavailableForUnavailable(t *testing.T) 
 func TestWriteServiceErrorReturnsUnprocessableContent(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(
+	httperror.WriteServiceError(
 		responseRecorder,
 		fmt.Errorf("invalid state: %w", serviceerror.ErrUnprocessableContent),
 	)
@@ -90,7 +91,7 @@ func TestWriteServiceErrorReturnsUnprocessableContent(t *testing.T) {
 func TestWriteServiceErrorReturnsTooManyRequests(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(
+	httperror.WriteServiceError(
 		responseRecorder,
 		fmt.Errorf("invalid state: %w", serviceerror.ErrTooManyRequests),
 	)
@@ -106,7 +107,7 @@ func TestWriteServiceErrorReturnsTooManyRequests(t *testing.T) {
 func TestWriteServiceErrorReturnsGatewayTimeoutForTimeout(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(
+	httperror.WriteServiceError(
 		responseRecorder,
 		fmt.Errorf("query timed out: %w", serviceerror.ErrGatewayTimeout),
 	)
@@ -122,7 +123,7 @@ func TestWriteServiceErrorReturnsGatewayTimeoutForTimeout(t *testing.T) {
 func TestWriteServiceErrorReturnsGatewayTimeoutForDeadlineExceeded(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(responseRecorder, context.DeadlineExceeded)
+	httperror.WriteServiceError(responseRecorder, context.DeadlineExceeded)
 
 	if responseRecorder.Code != http.StatusGatewayTimeout {
 		t.Fatalf("expected status 504, got %d", responseRecorder.Code)
@@ -135,7 +136,7 @@ func TestWriteServiceErrorReturnsGatewayTimeoutForDeadlineExceeded(t *testing.T)
 func TestWriteServiceErrorReturnsInternalServerErrorForUnknownError(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	WriteServiceError(responseRecorder, fmt.Errorf("unknown failure"))
+	httperror.WriteServiceError(responseRecorder, fmt.Errorf("unknown failure"))
 
 	if responseRecorder.Code != http.StatusInternalServerError {
 		t.Fatalf("expected status 500, got %d", responseRecorder.Code)

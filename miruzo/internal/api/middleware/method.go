@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/api/response"
+	httperror "github.com/mntone/miruzo-core/miruzo/internal/api/http/error"
 )
 
 // RequireMethodOf ensures that the request method matches the expected method.
@@ -19,11 +19,7 @@ func RequireMethodOf(
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		if request.Method != method {
 			responseWriter.Header().Set("Allow", method)
-			response.WriteJSONText(
-				responseWriter,
-				http.StatusMethodNotAllowed,
-				"{\"type\":\"method_not_allowed\"}",
-			)
+			httperror.WriteMethodNotAllowed(responseWriter)
 		} else {
 			next(responseWriter, request)
 		}
@@ -41,11 +37,7 @@ func RequireMethodsOf(
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		if !slices.Contains(methods, request.Method) {
 			responseWriter.Header().Set("Allow", strings.Join(methods, ","))
-			response.WriteJSONText(
-				responseWriter,
-				http.StatusMethodNotAllowed,
-				"{\"type\":\"method_not_allowed\"}",
-			)
+			httperror.WriteMethodNotAllowed(responseWriter)
 		} else {
 			next(responseWriter, request)
 		}

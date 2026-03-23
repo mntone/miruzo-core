@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	httperror "github.com/mntone/miruzo-core/miruzo/internal/api/http/error"
 	httpmedia "github.com/mntone/miruzo-core/miruzo/internal/api/http/media"
-	"github.com/mntone/miruzo-core/miruzo/internal/api/response"
 )
 
 func parseQualityValue(value string) (int32, bool) {
@@ -190,11 +190,7 @@ func RequireAcceptAnyOf(
 			return
 		}
 
-		response.WriteJSONText(
-			responseWriter,
-			http.StatusNotAcceptable,
-			"{\"type\":\"not_acceptable\"}",
-		)
+		httperror.WriteNotAcceptable(responseWriter)
 	}
 }
 
