@@ -13,8 +13,8 @@ const (
 	ActionTypeMemo              ActionType = 12
 	ActionTypeLove              ActionType = 13
 	ActionTypeLoveCanceled      ActionType = 14
-	ActionTypeHallOfFameAdded   ActionType = 15
-	ActionTypeHallOfFameRemoved ActionType = 16
+	ActionTypeHallOfFameGranted ActionType = 15
+	ActionTypeHallOfFameRevoked ActionType = 16
 )
 
 type Action struct {
