@@ -41,3 +41,9 @@ type LoveStats struct {
 	// LastLovedAt is the time of the latest love action, or unset if never loved.
 	LastLovedAt mo.Option[time.Time]
 }
+
+// Hall of fame statistics for a single image.
+type HallOfFameStats struct {
+	// HallOfFameAt is the time when the image entered the hall of fame, or unset if it has not.
+	HallOfFameAt mo.Option[time.Time]
+}

@@ -34,6 +34,7 @@ func TestLoveUpdates(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 
@@ -70,6 +71,7 @@ func TestLoveReturnsConflictWhenAlreadyLovedToday(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 
@@ -96,6 +98,7 @@ func TestLoveReturnsTooManyRequestsWhenQuotaExceeded(t *testing.T) {
 		resolver,
 		scoreCalc,
 		1,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 
@@ -123,6 +126,7 @@ func TestLoveRollsBackWhenActionCreateFails(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 

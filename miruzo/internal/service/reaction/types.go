@@ -9,3 +9,7 @@ type LoveResult struct {
 	Quota model.Quota
 	Stats persist.LoveStats
 }
+
+type HallOfFameResult struct {
+	Stats persist.HallOfFameStats
+}

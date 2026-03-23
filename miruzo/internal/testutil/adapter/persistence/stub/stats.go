@@ -10,7 +10,7 @@ import (
 	"github.com/samber/mo"
 )
 
-type statsRepositoryApplyHOFGrantedArgs struct {
+type statsRepositoryApplyHallOfFameGrantedArgs struct {
 	IngestID                 model.IngestIDType
 	HallOfFameAt             time.Time
 	HallOfFameScoreThreshold model.ScoreType
@@ -43,16 +43,16 @@ type statsStorage struct {
 type statsRepository struct {
 	statsStorage
 
-	ApplyHOFGrantedError   error
-	ApplyHOFGrantedArgs    []statsRepositoryApplyHOFGrantedArgs
-	ApplyHOFRevokedError   error
-	ApplyHOFRevokedArgs    []model.IngestIDType
-	ApplyLoveError         error
-	ApplyLoveArgs          []statsRepositoryApplyLoveArgs
-	ApplyLoveCanceledError error
-	ApplyLoveCanceledArgs  []statsRepositoryApplyLoveCanceledArgs
-	ApplyViewError         error
-	ApplyViewArgs          []statsRepositoryApplyViewArgs
+	ApplyHallOfFameGrantedError error
+	ApplyHallOfFameGrantedArgs  []statsRepositoryApplyHallOfFameGrantedArgs
+	ApplyHallOfFameRevokedError error
+	ApplyHallOfFameRevokedArgs  []model.IngestIDType
+	ApplyLoveError              error
+	ApplyLoveArgs               []statsRepositoryApplyLoveArgs
+	ApplyLoveCanceledError      error
+	ApplyLoveCanceledArgs       []statsRepositoryApplyLoveCanceledArgs
+	ApplyViewError              error
+	ApplyViewArgs               []statsRepositoryApplyViewArgs
 }
 
 func NewStubStatsRepository(stats ...persist.Stats) *statsRepository {
@@ -87,14 +87,14 @@ func (repo *statsRepository) ApplyHallOfFameGranted(
 	hallOfFameAt time.Time,
 	hallOfFameScoreThreshold model.ScoreType,
 ) error {
-	repo.ApplyHOFGrantedArgs = append(repo.ApplyHOFGrantedArgs, statsRepositoryApplyHOFGrantedArgs{
+	repo.ApplyHallOfFameGrantedArgs = append(repo.ApplyHallOfFameGrantedArgs, statsRepositoryApplyHallOfFameGrantedArgs{
 		IngestID:                 ingestID,
 		HallOfFameAt:             hallOfFameAt,
 		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
 	})
 
-	if repo.ApplyHOFGrantedError != nil {
-		return repo.ApplyHOFGrantedError
+	if repo.ApplyHallOfFameGrantedError != nil {
+		return repo.ApplyHallOfFameGrantedError
 	}
 
 	stats, ok := repo.Store[ingestID]
@@ -116,10 +116,10 @@ func (repo *statsRepository) ApplyHallOfFameRevoked(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 ) error {
-	repo.ApplyHOFRevokedArgs = append(repo.ApplyHOFRevokedArgs, ingestID)
+	repo.ApplyHallOfFameRevokedArgs = append(repo.ApplyHallOfFameRevokedArgs, ingestID)
 
-	if repo.ApplyHOFRevokedError != nil {
-		return repo.ApplyHOFRevokedError
+	if repo.ApplyHallOfFameRevokedError != nil {
+		return repo.ApplyHallOfFameRevokedError
 	}
 
 	stats, ok := repo.Store[ingestID]

@@ -37,6 +37,7 @@ func TestLoveCancelRestoresPreviousLove(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 
@@ -73,6 +74,7 @@ func TestLoveCancelRestoresNullWhenNoPreviousLove(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 
@@ -107,6 +109,7 @@ func TestLoveCancelReturnsConflictWhenNoLoveInPeriod(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 
@@ -136,6 +139,7 @@ func TestLoveCancelRollsBackWhenActionCreateFails(t *testing.T) {
 		resolver,
 		scoreCalc,
 		3,
+		180,
 	)
 	assert.NilError(t, "reaction.New() error", err)
 

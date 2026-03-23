@@ -88,6 +88,7 @@ func MountAPI(
 		dailyResolver,
 		scoreCalculator,
 		cfg.Quota.DailyLoveLimit,
+		cfg.Score.HallOfFameScoreThreshold,
 	)
 	if err != nil {
 		log.Fatalf("app: failed to build reaction service: %v", err)

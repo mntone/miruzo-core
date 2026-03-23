@@ -11,11 +11,12 @@ import (
 )
 
 type Service struct {
-	mgr                 persist.PersistenceManager
-	clk                 clock.Provider
-	dailyPeriodResolver period.DailyResolver
-	scoreCalculator     score.Calculator
-	dailyLoveLimit      model.QuotaInt // <= model.MaxQuotaInt
+	mgr                      persist.PersistenceManager
+	clk                      clock.Provider
+	dailyPeriodResolver      period.DailyResolver
+	scoreCalculator          score.Calculator
+	dailyLoveLimit           model.QuotaInt // <= model.MaxQuotaInt
+	hallOfFameScoreThreshold model.ScoreType
 }
 
 func New(
@@ -24,16 +25,18 @@ func New(
 	dailyPeriodResolver period.DailyResolver,
 	scoreCalculator score.Calculator,
 	dailyLoveLimit model.QuotaInt,
+	hallOfFameScoreThreshold model.ScoreType,
 ) (*Service, error) {
 	if dailyLoveLimit < 1 || dailyLoveLimit > model.MaxQuotaInt {
 		return nil, fmt.Errorf("invalid daily_love_limit: %d", dailyLoveLimit)
 	}
 
 	return &Service{
-		mgr:                 persistenceManager,
-		clk:                 clockProvider,
-		dailyPeriodResolver: dailyPeriodResolver,
-		scoreCalculator:     scoreCalculator,
-		dailyLoveLimit:      dailyLoveLimit,
+		mgr:                      persistenceManager,
+		clk:                      clockProvider,
+		dailyPeriodResolver:      dailyPeriodResolver,
+		scoreCalculator:          scoreCalculator,
+		dailyLoveLimit:           dailyLoveLimit,
+		hallOfFameScoreThreshold: hallOfFameScoreThreshold,
 	}, nil
 }
