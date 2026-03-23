@@ -68,3 +68,47 @@ func (hdl handler) loveCancel(
 
 	_ = response.WriteJSON(responseWriter, http.StatusOK, mapLoveResponse(result))
 }
+
+func (hdl handler) hallOfFame(
+	responseWriter http.ResponseWriter,
+	req *http.Request,
+) {
+	revoke := false
+	switch req.Method {
+	case http.MethodPost:
+		break
+	case http.MethodDelete:
+		revoke = true
+	default:
+		response.WriteJSONText(
+			responseWriter,
+			http.StatusMethodNotAllowed,
+			"{\"type\":\"method_not_allowed\"}",
+		)
+		return
+	}
+
+	ingestID, fieldError := bind.BindIntPath[model.IngestIDType](req, "ingest_id")
+	if fieldError != nil {
+		response.WriteJSON(
+			responseWriter,
+			http.StatusBadRequest,
+			apierror.NewValidationErrorFromPointer(fieldError),
+		)
+		return
+	}
+
+	var result reaction.HallOfFameResult
+	var serviceError error
+	if revoke {
+		result, serviceError = hdl.service.RevokeHallOfFame(req.Context(), ingestID)
+	} else {
+		result, serviceError = hdl.service.GrantHallOfFame(req.Context(), ingestID)
+	}
+	if serviceError != nil {
+		httperror.WriteServiceError(responseWriter, serviceError)
+		return
+	}
+
+	_ = response.WriteJSON(responseWriter, http.StatusOK, mapHallOfFameResponse(result))
+}

@@ -7,10 +7,18 @@ import (
 func mapLoveResponse(r reaction.LoveResult) loveResponse {
 	return loveResponse{
 		Quota: r.Quota,
-		Stats: statModel{
+		Stats: loveStatModel{
 			Score:        r.Stats.Score,
 			FirstLovedAt: r.Stats.FirstLovedAt.ToPointer(),
 			LastLovedAt:  r.Stats.LastLovedAt.ToPointer(),
+		},
+	}
+}
+
+func mapHallOfFameResponse(r reaction.HallOfFameResult) hallOfFameResponse {
+	return hallOfFameResponse{
+		Stats: hallOfFameStatModel{
+			HallOfFameAt: r.Stats.HallOfFameAt.ToPointer(),
 		},
 	}
 }

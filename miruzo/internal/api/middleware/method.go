@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/response"
 )
@@ -17,6 +19,28 @@ func RequireMethodOf(
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		if request.Method != method {
 			responseWriter.Header().Set("Allow", method)
+			response.WriteJSONText(
+				responseWriter,
+				http.StatusMethodNotAllowed,
+				"{\"type\":\"method_not_allowed\"}",
+			)
+		} else {
+			next(responseWriter, request)
+		}
+	}
+}
+
+// RequireMethodsOf ensures that the request methods match the expected method.
+//
+// If the method does not match, it returns 405 Method Not Allowed
+// and sets the Allow header to the expected method.
+func RequireMethodsOf(
+	methods []string,
+	next http.HandlerFunc,
+) http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		if !slices.Contains(methods, request.Method) {
+			responseWriter.Header().Set("Allow", strings.Join(methods, ","))
 			response.WriteJSONText(
 				responseWriter,
 				http.StatusMethodNotAllowed,
