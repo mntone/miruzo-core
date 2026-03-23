@@ -32,5 +32,10 @@ func (c *AppConfig) Validate() error {
 		return fmt.Errorf("invalid config: quota.%w", err)
 	}
 
+	err = c.Score.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid config: score.%w", err)
+	}
+
 	return err
 }

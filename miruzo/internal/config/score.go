@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
@@ -9,7 +11,7 @@ type ScoreConfig struct {
 	MinimumScore          model.ScoreType `mapstructure:"minimum_score"`
 	PublicMinimumScore    model.ScoreType `mapstructure:"public_minimum_score"`
 	MaximumScore          model.ScoreType `mapstructure:"maximum_score"`
-	EngagedScoreThreshold model.ScoreType `mapstructure:"engaged_score_threshold"`
+	EngagedScoreThreshold model.ScoreType `mapstructure:"engaged_threshold"`
 
 	// --- view ---
 
@@ -26,6 +28,10 @@ type ScoreConfig struct {
 
 	LoveBonus   model.ScoreType `mapstructure:"love_bonus"`
 	LovePenalty model.ScoreType `mapstructure:"love_penalty"`
+
+	// --- hall of fame ---
+
+	HallOfFameScoreThreshold model.ScoreType `mapstructure:"hof_threshold"`
 }
 
 func DefaultScoreConfig() ScoreConfig {
@@ -56,5 +62,21 @@ func DefaultScoreConfig() ScoreConfig {
 
 		LoveBonus:   20,
 		LovePenalty: -18,
+
+		// --- hall of fame ---
+
+		HallOfFameScoreThreshold: 180,
 	}
+}
+
+func (c *ScoreConfig) Validate() error {
+	if c.PublicMinimumScore > c.EngagedScoreThreshold ||
+		c.EngagedScoreThreshold > c.MaximumScore {
+		return errors.New("engaged_threshold")
+	}
+	if c.PublicMinimumScore > c.HallOfFameScoreThreshold ||
+		c.HallOfFameScoreThreshold > c.MaximumScore {
+		return errors.New("hof_threshold")
+	}
+	return nil
 }

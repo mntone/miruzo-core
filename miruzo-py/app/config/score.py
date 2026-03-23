@@ -23,6 +23,3 @@ class ScoreConfig:
 	daily_decay_interval10d_penalty: int = -3
 	daily_decay_high_score_penalty: int = -3
 	daily_no_access_adjustment: int = +1
-
-	# --- hall of fame ---
-	hall_of_fame_threshold: int = 180
