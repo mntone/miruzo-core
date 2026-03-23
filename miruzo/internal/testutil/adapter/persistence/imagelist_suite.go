@@ -205,13 +205,13 @@ func (ste ImageListSuite) RunTestListEngaged(t *testing.T) {
 	low := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(6, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
 	lowest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-4*24*time.Hour)))
 
-	hiddenHighestStat := NewStatFixtureWithScore(hiddenHighest.ID, 190, suiteBaseTimeUTC)
+	hiddenHighestStat := NewStatFixtureWithScoreAndEvaluated(hiddenHighest.ID, 190, suiteBaseTimeUTC)
 	hiddenHighestStat.HallOfFameAt = mo.Some(suiteBaseTimeUTC)
 	ste.Operations.MustAddStat(t, hiddenHighestStat)
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(high.ID, 180, suiteBaseTimeUTC))
-	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithScore(middle.ID, 165, suiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(low.ID, 160, suiteBaseTimeUTC))
-	ste.Operations.MustAddStat(t, NewStatFixtureWithScore(lowest.ID, 150, suiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(high.ID, 180, suiteBaseTimeUTC))
+	middleStat := ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(middle.ID, 165, suiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(low.ID, 160, suiteBaseTimeUTC))
+	ste.Operations.MustAddStat(t, NewStatFixtureWithScoreAndEvaluated(lowest.ID, 150, suiteBaseTimeUTC))
 
 	rows, err := ste.Repository.ListEngaged(ste.Context, persist.EngagedImageListSpec{
 		ImageListSpec: persist.ImageListSpec[int16]{

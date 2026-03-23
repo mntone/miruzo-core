@@ -57,7 +57,13 @@ func NewStatFixture(id model.IngestIDType) persist.Stats {
 	}
 }
 
-func NewStatFixtureWithScore(
+func NewStatFixtureWithScore(id model.IngestIDType, score int16) persist.Stats {
+	entry := NewStatFixture(id)
+	entry.Score = score
+	return entry
+}
+
+func NewStatFixtureWithScoreAndEvaluated(
 	id model.IngestIDType,
 	score int16,
 	scoreEvaluatedAt time.Time,
