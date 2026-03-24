@@ -26,7 +26,7 @@ func main() {
 	defer factory.Close()
 
 	mux := http.NewServeMux()
-	app.MountAPI(mux, factory, cfg, version)
+	app.MountAll(mux, factory, cfg, version)
 
 	httpServer := server.NewHTTPServer(
 		m.RequestLog(mux),

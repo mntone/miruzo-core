@@ -1,3 +1,7 @@
 database:
   backend: sqlite
   dsn: "file:../var/miruzo.sqlite"
+server:
+  static:
+    enabled: true
+    root_dir: ../var/media

@@ -29,6 +29,7 @@
 			"args": [
 				"build",
 				"-gcflags=all=-N -l",
+				"-tags=dev",
 				"-o",
 				"./bin/miruzo-api",
 				"./cmd/miruzo-api",

@@ -5,7 +5,7 @@ tmp_dir = "./tmp"
 
 [build]
 args_bin = []
-cmd = "go build -gcflags='all=-N -l' -ldflags=-X=\"main.version=$(cat VERSION)-$(git rev-parse --short HEAD)$(test -n \"`git status --porcelain`\" && echo '+dev')\" -o ./bin/miruzo-api ./cmd/miruzo-api"
+cmd = "go build -gcflags='all=-N -l' -ldflags=-X=\"main.version=$(cat VERSION)-$(git rev-parse --short HEAD)$(test -n \"`git status --porcelain`\" && echo '+dev')\" -tags=dev -o ./bin/miruzo-api ./cmd/miruzo-api"
 delay = 1000
 entrypoint = ["./bin/miruzo-api"]
 exclude_dir = ["bin", "dist", "internal/testutil", "tmp"]

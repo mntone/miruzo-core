@@ -2,6 +2,9 @@
 	"files.exclude": {
 		"**/__pycache__": true
 	},
+	"go.toolsEnvVars": {
+		"GOFLAGS": "-tags=debug,dev"
+	},
 	"[go]": {
 		"editor.defaultFormatter": "golang.go"
 	},

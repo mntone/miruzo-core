@@ -40,7 +40,7 @@ func buildScoreCalculator(
 	)
 }
 
-func MountAPI(
+func mountAPI(
 	mux *http.ServeMux,
 	manager persist.PersistenceManager,
 	cfg config.AppConfig,
@@ -112,4 +112,24 @@ func MountAPI(
 	healthAPI.RegisterRoutes(mux, cors, healthHandler)
 
 	api.RegisterNotFoundRoute(mux)
+
+}
+
+func MountAll(
+	mux *http.ServeMux,
+	manager persist.PersistenceManager,
+	cfg config.AppConfig,
+	version string,
+) {
+	mountAPI(mux, manager, cfg, version)
+
+	if cfg.Server.StaticFiles.Enabled {
+		mountStatic(
+			mux,
+			cfg.Server.StaticFiles.RootDirectory,
+			cfg.API.MediaPublic.BasePath,
+			buildCacheControlHeader(cfg.Server.StaticFiles),
+			cfg.Server.StaticFiles.NoSniff,
+		)
+	}
 }
