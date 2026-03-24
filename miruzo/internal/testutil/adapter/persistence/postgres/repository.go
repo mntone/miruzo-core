@@ -8,7 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
@@ -50,9 +50,9 @@ func (repo repository) CreateImage(
 	ctx context.Context,
 	id model.IngestIDType,
 	ingestedAt time.Time,
-	original media.Variant,
-	fallback mo.Option[media.Variant],
-	variants []media.Variant,
+	original persist.Variant,
+	fallback mo.Option[persist.Variant],
+	variants []persist.Variant,
 ) error {
 	err := repo.queries.CreateImage(ctx, gen.CreateImageParams{
 		IngestID:   id,

@@ -40,7 +40,7 @@ func (hdl *handler) listBase(
 		http.StatusOK,
 		mapImageListResponse(
 			result,
-			hdl.variantLayersConfig,
+			hdl.variantLayersSpec,
 			hdl.mediaURLBuilder,
 		),
 	)

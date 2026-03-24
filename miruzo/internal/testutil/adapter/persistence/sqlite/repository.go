@@ -9,7 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
@@ -52,9 +52,9 @@ func (repo repository) CreateImage(
 	ctx context.Context,
 	id model.IngestIDType,
 	ingestedAt time.Time,
-	original media.Variant,
-	fallback mo.Option[media.Variant],
-	variants []media.Variant,
+	original persist.Variant,
+	fallback mo.Option[persist.Variant],
+	variants []persist.Variant,
 ) error {
 	originalBytes, err := json.Marshal(original)
 	if err != nil {

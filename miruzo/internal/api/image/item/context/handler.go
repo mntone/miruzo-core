@@ -8,26 +8,26 @@ import (
 	httperror "github.com/mntone/miruzo-core/miruzo/internal/api/http/error"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/response"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/view"
 )
 
 type handler struct {
-	service             view.Service
-	variantLayersConfig []config.VariantLayerConfig
-	mediaURLBuilder     variant.MediaURLBuilder
+	service           view.Service
+	variantLayersSpec media.VariantLayersSpec
+	mediaURLBuilder   variant.MediaURLBuilder
 }
 
 func NewHandler(
 	srv view.Service,
-	variantLayersConfig []config.VariantLayerConfig,
+	variantLayersSpec media.VariantLayersSpec,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) *handler {
 	return &handler{
-		service:             srv,
-		variantLayersConfig: variantLayersConfig,
-		mediaURLBuilder:     mediaURLBuilder,
+		service:           srv,
+		variantLayersSpec: variantLayersSpec,
+		mediaURLBuilder:   mediaURLBuilder,
 	}
 }
 
@@ -67,7 +67,7 @@ func (hdl *handler) getContext(
 			http.StatusOK,
 			mapRichContextResponse(
 				result,
-				hdl.variantLayersConfig,
+				hdl.variantLayersSpec,
 				hdl.mediaURLBuilder,
 			),
 		)

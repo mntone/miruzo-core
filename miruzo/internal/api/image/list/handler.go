@@ -4,25 +4,25 @@ import (
 	"net/http"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/imagelist"
 )
 
 type handler struct {
-	service             imagelist.Service
-	variantLayersConfig []config.VariantLayerConfig
-	mediaURLBuilder     variant.MediaURLBuilder
+	service           imagelist.Service
+	variantLayersSpec media.VariantLayersSpec
+	mediaURLBuilder   variant.MediaURLBuilder
 }
 
 func NewHandler(
 	srv imagelist.Service,
-	variantLayersConfig []config.VariantLayerConfig,
+	variantLayersSpec media.VariantLayersSpec,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) *handler {
 	return &handler{
-		service:             srv,
-		variantLayersConfig: variantLayersConfig,
-		mediaURLBuilder:     mediaURLBuilder,
+		service:           srv,
+		variantLayersSpec: variantLayersSpec,
+		mediaURLBuilder:   mediaURLBuilder,
 	}
 }
 

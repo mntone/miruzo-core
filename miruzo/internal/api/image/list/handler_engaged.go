@@ -33,7 +33,7 @@ func (hdl *handler) listEngaged(
 		http.StatusOK,
 		mapImageListResponse(
 			result,
-			hdl.variantLayersConfig,
+			hdl.variantLayersSpec,
 			hdl.mediaURLBuilder,
 		),
 	)

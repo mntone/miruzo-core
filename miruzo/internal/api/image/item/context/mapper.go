@@ -2,7 +2,7 @@ package context
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
@@ -16,7 +16,7 @@ func mapSummaryImage(e persist.Image) imageSummaryModel {
 
 func mapRichImage(
 	e persist.Image,
-	cfg []config.VariantLayerConfig,
+	spec media.VariantLayersSpec,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) imageRichModel {
 	return imageRichModel{
@@ -26,7 +26,7 @@ func mapRichImage(
 			IngestedAt: e.IngestedAt,
 			Type:       e.Type,
 		},
-		VariantLayersModel: variant.MapVariantLayers(e, cfg, mediaURLBuilder),
+		VariantLayersModel: variant.MapVariantLayers(e, spec, mediaURLBuilder),
 	}
 }
 
@@ -52,11 +52,11 @@ func mapSummaryContextResponse(e persist.ImageWithStats) contextResponse[imageSu
 
 func mapRichContextResponse(
 	e persist.ImageWithStats,
-	cfg []config.VariantLayerConfig,
+	spec media.VariantLayersSpec,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) contextResponse[imageRichModel] {
 	return contextResponse[imageRichModel]{
-		Image: mapRichImage(e.Image, cfg, mediaURLBuilder),
+		Image: mapRichImage(e.Image, spec, mediaURLBuilder),
 		Stats: mapStats(e.Stats),
 	}
 }

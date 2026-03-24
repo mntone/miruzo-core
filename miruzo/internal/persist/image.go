@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
 	"github.com/samber/mo"
 )
 
@@ -13,9 +12,9 @@ type Image struct {
 	IngestedAt time.Time
 	Type       model.ImageType
 
-	Original media.Variant
-	Fallback mo.Option[media.Variant]
-	Variants []media.Variant
+	Original Variant
+	Fallback mo.Option[Variant]
+	Variants []Variant
 }
 
 type ImageListCursor interface {

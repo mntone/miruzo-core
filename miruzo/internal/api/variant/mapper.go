@@ -4,8 +4,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
-	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
@@ -15,7 +14,7 @@ func toManbytes(sizeInBytes uint32) uint16 {
 }
 
 func mapVariant(
-	variant media.Variant,
+	variant persist.Variant,
 	mediaURLBuilder MediaURLBuilder,
 ) VariantModel {
 	return VariantModel{
@@ -29,7 +28,7 @@ func mapVariant(
 }
 
 func mapNullableVariant(
-	optionalEntry mo.Option[media.Variant],
+	optionalEntry mo.Option[persist.Variant],
 	mediaURLBuilder MediaURLBuilder,
 ) *VariantModel {
 	entry, present := optionalEntry.Get()
@@ -42,13 +41,13 @@ func mapNullableVariant(
 }
 
 func mapVariantsToLayers(
-	variants []media.Variant,
-	cfg []config.VariantLayerConfig,
+	variants []persist.Variant,
+	spec media.VariantLayersSpec,
 	mediaURLBuilder MediaURLBuilder,
 ) [][]VariantModel {
-	layered := make(map[media.LayerIDType][]VariantModel, len(cfg))
+	layered := make(map[media.LayerIDType][]VariantModel, len(spec))
 
-	for _, layer := range cfg {
+	for _, layer := range spec {
 		layered[layer.LayerID] = []VariantModel{}
 	}
 
@@ -71,8 +70,8 @@ func mapVariantsToLayers(
 		layered[layerID] = layer
 	}
 
-	result := make([][]VariantModel, 0, len(cfg))
-	for _, layer := range cfg {
+	result := make([][]VariantModel, 0, len(spec))
+	for _, layer := range spec {
 		if entries := layered[layer.LayerID]; len(entries) > 0 {
 			result = append(result, entries)
 		}
@@ -83,12 +82,12 @@ func mapVariantsToLayers(
 
 func MapVariantLayers(
 	entry persist.Image,
-	cfg []config.VariantLayerConfig,
+	spec media.VariantLayersSpec,
 	mediaURLBuilder MediaURLBuilder,
 ) VariantLayersModel {
 	return VariantLayersModel{
 		Original: mapVariant(entry.Original, mediaURLBuilder),
 		Fallback: mapNullableVariant(entry.Fallback, mediaURLBuilder),
-		Variants: mapVariantsToLayers(entry.Variants, cfg, mediaURLBuilder),
+		Variants: mapVariantsToLayers(entry.Variants, spec, mediaURLBuilder),
 	}
 }

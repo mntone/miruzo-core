@@ -23,16 +23,16 @@ sql:
             type: Execution
         - column: "images.original"
           go_type:
-            import: github.com/mntone/miruzo-core/miruzo/internal/model/media
+            import: github.com/mntone/miruzo-core/miruzo/internal/persist
             type: Variant
         - column: "images.fallback"
           go_type:
-            import: github.com/mntone/miruzo-core/miruzo/internal/model/media
+            import: github.com/mntone/miruzo-core/miruzo/internal/persist
             type: Variant
             pointer: true
         - column: "images.variants"
           go_type:
-            import: github.com/mntone/miruzo-core/miruzo/internal/model/media
+            import: github.com/mntone/miruzo-core/miruzo/internal/persist
             type: Variant
             slice: true
         - column: "users.daily_love_used"

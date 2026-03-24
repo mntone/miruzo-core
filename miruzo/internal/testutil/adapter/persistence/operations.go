@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/model/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
@@ -72,13 +72,13 @@ func createVariant(
 	layerID media.LayerIDType,
 	format string,
 	width uint16,
-) media.Variant {
+) persist.Variant {
 	var codecs string
 	if format == "webp" {
 		codecs = "vp8"
 	}
 
-	return media.Variant{
+	return persist.Variant{
 		RelativePath: fmt.Sprintf("l%dw%d/%d.%s", layerID, width, id, format),
 		LayerID:      layerID,
 		Format:       format,
@@ -101,8 +101,8 @@ func (ops Operations) AddIngestAndImage(entry persist.Ingest) error {
 		entry.ID,
 		entry.IngestedAt,
 		createVariant(entry.ID, 1, "webp", 768),
-		mo.None[media.Variant](),
-		[]media.Variant{
+		mo.None[persist.Variant](),
+		[]persist.Variant{
 			createVariant(entry.ID, 1, "webp", 320),
 			createVariant(entry.ID, 1, "webp", 480),
 			createVariant(entry.ID, 1, "webp", 640),
