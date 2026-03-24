@@ -6,7 +6,6 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.config.environments import env
 from app.databases import create_session, init_database
@@ -76,9 +75,4 @@ app.add_middleware(
 	allow_credentials=True,
 	allow_methods=['*'],
 	allow_headers=['*'],
-)
-app.mount(
-	env.public_media_root,
-	StaticFiles(directory=env.media_root, follow_symlink=True),
-	name='media',
 )
