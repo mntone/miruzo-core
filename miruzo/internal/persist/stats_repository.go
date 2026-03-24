@@ -27,7 +27,7 @@ type StatsRepository interface {
 		lovedAt time.Time,
 		loveScoreThreshold model.ScoreType,
 		periodStartAt time.Time,
-	) (LoveStats, error)
+	) (model.LoveStats, error)
 
 	ApplyLoveCanceled(
 		ctx context.Context,
@@ -35,7 +35,7 @@ type StatsRepository interface {
 		scoreDelta model.ScoreType,
 		periodStartAt time.Time,
 		dayStartOffset time.Duration,
-	) (LoveStats, error)
+	) (model.LoveStats, error)
 
 	ApplyView(
 		ctx context.Context,

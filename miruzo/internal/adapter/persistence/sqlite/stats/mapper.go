@@ -4,11 +4,10 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func MapStats(r gen.Stat) persist.Stats {
-	return persist.Stats{
+func MapStats(r gen.Stat) model.Stats {
+	return model.Stats{
 		IngestID:         r.IngestID,
 		Score:            model.ScoreType(r.Score),
 		ScoreEvaluated:   model.ScoreType(r.ScoreEvaluated),

@@ -4,6 +4,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
 func mapSummaryImage(e persist.Image) imageSummaryModel {
@@ -30,7 +31,7 @@ func mapRichImage(
 	}
 }
 
-func mapStats(e persist.Stats) statModel {
+func mapStats(e model.Stats) statModel {
 	return statModel{
 		Score:                   e.Score,
 		FirstLovedAt:            e.FirstLovedAt.ToPointer(),

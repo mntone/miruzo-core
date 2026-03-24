@@ -28,5 +28,5 @@ type ImageWithCursor[C ImageListCursor] struct {
 
 type ImageWithStats struct {
 	Image
-	Stats Stats
+	Stats model.Stats
 }

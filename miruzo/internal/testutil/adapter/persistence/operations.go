@@ -122,7 +122,7 @@ func (ops Operations) MustAddIngestAndImage(t testing.TB, entry persist.Ingest) 
 	return entry
 }
 
-func (ops Operations) MustAddStat(t testing.TB, entry persist.Stats) persist.Stats {
+func (ops Operations) MustAddStat(t testing.TB, entry model.Stats) model.Stats {
 	t.Helper()
 
 	err := ops.test.CreateStat(

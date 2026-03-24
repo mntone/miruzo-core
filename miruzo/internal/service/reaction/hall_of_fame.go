@@ -39,7 +39,7 @@ func (srv *Service) GrantHallOfFame(
 	}
 
 	return HallOfFameResult{
-		Stats: persist.HallOfFameStats{
+		Stats: model.HallOfFameStats{
 			HallOfFameAt: mo.Some(hallOfFameAt),
 		},
 	}, nil

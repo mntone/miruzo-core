@@ -1,18 +1,17 @@
-package persist
+package model
 
 import (
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/samber/mo"
 )
 
 type Stats struct {
 	// IngestID is numeric primary key assigned in the database.
-	IngestID model.IngestIDType
+	IngestID IngestIDType
 	// Score is a user-adjustable ranking score.
-	Score            model.ScoreType
-	ScoreEvaluated   model.ScoreType
+	Score            ScoreType
+	ScoreEvaluated   ScoreType
 	ScoreEvaluatedAt mo.Option[time.Time]
 
 	// LastViewedAt is the time of the most recent view, or unset if never viewed.
@@ -35,7 +34,7 @@ type Stats struct {
 // Love statistics for a single image.
 type LoveStats struct {
 	// Score is a user-adjustable ranking score.
-	Score model.ScoreType
+	Score ScoreType
 	// FirstLovedAt is the time of the first love action, or unset if never loved.
 	FirstLovedAt mo.Option[time.Time]
 	// LastLovedAt is the time of the latest love action, or unset if never loved.

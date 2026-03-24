@@ -1,15 +1,12 @@
 package reaction
 
-import (
-	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
-)
+import "github.com/mntone/miruzo-core/miruzo/internal/model"
 
 type LoveResult struct {
 	Quota model.Quota
-	Stats persist.LoveStats
+	Stats model.LoveStats
 }
 
 type HallOfFameResult struct {
-	Stats persist.HallOfFameStats
+	Stats model.HallOfFameStats
 }

@@ -67,7 +67,7 @@ func (repo repository) ApplyLove(
 	lovedAt time.Time,
 	loveScoreThreshold model.ScoreType,
 	periodStartAt time.Time,
-) (persist.LoveStats, error) {
+) (model.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
 		IngestID:           ingestID,
 		ScoreDelta:         scoreDelta,
@@ -77,13 +77,13 @@ func (repo repository) ApplyLove(
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return persist.LoveStats{}, persist.ErrConflict
+			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return persist.LoveStats{}, shared.MapSQLiteError("ApplyLove", err)
+		return model.LoveStats{}, shared.MapSQLiteError("ApplyLove", err)
 	}
 
-	return persist.LoveStats{
+	return model.LoveStats{
 		Score:        model.ScoreType(loveStats.Score),
 		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
 		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),
@@ -96,7 +96,7 @@ func (repo repository) ApplyLoveCanceled(
 	scoreDelta model.ScoreType,
 	periodStartAt time.Time,
 	dayStartOffset time.Duration,
-) (persist.LoveStats, error) {
+) (model.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
@@ -105,13 +105,13 @@ func (repo repository) ApplyLoveCanceled(
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return persist.LoveStats{}, persist.ErrConflict
+			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return persist.LoveStats{}, shared.MapSQLiteError("ApplyLoveCanceled", err)
+		return model.LoveStats{}, shared.MapSQLiteError("ApplyLoveCanceled", err)
 	}
 
-	return persist.LoveStats{
+	return model.LoveStats{
 		Score:        model.ScoreType(loveStats.Score),
 		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
 		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),

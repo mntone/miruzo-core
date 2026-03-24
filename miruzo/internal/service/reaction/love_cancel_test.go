@@ -22,7 +22,7 @@ func TestLoveCancelRestoresPreviousLove(t *testing.T) {
 	previous := mo.Some(time.Date(2026, 1, 1, 20, 0, 0, 0, time.UTC))
 	current := time.Date(2026, 1, 2, 23, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(1, persist.Stats{
+	manager := stub.NewStubPersistenceManager(1, model.Stats{
 		IngestID:     ingestID,
 		Score:        120,
 		FirstLovedAt: previous,
@@ -59,7 +59,7 @@ func TestLoveCancelRestoresNullWhenNoPreviousLove(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := mo.Some(time.Date(2026, 1, 3, 19, 0, 0, 0, time.UTC))
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(2, persist.Stats{
+	manager := stub.NewStubPersistenceManager(2, model.Stats{
 		IngestID:     ingestID,
 		Score:        120,
 		FirstLovedAt: current,
@@ -96,7 +96,7 @@ func TestLoveCancelReturnsConflictWhenNoLoveInPeriod(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 14, 17, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(1, persist.Stats{
+	manager := stub.NewStubPersistenceManager(1, model.Stats{
 		IngestID: ingestID,
 		Score:    120,
 	})
@@ -123,7 +123,7 @@ func TestLoveCancelRollsBackWhenActionCreateFails(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := mo.Some(time.Date(2026, 1, 17, 14, 0, 0, 0, time.UTC))
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(2, persist.Stats{
+	manager := stub.NewStubPersistenceManager(2, model.Stats{
 		IngestID:     ingestID,
 		Score:        100,
 		FirstLovedAt: current,

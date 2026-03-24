@@ -21,7 +21,7 @@ func TestLoveUpdates(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    100,
 	})
@@ -56,7 +56,7 @@ func TestLoveReturnsConflictWhenAlreadyLovedToday(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 5, 19, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(1, persist.Stats{
+	manager := stub.NewStubPersistenceManager(1, model.Stats{
 		IngestID:     ingestID,
 		Score:        120,
 		FirstLovedAt: mo.Some(current),
@@ -85,7 +85,7 @@ func TestLoveReturnsTooManyRequestsWhenQuotaExceeded(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 12, 22, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(1, persist.Stats{
+	manager := stub.NewStubPersistenceManager(1, model.Stats{
 		IngestID: ingestID,
 		Score:    100,
 	})
@@ -112,7 +112,7 @@ func TestLoveRollsBackWhenActionCreateFails(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 18, 10, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    100,
 	})

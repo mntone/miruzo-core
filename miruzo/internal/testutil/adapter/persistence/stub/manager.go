@@ -3,6 +3,7 @@ package stub
 import (
 	"context"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
@@ -15,7 +16,7 @@ type PersistenceManager struct {
 
 func NewStubPersistenceManager(
 	dailyLoveUsed int32,
-	statsEntries ...persist.Stats,
+	statsEntries ...model.Stats,
 ) PersistenceManager {
 	action := NewStubActionRepository()
 	stats := NewStubStatsRepository(statsEntries...)

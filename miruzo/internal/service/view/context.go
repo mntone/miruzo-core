@@ -12,7 +12,7 @@ import (
 	"github.com/samber/mo"
 )
 
-func (srv *Service) shouldTriggerViewMilestone(stats persist.Stats) bool {
+func (srv *Service) shouldTriggerViewMilestone(stats model.Stats) bool {
 	for _, milestone := range srv.viewMilestones {
 		if stats.ViewCount >= milestone && stats.ViewMilestoneCount < milestone {
 			return true

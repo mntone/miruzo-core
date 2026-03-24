@@ -38,7 +38,7 @@ type statsRepositoryApplyViewArgs struct {
 }
 
 type statsStorage struct {
-	Store map[model.IngestIDType]persist.Stats
+	Store map[model.IngestIDType]model.Stats
 }
 
 type statsRepository struct {
@@ -56,10 +56,10 @@ type statsRepository struct {
 	ApplyViewArgs               []statsRepositoryApplyViewArgs
 }
 
-func NewStubStatsRepository(stats ...persist.Stats) *statsRepository {
-	var store map[model.IngestIDType]persist.Stats
+func NewStubStatsRepository(stats ...model.Stats) *statsRepository {
+	var store map[model.IngestIDType]model.Stats
 	if len(stats) != 0 {
-		store = make(map[model.IngestIDType]persist.Stats)
+		store = make(map[model.IngestIDType]model.Stats)
 		for _, s := range stats {
 			store[s.IngestID] = s
 		}
@@ -72,9 +72,9 @@ func NewStubStatsRepository(stats ...persist.Stats) *statsRepository {
 }
 
 func (repo statsRepository) snapshot() statsStorage {
-	var store map[model.IngestIDType]persist.Stats
+	var store map[model.IngestIDType]model.Stats
 	if repo.Store != nil {
-		store = make(map[model.IngestIDType]persist.Stats, len(repo.Store))
+		store = make(map[model.IngestIDType]model.Stats, len(repo.Store))
 		maps.Copy(store, repo.Store)
 	}
 	return statsStorage{
@@ -145,7 +145,7 @@ func (repo *statsRepository) ApplyLove(
 	lovedAt time.Time,
 	loveScoreThreshold model.ScoreType,
 	periodStartAt time.Time,
-) (persist.LoveStats, error) {
+) (model.LoveStats, error) {
 	repo.ApplyLoveArgs = append(repo.ApplyLoveArgs, statsRepositoryApplyLoveArgs{
 		IngestID:           ingestID,
 		ScoreDelta:         scoreDelta,
@@ -155,20 +155,20 @@ func (repo *statsRepository) ApplyLove(
 	})
 
 	if repo.ApplyLoveError != nil {
-		return persist.LoveStats{}, repo.ApplyLoveError
+		return model.LoveStats{}, repo.ApplyLoveError
 	}
 
 	stats, ok := repo.Store[ingestID]
 	if !ok {
-		return persist.LoveStats{}, persist.ErrNotFound
+		return model.LoveStats{}, persist.ErrNotFound
 	}
 
 	lastLovedAt, present := stats.LastLovedAt.Get()
 	if present && lastLovedAt.Compare(periodStartAt) >= 0 {
-		return persist.LoveStats{}, persist.ErrConflict
+		return model.LoveStats{}, persist.ErrConflict
 	}
 	if stats.Score >= loveScoreThreshold {
-		return persist.LoveStats{}, persist.ErrConflict
+		return model.LoveStats{}, persist.ErrConflict
 	}
 
 	stats.Score += scoreDelta
@@ -178,7 +178,7 @@ func (repo *statsRepository) ApplyLove(
 	}
 
 	repo.Store[ingestID] = stats
-	return persist.LoveStats{
+	return model.LoveStats{
 		Score:        stats.Score,
 		FirstLovedAt: stats.FirstLovedAt,
 		LastLovedAt:  stats.LastLovedAt,
@@ -191,7 +191,7 @@ func (repo *statsRepository) ApplyLoveCanceled(
 	scoreDelta model.ScoreType,
 	periodStartAt time.Time,
 	dayStartOffset time.Duration,
-) (persist.LoveStats, error) {
+) (model.LoveStats, error) {
 	repo.ApplyLoveCanceledArgs = append(repo.ApplyLoveCanceledArgs, statsRepositoryApplyLoveCanceledArgs{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
@@ -200,17 +200,17 @@ func (repo *statsRepository) ApplyLoveCanceled(
 	})
 
 	if repo.ApplyLoveCanceledError != nil {
-		return persist.LoveStats{}, repo.ApplyLoveCanceledError
+		return model.LoveStats{}, repo.ApplyLoveCanceledError
 	}
 
 	stats, ok := repo.Store[ingestID]
 	if !ok {
-		return persist.LoveStats{}, persist.ErrConflict
+		return model.LoveStats{}, persist.ErrConflict
 	}
 
 	lastLovedAt, present := stats.LastLovedAt.Get()
 	if !present || lastLovedAt.Compare(periodStartAt) < 0 {
-		return persist.LoveStats{}, persist.ErrConflict
+		return model.LoveStats{}, persist.ErrConflict
 	}
 	stats.Score += scoreDelta
 
@@ -222,7 +222,7 @@ func (repo *statsRepository) ApplyLoveCanceled(
 	stats.LastLovedAt = latest
 
 	repo.Store[ingestID] = stats
-	return persist.LoveStats{
+	return model.LoveStats{
 		Score:        stats.Score,
 		FirstLovedAt: stats.FirstLovedAt,
 		LastLovedAt:  stats.LastLovedAt,

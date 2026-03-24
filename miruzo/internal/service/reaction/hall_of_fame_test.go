@@ -23,7 +23,7 @@ func TestGrantHallOfFameUpdates(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    180,
 	})
@@ -59,7 +59,7 @@ func TestGrantHallOfFameReturnsConflict(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    170,
 	})
@@ -92,7 +92,7 @@ func TestGrantHallOfFameReturnsServiceUnavailableWhenStatsUpdateFails(t *testing
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    180,
 	})
@@ -119,7 +119,7 @@ func TestGrantHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    180,
 	})
@@ -158,7 +158,7 @@ func TestRevokeHallOfFameUpdates(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID:     ingestID,
 		Score:        180,
 		HallOfFameAt: mo.Some(current.Add(-2 * time.Hour)),
@@ -193,7 +193,7 @@ func TestRevokeHallOfFameReturnsConflict(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID: ingestID,
 		Score:    170,
 	})
@@ -224,7 +224,7 @@ func TestRevokeHallOfFameReturnsServiceUnavailableWhenStatsUpdateFails(t *testin
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID:     ingestID,
 		Score:        180,
 		HallOfFameAt: mo.Some(current.Add(-2 * time.Hour)),
@@ -252,7 +252,7 @@ func TestRevokeHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	current := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	offset := 5 * time.Hour
-	manager := stub.NewStubPersistenceManager(0, persist.Stats{
+	manager := stub.NewStubPersistenceManager(0, model.Stats{
 		IngestID:     ingestID,
 		Score:        180,
 		HallOfFameAt: mo.Some(current.Add(-2 * time.Hour)),

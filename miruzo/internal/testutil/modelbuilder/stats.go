@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
 
@@ -166,8 +165,8 @@ func (b *statsBuilder) ViewedOffset(count int64, v any) *statsBuilder {
 	panic("invalid offset")
 }
 
-func (b *statsBuilder) Build() persist.Stats {
-	return persist.Stats{
+func (b *statsBuilder) Build() model.Stats {
+	return model.Stats{
 		IngestID:         b.ingestID,
 		Score:            b.score,
 		ScoreEvaluated:   b.scoreEvaluated,

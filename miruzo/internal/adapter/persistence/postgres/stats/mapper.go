@@ -2,12 +2,12 @@ package stats
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/samber/mo"
 )
 
-func MapStats(r gen.Stat) persist.Stats {
-	return persist.Stats{
+func MapStats(r gen.Stat) model.Stats {
+	return model.Stats{
 		IngestID:         r.IngestID,
 		Score:            r.Score,
 		ScoreEvaluated:   r.ScoreEvaluated,
