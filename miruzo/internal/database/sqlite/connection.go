@@ -4,10 +4,21 @@ import (
 	"context"
 	"database/sql"
 	"net/url"
+	"sync"
 
-	_ "github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 )
+
+var sqliteTimestampFormatsOnce sync.Once
+
+func configureSQLiteTimestampFormats() {
+	sqliteTimestampFormatsOnce.Do(func() {
+		sqlite3.SQLiteTimestampFormats = []string{
+			"2006-01-02 15:04:05.999999",
+		}
+	})
+}
 
 func buildSQLiteDSN(dsn string) (string, error) {
 	parsed, err := url.Parse(dsn)
@@ -34,6 +45,8 @@ func OpenDatabase(
 	ctx context.Context,
 	conf config.DatabaseConfig,
 ) (*sql.DB, error) {
+	configureSQLiteTimestampFormats()
+
 	dsn, err := buildSQLiteDSN(conf.DSN)
 	if err != nil {
 		return nil, err
