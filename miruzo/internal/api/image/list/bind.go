@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/bind"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/validate"
+	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	service "github.com/mntone/miruzo-core/miruzo/internal/service/imagelist"
@@ -47,6 +48,15 @@ func bindParamsOf[C persist.ImageListCursor](
 			}
 
 			params.Cursor = mo.Some(cursor)
+
+		case "exclude_formats":
+			excludeFormats, err := variant.BindImageFormatsQuery(key, values)
+			if err != nil {
+				errors = append(errors, *err)
+				continue
+			}
+
+			params.ExcludeFormats = excludeFormats
 
 		default:
 			errors = append(errors, apierror.NewUnsupportedError(key))

@@ -31,8 +31,9 @@ type imageListFunc[C persist.ImageListCursor, S any] func(
 
 func listBase[C persist.ImageListCursor, S any](
 	requestContext context.Context,
+	limit uint16,
+	excludeFormats []media.ImageFormat,
 	loadFn imageListFunc[C, S],
-	params *Params[C],
 	spec S,
 	variantLayersBuilder *media.VariantLayersBuilder,
 	retryPolicy backoff.Policy,
@@ -48,11 +49,16 @@ func listBase[C persist.ImageListCursor, S any](
 		return Result[C]{}, serviceerror.MapPersistError(err)
 	}
 
-	n, hasNext := mapPageBounds(len(imagesWithCursor), int(params.Limit))
+	n, hasNext := mapPageBounds(len(imagesWithCursor), int(limit))
 
+	options := media.VariantFilterOptions{
+		IncludeFormatSet: media.ComputeAllowedFormats(excludeFormats),
+		KeepFallback:     true,
+	}
 	images := make([]model.Image, n)
 	for i := range n {
-		layers := imagesWithCursor[i].Image.Layers.ToDomain(variantLayersBuilder)
+		variants := imagesWithCursor[i].Image.Layers.ToDomain().FilterWith(options)
+		layers := variantLayersBuilder.GroupVariantsByLayer(variants)
 		images[i] = imagesWithCursor[i].Image.ToDTO(layers)
 	}
 
@@ -81,8 +87,9 @@ func list(
 	}
 	return listBase(
 		requestContext,
+		params.Limit,
+		params.ExcludeFormats,
 		loadFn,
-		params,
 		spec,
 		variantLayersBuilder,
 		retryPolicy,

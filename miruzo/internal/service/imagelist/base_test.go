@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/retry/backoff"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
@@ -16,14 +17,13 @@ import (
 func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
 	base := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 
-	params := &Params[time.Time]{
-		Limit: 2,
-	}
 	spec := 42
 
 	gotSpec := 0
 	result, err := listBase(
 		context.Background(),
+		2,
+		[]media.ImageFormat{},
 		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
 			gotSpec = loadSpec
 			return []persist.ImageWithCursor[time.Time]{
@@ -41,7 +41,6 @@ func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
 				},
 			}, nil
 		},
-		params,
 		spec,
 		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
@@ -66,12 +65,10 @@ func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
 func TestListBaseReturnsNoNextCursorWhenNoMoreItems(t *testing.T) {
 	base := time.Date(2026, 2, 3, 4, 5, 6, 0, time.UTC)
 
-	params := &Params[time.Time]{
-		Limit: 2,
-	}
-
 	result, err := listBase(
 		context.Background(),
+		2,
+		[]media.ImageFormat{},
 		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
 			return []persist.ImageWithCursor[time.Time]{
 				{
@@ -84,7 +81,6 @@ func TestListBaseReturnsNoNextCursorWhenNoMoreItems(t *testing.T) {
 				},
 			}, nil
 		},
-		params,
 		0,
 		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
@@ -95,16 +91,14 @@ func TestListBaseReturnsNoNextCursorWhenNoMoreItems(t *testing.T) {
 }
 
 func TestListBaseMapsPersistErrorToServiceError(t *testing.T) {
-	params := &Params[time.Time]{
-		Limit: 2,
-	}
 
 	_, err := listBase(
 		context.Background(),
+		2,
+		[]media.ImageFormat{},
 		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
 			return nil, fmt.Errorf("database unavailable: %w", persist.ErrUnavailable)
 		},
-		params,
 		0,
 		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
@@ -113,21 +107,18 @@ func TestListBaseMapsPersistErrorToServiceError(t *testing.T) {
 }
 
 func TestListBaseReturnsContextCanceledWithoutCallingLoad(t *testing.T) {
-	params := &Params[time.Time]{
-		Limit: 2,
-	}
-
 	requestContext, cancel := context.WithCancel(context.Background())
 	cancel()
 
 	loadCalled := false
 	_, err := listBase(
 		requestContext,
+		2,
+		[]media.ImageFormat{},
 		func(innerContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
 			loadCalled = true
 			return nil, nil
 		},
-		params,
 		0,
 		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},

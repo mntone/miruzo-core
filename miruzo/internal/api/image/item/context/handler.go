@@ -41,7 +41,7 @@ func (hdl *handler) getContext(
 		return
 	}
 
-	rich, fieldErrors := bindParams(req.URL.Query())
+	params, fieldErrors := bindParams(req.URL.Query())
 	if fieldErrors != nil {
 		response.WriteJSON(
 			responseWriter,
@@ -51,13 +51,16 @@ func (hdl *handler) getContext(
 		return
 	}
 
-	result, serviceError := hdl.service.GetContext(req.Context(), ingestID)
+	result, serviceError := hdl.service.GetContext(req.Context(), view.ContextArgs{
+		IngestID:       ingestID,
+		ExcludeFormats: params.ExcludeFormats,
+	})
 	if serviceError != nil {
 		httperror.WriteServiceError(responseWriter, serviceError)
 		return
 	}
 
-	if rich {
+	if params.IsRich {
 		_ = response.WriteJSON(
 			responseWriter,
 			http.StatusOK,

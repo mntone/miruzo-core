@@ -5,12 +5,19 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/api/apierror"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/bind"
+	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 )
 
 const (
 	levelDefault = "default"
 	levelRich    = "rich"
 )
+
+type request struct {
+	IsRich         bool
+	ExcludeFormats []media.ImageFormat
+}
 
 func bindLevelQuery(key string, values []string) (bool, *apierror.FieldError) {
 	text, fieldError := bind.ValidateSingleValue(key, values)
@@ -31,8 +38,8 @@ func bindLevelQuery(key string, values []string) (bool, *apierror.FieldError) {
 	}
 }
 
-func bindParams(queryValues url.Values) (bool, []apierror.FieldError) {
-	rich := false
+func bindParams(queryValues url.Values) (request, []apierror.FieldError) {
+	params := request{}
 
 	var errors apierror.FieldErrors
 	for key, values := range queryValues {
@@ -44,7 +51,16 @@ func bindParams(queryValues url.Values) (bool, []apierror.FieldError) {
 				continue
 			}
 
-			rich = ret
+			params.IsRich = ret
+
+		case "exclude_formats":
+			excludeFormats, err := variant.BindImageFormatsQuery(key, values)
+			if err != nil {
+				errors = append(errors, *err)
+				continue
+			}
+
+			params.ExcludeFormats = excludeFormats
 
 		default:
 			errors = append(errors, apierror.NewUnsupportedError(key))
@@ -54,5 +70,5 @@ func bindParams(queryValues url.Values) (bool, []apierror.FieldError) {
 		errors.Sort()
 	}
 
-	return rich, errors
+	return params, errors
 }

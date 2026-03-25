@@ -85,8 +85,9 @@ func (srv Service) ListEngaged(
 	}
 	return listBase(
 		requestContext,
+		params.Limit,
+		params.ExcludeFormats,
 		srv.repository.ListEngaged,
-		params,
 		spec,
 		srv.variantLayersBuilder,
 		srv.backoff,

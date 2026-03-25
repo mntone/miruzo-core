@@ -31,11 +31,11 @@ func (v *Variant) ToDomain() media.Variant {
 
 type Variants []Variant
 
-func (layers *Variants) ToDomain(builder *media.VariantLayersBuilder) media.VariantLayers {
-	variants := make(media.Variants, len(*layers))
-	for i, variant := range *layers {
+func (layers Variants) ToDomain() media.Variants {
+	variants := make(media.Variants, len(layers))
+	for i, variant := range layers {
 		variants[i] = variant.ToDomain()
 	}
 
-	return builder.GroupVariantsByLayer(variants)
+	return variants
 }
