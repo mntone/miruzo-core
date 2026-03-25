@@ -70,6 +70,14 @@ func DefaultScoreConfig() ScoreConfig {
 }
 
 func (c *ScoreConfig) Validate() error {
+	if c.MinimumScore > c.PublicMinimumScore ||
+		c.PublicMinimumScore > c.MaximumScore {
+		return errors.New("public_minimum_score")
+	}
+	if c.PublicMinimumScore > c.InitialScore ||
+		c.InitialScore > c.MaximumScore {
+		return errors.New("initial_score")
+	}
 	if c.PublicMinimumScore > c.EngagedScoreThreshold ||
 		c.EngagedScoreThreshold > c.MaximumScore {
 		return errors.New("engaged_threshold")
