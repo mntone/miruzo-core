@@ -15,6 +15,7 @@ func (srv Service) ListLatest(
 		requestContext,
 		srv.repository.ListLatest,
 		params,
+		srv.variantLayersBuilder,
 		srv.backoff,
 	)
 }
@@ -27,6 +28,7 @@ func (srv Service) ListChronological(
 		requestContext,
 		srv.repository.ListChronological,
 		params,
+		srv.variantLayersBuilder,
 		srv.backoff,
 	)
 }
@@ -39,6 +41,7 @@ func (srv Service) ListRecently(
 		requestContext,
 		srv.repository.ListRecently,
 		params,
+		srv.variantLayersBuilder,
 		srv.backoff,
 	)
 }
@@ -51,6 +54,7 @@ func (srv Service) ListFirstLove(
 		requestContext,
 		srv.repository.ListFirstLove,
 		params,
+		srv.variantLayersBuilder,
 		srv.backoff,
 	)
 }
@@ -63,6 +67,7 @@ func (srv Service) ListHallOfFame(
 		requestContext,
 		srv.repository.ListHallOfFame,
 		params,
+		srv.variantLayersBuilder,
 		srv.backoff,
 	)
 }
@@ -83,6 +88,7 @@ func (srv Service) ListEngaged(
 		srv.repository.ListEngaged,
 		params,
 		spec,
+		srv.variantLayersBuilder,
 		srv.backoff,
 	)
 }

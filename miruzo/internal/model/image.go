@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"golang.org/x/exp/constraints"
 )
@@ -70,4 +71,17 @@ func (t *ImageType) UnmarshalJSON(b []byte) error {
 	}
 
 	return fmt.Errorf("%w: type=%v", errInvalidImageType, v)
+}
+
+type Image struct {
+	IngestID   IngestIDType
+	IngestedAt time.Time
+	Type       ImageType
+
+	VariantBundle
+}
+
+type ImageWithStats struct {
+	Image
+	Stats Stats
 }

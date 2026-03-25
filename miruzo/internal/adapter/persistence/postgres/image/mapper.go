@@ -26,6 +26,6 @@ func MapImage(r gen.Image) (persist.Image, error) {
 		Type:       imageType,
 		Original:   r.Original,
 		Fallback:   mo.PointerToOption(r.Fallback),
-		Variants:   r.Variants,
+		Layers:     r.Variants,
 	}, nil
 }

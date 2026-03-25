@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/retry"
 	"github.com/mntone/miruzo-core/miruzo/internal/retry/backoff"
@@ -32,6 +34,7 @@ func listBase[C persist.ImageListCursor, S any](
 	loadFn imageListFunc[C, S],
 	params *Params[C],
 	spec S,
+	variantLayersBuilder *media.VariantLayersBuilder,
 	retryPolicy backoff.Policy,
 ) (Result[C], error) {
 	imagesWithCursor, err := retry.Retry(
@@ -47,9 +50,10 @@ func listBase[C persist.ImageListCursor, S any](
 
 	n, hasNext := mapPageBounds(len(imagesWithCursor), int(params.Limit))
 
-	images := make([]persist.Image, n)
+	images := make([]model.Image, n)
 	for i := range n {
-		images[i] = imagesWithCursor[i].Image
+		layers := imagesWithCursor[i].Image.Layers.ToDomain(variantLayersBuilder)
+		images[i] = imagesWithCursor[i].Image.ToDTO(layers)
 	}
 
 	var nextCursor mo.Option[C]
@@ -68,6 +72,7 @@ func list(
 	requestContext context.Context,
 	loadFn imageListFunc[time.Time, persist.ImageListSpec[time.Time]],
 	params *Params[time.Time],
+	variantLayersBuilder *media.VariantLayersBuilder,
 	retryPolicy backoff.Policy,
 ) (Result[time.Time], error) {
 	spec := persist.ImageListSpec[time.Time]{
@@ -79,6 +84,7 @@ func list(
 		loadFn,
 		params,
 		spec,
+		variantLayersBuilder,
 		retryPolicy,
 	)
 }

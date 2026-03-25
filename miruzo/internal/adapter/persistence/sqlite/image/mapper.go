@@ -41,6 +41,6 @@ func MapImage(r gen.Image) (persist.Image, error) {
 		Type:       imageType,
 		Original:   original,
 		Fallback:   fallback,
-		Variants:   variants,
+		Layers:     variants,
 	}, nil
 }

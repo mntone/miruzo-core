@@ -2,10 +2,9 @@ package variant
 
 import (
 	"math"
-	"sort"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/samber/mo"
 )
 
@@ -14,7 +13,7 @@ func toManbytes(sizeInBytes uint32) uint16 {
 }
 
 func mapVariant(
-	variant persist.Variant,
+	variant media.Variant,
 	mediaURLBuilder MediaURLBuilder,
 ) VariantModel {
 	return VariantModel{
@@ -28,7 +27,7 @@ func mapVariant(
 }
 
 func mapNullableVariant(
-	optionalEntry mo.Option[persist.Variant],
+	optionalEntry mo.Option[media.Variant],
 	mediaURLBuilder MediaURLBuilder,
 ) *VariantModel {
 	entry, present := optionalEntry.Get()
@@ -41,39 +40,14 @@ func mapNullableVariant(
 }
 
 func mapVariantsToLayers(
-	variants []persist.Variant,
-	spec media.VariantLayersSpec,
+	variants [][]media.Variant,
 	mediaURLBuilder MediaURLBuilder,
 ) [][]VariantModel {
-	layered := make(map[media.LayerIDType][]VariantModel, len(spec))
-
-	for _, layer := range spec {
-		layered[layer.LayerID] = []VariantModel{}
-	}
-
-	for _, variantEntry := range variants {
-		layer, ok := layered[variantEntry.LayerID]
-		if !ok {
-			continue
-		}
-
-		variantModel := mapVariant(variantEntry, mediaURLBuilder)
-
-		layered[variantEntry.LayerID] = append(layer, variantModel)
-	}
-
-	for layerID := range layered {
-		layer := layered[layerID]
-		sort.Slice(layer, func(i, j int) bool {
-			return layer[i].Width < layer[j].Width
-		})
-		layered[layerID] = layer
-	}
-
-	result := make([][]VariantModel, 0, len(spec))
-	for _, layer := range spec {
-		if entries := layered[layer.LayerID]; len(entries) > 0 {
-			result = append(result, entries)
+	result := make([][]VariantModel, len(variants))
+	for i, layer := range variants {
+		result[i] = make([]VariantModel, len(layer))
+		for j, variant := range layer {
+			result[i][j] = mapVariant(variant, mediaURLBuilder)
 		}
 	}
 
@@ -81,13 +55,12 @@ func mapVariantsToLayers(
 }
 
 func MapVariantLayers(
-	entry persist.Image,
-	spec media.VariantLayersSpec,
+	entry model.Image,
 	mediaURLBuilder MediaURLBuilder,
 ) VariantLayersModel {
 	return VariantLayersModel{
 		Original: mapVariant(entry.Original, mediaURLBuilder),
 		Fallback: mapNullableVariant(entry.Fallback, mediaURLBuilder),
-		Variants: mapVariantsToLayers(entry.Variants, spec, mediaURLBuilder),
+		Layers:   mapVariantsToLayers(entry.Layers, mediaURLBuilder),
 	}
 }

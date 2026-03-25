@@ -2,12 +2,10 @@ package context
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
-	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 )
 
-func mapSummaryImage(e persist.Image) imageSummaryModel {
+func mapSummaryImage(e model.Image) imageSummaryModel {
 	return imageSummaryModel{
 		IngestID:   e.IngestID,
 		IngestedAt: e.IngestedAt,
@@ -16,8 +14,7 @@ func mapSummaryImage(e persist.Image) imageSummaryModel {
 }
 
 func mapRichImage(
-	e persist.Image,
-	spec media.VariantLayersSpec,
+	e model.Image,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) imageRichModel {
 	return imageRichModel{
@@ -27,7 +24,7 @@ func mapRichImage(
 			IngestedAt: e.IngestedAt,
 			Type:       e.Type,
 		},
-		VariantLayersModel: variant.MapVariantLayers(e, spec, mediaURLBuilder),
+		VariantLayersModel: variant.MapVariantLayers(e, mediaURLBuilder),
 	}
 }
 
@@ -44,7 +41,7 @@ func mapStats(e model.Stats) statModel {
 	}
 }
 
-func mapSummaryContextResponse(e persist.ImageWithStats) contextResponse[imageSummaryModel] {
+func mapSummaryContextResponse(e model.ImageWithStats) contextResponse[imageSummaryModel] {
 	return contextResponse[imageSummaryModel]{
 		Image: mapSummaryImage(e.Image),
 		Stats: mapStats(e.Stats),
@@ -52,12 +49,11 @@ func mapSummaryContextResponse(e persist.ImageWithStats) contextResponse[imageSu
 }
 
 func mapRichContextResponse(
-	e persist.ImageWithStats,
-	spec media.VariantLayersSpec,
+	e model.ImageWithStats,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) contextResponse[imageRichModel] {
 	return contextResponse[imageRichModel]{
-		Image: mapRichImage(e.Image, spec, mediaURLBuilder),
+		Image: mapRichImage(e.Image, mediaURLBuilder),
 		Stats: mapStats(e.Stats),
 	}
 }

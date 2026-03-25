@@ -1,6 +1,7 @@
 package imagelist
 
 import (
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/samber/mo"
 )
@@ -12,6 +13,6 @@ type Params[C persist.ImageListCursor] struct {
 }
 
 type Result[C persist.ImageListCursor] struct {
-	Items  []persist.Image
+	Items  []model.Image
 	Cursor mo.Option[C]
 }

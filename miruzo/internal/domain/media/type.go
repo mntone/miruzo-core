@@ -16,3 +16,7 @@ type Variant struct {
 func (v Variant) IsFallback() bool {
 	return v.LayerID == FallbackLayerID
 }
+
+type Variants []Variant
+
+type VariantLayers [][]Variant

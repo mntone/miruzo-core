@@ -2,31 +2,29 @@ package list
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
-	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	imageListService "github.com/mntone/miruzo-core/miruzo/internal/service/imagelist"
 )
 
 func mapImage(
-	entry persist.Image,
-	spec media.VariantLayersSpec,
+	entry model.Image,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) ImageListModel {
 	return ImageListModel{
 		IngestID:           entry.IngestID,
-		VariantLayersModel: variant.MapVariantLayers(entry, spec, mediaURLBuilder),
+		VariantLayersModel: variant.MapVariantLayers(entry, mediaURLBuilder),
 	}
 }
 
 func mapImageList(
-	entries []persist.Image,
-	spec media.VariantLayersSpec,
+	entries []model.Image,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) []ImageListModel {
 	models := make([]ImageListModel, len(entries))
 
 	for i, entry := range entries {
-		models[i] = mapImage(entry, spec, mediaURLBuilder)
+		models[i] = mapImage(entry, mediaURLBuilder)
 	}
 
 	return models
@@ -34,11 +32,10 @@ func mapImageList(
 
 func mapImageListResponse[T persist.ImageListCursor](
 	result imageListService.Result[T],
-	spec media.VariantLayersSpec,
 	mediaURLBuilder variant.MediaURLBuilder,
 ) ImageListResponse[T] {
 	return ImageListResponse[T]{
-		Items:  mapImageList(result.Items, spec, mediaURLBuilder),
+		Items:  mapImageList(result.Items, mediaURLBuilder),
 		Cursor: result.Cursor.ToPointer(),
 	}
 }

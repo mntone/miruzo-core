@@ -12,5 +12,5 @@ type VariantModel struct {
 type VariantLayersModel struct {
 	Original VariantModel     `json:"original"`
 	Fallback *VariantModel    `json:"fallback,omitempty"`
-	Variants [][]VariantModel `json:"variants"`
+	Layers   [][]VariantModel `json:"variants"`
 }

@@ -24,7 +24,7 @@ func (srv *Service) shouldTriggerViewMilestone(stats model.Stats) bool {
 func (srv *Service) GetContext(
 	requestContext context.Context,
 	ingestID model.IngestIDType,
-) (persist.ImageWithStats, error) {
+) (model.ImageWithStats, error) {
 	viewedAt := srv.clk.Now()
 
 	var result persist.ImageWithStats
@@ -97,8 +97,9 @@ func (srv *Service) GetContext(
 		},
 	)
 	if err != nil {
-		return persist.ImageWithStats{}, serviceerror.MapPersistError(err)
+		return model.ImageWithStats{}, serviceerror.MapPersistError(err)
 	}
 
-	return result, nil
+	layers := result.Layers.ToDomain(srv.variantLayersBuilder)
+	return result.ToDTO(layers), nil
 }

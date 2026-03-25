@@ -10,6 +10,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/retry/backoff"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
+	testutilDomain "github.com/mntone/miruzo-core/miruzo/internal/testutil/domain"
 )
 
 func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
@@ -42,6 +43,7 @@ func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
 		},
 		params,
 		spec,
+		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
 	)
 	assert.NilError(t, "listBase() error", err)
@@ -84,6 +86,7 @@ func TestListBaseReturnsNoNextCursorWhenNoMoreItems(t *testing.T) {
 		},
 		params,
 		0,
+		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
 	)
 	assert.NilError(t, "listBase() error", err)
@@ -103,6 +106,7 @@ func TestListBaseMapsPersistErrorToServiceError(t *testing.T) {
 		},
 		params,
 		0,
+		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
 	)
 	assert.ErrorIs(t, "listBase() error", err, serviceerror.ErrServiceUnavailable)
@@ -125,6 +129,7 @@ func TestListBaseReturnsContextCanceledWithoutCallingLoad(t *testing.T) {
 		},
 		params,
 		0,
+		testutilDomain.NewTestVariantLayersBuilder(),
 		backoff.NoRetryPolicy{},
 	)
 	assert.ErrorIs(t, "listBase() error", err, context.Canceled)

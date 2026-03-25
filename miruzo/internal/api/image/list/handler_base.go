@@ -38,10 +38,6 @@ func (hdl *handler) listBase(
 	_ = response.WriteJSON(
 		responseWriter,
 		http.StatusOK,
-		mapImageListResponse(
-			result,
-			hdl.variantLayersSpec,
-			hdl.mediaURLBuilder,
-		),
+		mapImageListResponse(result, hdl.mediaURLBuilder),
 	)
 }

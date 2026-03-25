@@ -15,6 +15,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/clock"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/score"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -56,12 +57,17 @@ func mountAPI(
 	}
 
 	cors := middleware.NewCORSFactory(cfg.CORS.AllowOrigins, cfg.CORS.MaxAge)
+	variantLayersBuilder := media.NewVariantLayerBuilder(cfg.API.VariantLayers)
 	readBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
-	imageListService := imageListService.New(
+	imageListService, err := imageListService.New(
 		manager.Repos().ImageList,
 		readBackoff,
 		cfg.Score.EngagedScoreThreshold,
+		variantLayersBuilder,
 	)
+	if err != nil {
+		log.Fatalf("app: failed to build image list service: %v", err)
+	}
 	mediaURLBuilder := variant.NewMediaURLBuilder(cfg.API.MediaPublic)
 	imageListHandler := imageListAPI.NewHandler(
 		imageListService,
@@ -72,14 +78,18 @@ func mountAPI(
 
 	clockProvider := clock.NewSystemProvider()
 	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
-	viewService := viewService.New(
+	viewService, err := viewService.New(
 		manager,
 		readBackoff,
 		clockProvider,
 		scoreCalculator,
+		variantLayersBuilder,
 		cfg.View.Milestones,
 	)
-	imageItemHandler := contextAPI.NewHandler(viewService, cfg.API.VariantLayers, mediaURLBuilder)
+	if err != nil {
+		log.Fatalf("app: failed to build view service: %v", err)
+	}
+	imageItemHandler := contextAPI.NewHandler(viewService, mediaURLBuilder)
 	contextAPI.RegisterRoutes(mux, cors, imageItemHandler)
 
 	reactionService, err := reactionService.New(

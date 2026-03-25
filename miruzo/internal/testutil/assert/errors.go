@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func Error(t *testing.T, name string, err error) {
+	t.Helper()
+	if err == nil {
+		t.Fatalf("%s = nil, want error", name)
+	}
+}
+
 func NilError(t *testing.T, name string, err error) {
 	t.Helper()
 	if err != nil {
