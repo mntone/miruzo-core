@@ -28,7 +28,7 @@ type ServerConfig struct {
 
 func DefaultServerConfig() ServerConfig {
 	return ServerConfig{
-		Port: 4096,
+		Port: 1360, // miruzo vowel index 1-3-6
 
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
