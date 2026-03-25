@@ -81,6 +81,15 @@ type Image struct {
 	VariantBundle
 }
 
+type ImageListCursorScalar interface {
+	~ScoreType | time.Time
+}
+
+type ImageListCursorKey[ScalarType ImageListCursorScalar] struct {
+	Primary   ScalarType
+	Secondary IngestIDType
+}
+
 type ImageWithStats struct {
 	Image
 	Stats Stats
