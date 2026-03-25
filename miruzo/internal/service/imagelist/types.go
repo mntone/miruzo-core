@@ -18,6 +18,8 @@ type Params[ScalarType model.ImageListCursorScalar] struct {
 }
 
 type Result[ScalarType model.ImageListCursorScalar] struct {
-	Items  []model.Image
+	// Items is the current page of image summaries.
+	Items []model.Image
+	// Cursor is the key for the next page. None means there is no next page.
 	Cursor mo.Option[model.ImageListCursorKey[ScalarType]]
 }

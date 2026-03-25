@@ -6,7 +6,10 @@ import (
 )
 
 type VariantBundle struct {
+	// Original is the canonical source variant.
 	Original media.Variant
+	// Fallback is an optional compatibility variant.
 	Fallback mo.Option[media.Variant]
-	Layers   media.VariantLayers
+	// Layers groups variants by layer and size.
+	Layers media.VariantLayers
 }
