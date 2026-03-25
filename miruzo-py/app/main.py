@@ -13,7 +13,6 @@ from app.domain.decay_score.calculator import DecayScoreCalculator
 from app.infrastructures.scheduler import create_scheduler, register_daily_job
 from app.jobs.daily_decay import DailyDecayJob
 from app.persist.jobs.factory import create_job_repository
-from app.routers.images import router as images
 from app.services.activities.daily_decay import DailyDecayRunner
 from app.services.images.variants.bootstrap import configure_pillow
 from app.services.ingests.bootstrap import ensure_ingest_layout
@@ -67,7 +66,6 @@ configure_pillow()
 
 app = FastAPI(title='miruzo API', lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=9)
-app.include_router(images, prefix='/api')
 
 app.add_middleware(
 	CORSMiddleware,
