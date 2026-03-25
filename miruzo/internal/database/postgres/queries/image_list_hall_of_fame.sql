@@ -8,6 +8,7 @@ LIMIT $1;
 -- name: ListImagesHallOfFameAfter :many
 SELECT sqlc.embed(images), stats.hall_of_fame_at
 FROM images JOIN stats USING(ingest_id)
-WHERE stats.hall_of_fame_at IS NOT NULL AND stats.hall_of_fame_at < $1
+WHERE stats.hall_of_fame_at IS NOT NULL
+  AND (stats.hall_of_fame_at, images.ingest_id) < (sqlc.arg(cursor_at), sqlc.arg(cursor_id)::bigint)
 ORDER BY stats.hall_of_fame_at DESC, images.ingest_id DESC
-LIMIT $2;
+LIMIT sqlc.arg(max_count);

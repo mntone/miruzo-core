@@ -9,7 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursor[model.ScoreType], error) {
+func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursorKey[model.ScoreType], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesEngagedRow) gen.Image {
@@ -21,7 +21,7 @@ func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursor[
 	)
 }
 
-func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageWithCursor[model.ScoreType], error) {
+func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageWithCursorKey[model.ScoreType], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesEngagedAfterRow) gen.Image {
@@ -36,13 +36,13 @@ func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageW
 func (repo repository) ListEngaged(
 	ctx context.Context,
 	spec persist.EngagedImageListSpec,
-) ([]persist.ImageWithCursor[int16], error) {
-	cursor, present := spec.Cursor.Get()
+) ([]persist.ImageWithCursorKey[int16], error) {
+	cursor, present := spec.CursorKey.Get()
 	if !present {
 		rows, err := repo.queries.ListImagesEngaged(
 			ctx,
 			gen.ListImagesEngagedParams{
-				Limit:          int64(spec.Limit),
+				Limit:          int64(spec.MaxCount),
 				ScoreThreshold: spec.ScoreThreshold,
 			},
 		)
@@ -56,9 +56,10 @@ func (repo repository) ListEngaged(
 	rows, err := repo.queries.ListImagesEngagedAfter(
 		ctx,
 		gen.ListImagesEngagedAfterParams{
-			ScoreEvaluated: cursor,
-			Limit:          int64(spec.Limit),
 			ScoreThreshold: spec.ScoreThreshold,
+			CursorInt:      cursor.Primary,
+			CursorID:       cursor.Secondary,
+			MaxCount:       int64(spec.MaxCount),
 		},
 	)
 	if err != nil {

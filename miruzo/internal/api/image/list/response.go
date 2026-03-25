@@ -1,10 +1,6 @@
 package list
 
-import (
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
-)
-
-type ImageListResponse[C persist.ImageListCursor] struct {
+type ImageListResponse struct {
 	Items  []ImageListModel `json:"items"`
-	Cursor *C               `json:"cursor,omitempty"`
+	Cursor string           `json:"cursor,omitempty"`
 }

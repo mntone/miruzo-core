@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
 // --- time cursor ---
 
 func TestBindParamsForTimeCursorUsesDefaultLimitAndEmptyCursor(t *testing.T) {
-	got, err := bindParamsForTimeCursor(url.Values{})
+	got, err := bindParamsForTimeCursor(url.Values{}, imageListCursorModeLatest)
 	assert.NilArray(t, "bindParamsForTimeCursor() error", err)
 	assert.Equal(t, "params.Limit", got.Limit, defaultLimit)
 	assert.IsAbsent(t, "params.Cursor", got.Cursor)
@@ -20,15 +21,21 @@ func TestBindParamsForTimeCursorUsesDefaultLimitAndEmptyCursor(t *testing.T) {
 
 func TestBindParamsForTimeCursorParsesQueryValues(t *testing.T) {
 	wantCursor := time.Date(2026, 3, 6, 12, 34, 56, 0, time.UTC)
+	encodedCursor, encodeErr := encodeTimeImageListCursor(imageListCursorModeLatest, model.ImageListCursorKey[time.Time]{
+		Primary:   wantCursor,
+		Secondary: 123,
+	})
+	assert.NilError(t, "encodeDatetimeImageListCursor()", encodeErr)
 
 	got, err := bindParamsForTimeCursor(url.Values{
 		"limit":  []string{"42"},
-		"cursor": []string{"2026-03-06T12:34:56.000000Z"},
-	})
+		"cursor": []string{encodedCursor},
+	}, imageListCursorModeLatest)
 	assert.NilArray(t, "bindParamsForTimeCursor() error", err)
 	assert.Equal(t, "params.Limit", got.Limit, 42)
 	assert.IsPresent(t, "params.Cursor", got.Cursor)
-	assert.EqualFn(t, "params.Cursor", got.Cursor.MustGet(), wantCursor)
+	assert.EqualFn(t, "params.Cursor.Value", got.Cursor.MustGet().Primary, wantCursor)
+	assert.Equal(t, "params.Cursor.ID", got.Cursor.MustGet().Secondary, int64(123))
 }
 
 func TestBindParamsForTimeCursorReturnsError(t *testing.T) {
@@ -64,7 +71,7 @@ func TestBindParamsForTimeCursorReturnsError(t *testing.T) {
 			},
 			errorType:    "invalid",
 			errorPath:    "query.cursor",
-			errorMessage: "must be ISO8601 timestamp",
+			errorMessage: "must be a valid cursor",
 		},
 		{
 			name: "InvalidLimit",
@@ -97,7 +104,7 @@ func TestBindParamsForTimeCursorReturnsError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := bindParamsForTimeCursor(tt.values)
+			_, err := bindParamsForTimeCursor(tt.values, imageListCursorModeLatest)
 			assert.LenIs(t, "bindParamsForTimeCursor() error", err, 1)
 			assert.Equal(t, "err.Type", err[0].Type, tt.errorType)
 			assert.Equal(t, "err.Path", err[0].Path, tt.errorPath)
@@ -109,30 +116,37 @@ func TestBindParamsForTimeCursorReturnsError(t *testing.T) {
 // --- score cursor ---
 
 func TestBindParamsForScoreCursorUsesDefaultLimitAndEmptyCursor(t *testing.T) {
-	got, err := bindParamsForScoreCursor(url.Values{})
+	got, err := bindParamsForScoreCursor(url.Values{}, imageListCursorModeEngaged)
 	assert.NilArray(t, "bindParamsForScoreCursor() error", err)
 	assert.Equal(t, "params.Limit", got.Limit, defaultLimit)
 	assert.IsAbsent(t, "params.Cursor", got.Cursor)
 }
 
 func TestBindParamsForScoreCursorParsesQueryValues(t *testing.T) {
+	encodedCursor, encodeErr := encodeUint8ImageListCursor(imageListCursorModeEngaged, model.ImageListCursorKey[model.ScoreType]{
+		Primary:   170,
+		Secondary: 123,
+	})
+	assert.NilError(t, "encodeUint8ImageListCursor()", encodeErr)
+
 	got, err := bindParamsForScoreCursor(url.Values{
 		"limit":  []string{"42"},
-		"cursor": []string{"170"},
-	})
+		"cursor": []string{encodedCursor},
+	}, imageListCursorModeEngaged)
 	assert.NilArray(t, "bindParamsForScoreCursor() error", err)
 	assert.Equal(t, "params.Limit", got.Limit, 42)
 	assert.IsPresent(t, "params.Cursor", got.Cursor)
-	assert.Equal(t, "params.Cursor", got.Cursor.MustGet(), 170)
+	assert.Equal(t, "params.Cursor.Value", got.Cursor.MustGet().Primary, model.ScoreType(170))
+	assert.Equal(t, "params.Cursor.ID", got.Cursor.MustGet().Secondary, int64(123))
 }
 
 func TestBindParamsForScoreCursorReturnsErrorForInvalidCursor(t *testing.T) {
 	_, err := bindParamsForScoreCursor(url.Values{
 		"limit":  []string{"42"},
 		"cursor": []string{"999999"},
-	})
+	}, imageListCursorModeEngaged)
 	assert.LenIs(t, "bindParamsForScoreCursor() error", err, 1)
 	assert.Equal(t, "err.Type", err[0].Type, "invalid")
 	assert.Equal(t, "err.Path", err[0].Path, "query.cursor")
-	assert.Equal(t, "err.Message", err[0].Message, "must be an integer")
+	assert.Equal(t, "err.Message", err[0].Message, "must be a valid cursor")
 }

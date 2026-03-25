@@ -37,13 +37,9 @@ func (e *Image) ToDTO(layers media.VariantLayers) model.Image {
 	}
 }
 
-type ImageListCursor interface {
-	~model.ScoreType | time.Time
-}
-
-type ImageWithCursor[C ImageListCursor] struct {
-	Image  Image
-	Cursor C
+type ImageWithCursorKey[ScalarType model.ImageListCursorScalar] struct {
+	Image      Image
+	PrimaryKey ScalarType
 }
 
 type ImageWithStats struct {

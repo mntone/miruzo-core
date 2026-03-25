@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
@@ -74,14 +75,14 @@ func (srv Service) ListHallOfFame(
 
 func (srv Service) ListEngaged(
 	requestContext context.Context,
-	params *Params[int16],
-) (Result[int16], error) {
+	params *Params[model.ScoreType],
+) (Result[model.ScoreType], error) {
 	spec := persist.EngagedImageListSpec{
-		ImageListSpec: persist.ImageListSpec[int16]{
-			Cursor: params.Cursor,
-			Limit:  params.Limit + 1,
-		},
 		ScoreThreshold: srv.engagedScoreThreshold,
+		ImageListSpec: persist.ImageListSpec[model.ScoreType]{
+			CursorKey: params.Cursor,
+			MaxCount:  params.Limit + 1,
+		},
 	}
 	return listBase(
 		requestContext,

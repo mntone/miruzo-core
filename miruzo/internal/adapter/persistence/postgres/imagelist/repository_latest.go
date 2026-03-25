@@ -9,8 +9,8 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func mapLatestRows(rows []gen.Image) ([]persist.ImageWithCursor[time.Time], error) {
-	imagesWithCursor := make([]persist.ImageWithCursor[time.Time], len(rows))
+func mapLatestRows(rows []gen.Image) ([]persist.ImageWithCursorKey[time.Time], error) {
+	imagesWithCursor := make([]persist.ImageWithCursorKey[time.Time], len(rows))
 
 	for i, row := range rows {
 		imageWithCursor, err := mapRow(row, row.IngestedAt)
@@ -27,12 +27,12 @@ func mapLatestRows(rows []gen.Image) ([]persist.ImageWithCursor[time.Time], erro
 func (repo repository) ListLatest(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
-) ([]persist.ImageWithCursor[time.Time], error) {
-	cursor, present := spec.Cursor.Get()
+) ([]persist.ImageWithCursorKey[time.Time], error) {
+	cursor, present := spec.CursorKey.Get()
 	if !present {
 		rows, err := repo.queries.ListImagesLatest(
 			ctx,
-			int32(spec.Limit),
+			int32(spec.MaxCount),
 		)
 		if err != nil {
 			return nil, shared.MapPostgreError("ListLatest", err)
@@ -44,8 +44,9 @@ func (repo repository) ListLatest(
 	rows, err := repo.queries.ListImagesLatestAfter(
 		ctx,
 		gen.ListImagesLatestAfterParams{
-			IngestedAt: cursor,
-			Limit:      int32(spec.Limit),
+			CursorAt: cursor.Primary,
+			CursorID: cursor.Secondary,
+			MaxCount: int32(spec.MaxCount),
 		},
 	)
 	if err != nil {

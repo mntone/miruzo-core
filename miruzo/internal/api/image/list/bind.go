@@ -9,16 +9,15 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/api/validate"
 	"github.com/mntone/miruzo-core/miruzo/internal/api/variant"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	service "github.com/mntone/miruzo-core/miruzo/internal/service/imagelist"
 	"github.com/samber/mo"
 )
 
-func bindParamsOf[C persist.ImageListCursor](
+func bindParamsOf[S model.ImageListCursorScalar](
 	queryValues url.Values,
-	bindCursor func(key string, values []string) (C, *apierror.FieldError),
-) (*service.Params[C], []apierror.FieldError) {
-	params := service.Params[C]{
+	bindCursor func(key string, values []string) (model.ImageListCursorKey[S], *apierror.FieldError),
+) (*service.Params[S], []apierror.FieldError) {
+	params := service.Params[S]{
 		Limit: defaultLimit,
 	}
 
@@ -69,10 +68,68 @@ func bindParamsOf[C persist.ImageListCursor](
 	return &params, errors
 }
 
-func bindParamsForTimeCursor(queryValues url.Values) (*service.Params[time.Time], []apierror.FieldError) {
-	return bindParamsOf(queryValues, bind.BindTimeQuery)
+func bindTimeCursorQuery(
+	key string,
+	values []string,
+	expectedMode imageListCursorMode,
+) (model.ImageListCursorKey[time.Time], *apierror.FieldError) {
+	text, err := bind.ValidateSingleValue(key, values)
+	if err != nil {
+		return model.ImageListCursorKey[time.Time]{}, err
+	}
+
+	cursor, decodeError := decodeTimeImageListCursor(text, expectedMode)
+	if decodeError != nil {
+		return model.ImageListCursorKey[time.Time]{}, &apierror.FieldError{
+			Type:    apierror.FieldErrorTypeInvalid,
+			Path:    "query." + key,
+			Message: "must be a valid cursor",
+		}
+	}
+	return cursor, nil
 }
 
-func bindParamsForScoreCursor(queryValues url.Values) (*service.Params[model.ScoreType], []apierror.FieldError) {
-	return bindParamsOf(queryValues, bind.BindIntQuery[model.ScoreType])
+func bindParamsForTimeCursor(
+	queryValues url.Values,
+	expectedMode imageListCursorMode,
+) (*service.Params[time.Time], []apierror.FieldError) {
+	return bindParamsOf(
+		queryValues,
+		func(key string, values []string) (model.ImageListCursorKey[time.Time], *apierror.FieldError) {
+			return bindTimeCursorQuery(key, values, expectedMode)
+		},
+	)
+}
+
+func bindUint8CursorQuery(
+	key string,
+	values []string,
+	expectedMode imageListCursorMode,
+) (model.ImageListCursorKey[model.ScoreType], *apierror.FieldError) {
+	text, err := bind.ValidateSingleValue(key, values)
+	if err != nil {
+		return model.ImageListCursorKey[model.ScoreType]{}, err
+	}
+
+	cursor, decodeError := decodeUint8ImageListCursor(text, expectedMode)
+	if decodeError != nil {
+		return model.ImageListCursorKey[model.ScoreType]{}, &apierror.FieldError{
+			Type:    apierror.FieldErrorTypeInvalid,
+			Path:    "query." + key,
+			Message: "must be a valid cursor",
+		}
+	}
+	return cursor, nil
+}
+
+func bindParamsForScoreCursor(
+	queryValues url.Values,
+	expectedMode imageListCursorMode,
+) (*service.Params[model.ScoreType], []apierror.FieldError) {
+	return bindParamsOf(
+		queryValues,
+		func(key string, values []string) (model.ImageListCursorKey[model.ScoreType], *apierror.FieldError) {
+			return bindUint8CursorQuery(key, values, expectedMode)
+		},
+	)
 }

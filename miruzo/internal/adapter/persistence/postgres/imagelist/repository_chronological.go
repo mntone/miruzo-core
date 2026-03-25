@@ -9,7 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func mapChronologicalRows(rows []gen.ListImagesChronologicalRow) ([]persist.ImageWithCursor[time.Time], error) {
+func mapChronologicalRows(rows []gen.ListImagesChronologicalRow) ([]persist.ImageWithCursorKey[time.Time], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesChronologicalRow) gen.Image {
@@ -21,7 +21,7 @@ func mapChronologicalRows(rows []gen.ListImagesChronologicalRow) ([]persist.Imag
 	)
 }
 
-func mapChronologicalAfterRows(rows []gen.ListImagesChronologicalAfterRow) ([]persist.ImageWithCursor[time.Time], error) {
+func mapChronologicalAfterRows(rows []gen.ListImagesChronologicalAfterRow) ([]persist.ImageWithCursorKey[time.Time], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesChronologicalAfterRow) gen.Image {
@@ -36,12 +36,12 @@ func mapChronologicalAfterRows(rows []gen.ListImagesChronologicalAfterRow) ([]pe
 func (repo repository) ListChronological(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
-) ([]persist.ImageWithCursor[time.Time], error) {
-	cursor, present := spec.Cursor.Get()
+) ([]persist.ImageWithCursorKey[time.Time], error) {
+	cursor, present := spec.CursorKey.Get()
 	if !present {
 		rows, err := repo.queries.ListImagesChronological(
 			ctx,
-			int32(spec.Limit),
+			int32(spec.MaxCount),
 		)
 		if err != nil {
 			return nil, shared.MapPostgreError("ListChronological", err)
@@ -53,8 +53,9 @@ func (repo repository) ListChronological(
 	rows, err := repo.queries.ListImagesChronologicalAfter(
 		ctx,
 		gen.ListImagesChronologicalAfterParams{
-			CapturedAt: cursor,
-			Limit:      int32(spec.Limit),
+			CursorAt: cursor.Primary,
+			CursorID: cursor.Secondary,
+			MaxCount: int32(spec.MaxCount),
 		},
 	)
 	if err != nil {

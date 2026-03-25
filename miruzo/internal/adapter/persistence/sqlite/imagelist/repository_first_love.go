@@ -9,7 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func mapFirstLoveRows(rows []gen.ListImagesFirstLoveRow) ([]persist.ImageWithCursor[time.Time], error) {
+func mapFirstLoveRows(rows []gen.ListImagesFirstLoveRow) ([]persist.ImageWithCursorKey[time.Time], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesFirstLoveRow) gen.Image {
@@ -21,7 +21,7 @@ func mapFirstLoveRows(rows []gen.ListImagesFirstLoveRow) ([]persist.ImageWithCur
 	)
 }
 
-func mapFirstLoveAfterRows(rows []gen.ListImagesFirstLoveAfterRow) ([]persist.ImageWithCursor[time.Time], error) {
+func mapFirstLoveAfterRows(rows []gen.ListImagesFirstLoveAfterRow) ([]persist.ImageWithCursorKey[time.Time], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesFirstLoveAfterRow) gen.Image {
@@ -36,12 +36,12 @@ func mapFirstLoveAfterRows(rows []gen.ListImagesFirstLoveAfterRow) ([]persist.Im
 func (repo repository) ListFirstLove(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
-) ([]persist.ImageWithCursor[time.Time], error) {
-	cursor, present := spec.Cursor.Get()
+) ([]persist.ImageWithCursorKey[time.Time], error) {
+	cursor, present := spec.CursorKey.Get()
 	if !present {
 		rows, err := repo.queries.ListImagesFirstLove(
 			ctx,
-			int64(spec.Limit),
+			int64(spec.MaxCount),
 		)
 		if err != nil {
 			return nil, shared.MapSQLiteError("ListFirstLove", err)
@@ -53,8 +53,9 @@ func (repo repository) ListFirstLove(
 	rows, err := repo.queries.ListImagesFirstLoveAfter(
 		ctx,
 		gen.ListImagesFirstLoveAfterParams{
-			FirstLovedAt: shared.NullTimeFromTime(cursor),
-			Limit:        int64(spec.Limit),
+			CursorAt: shared.NullTimeFromTime(cursor.Primary),
+			CursorID: cursor.Secondary,
+			MaxCount: int64(spec.MaxCount),
 		},
 	)
 	if err != nil {

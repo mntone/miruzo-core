@@ -33,6 +33,7 @@ func (hdl *handler) listLatest(
 	hdl.listBase(
 		responseWriter,
 		req,
+		imageListCursorModeLatest,
 		hdl.service.ListLatest,
 	)
 }
@@ -44,6 +45,7 @@ func (hdl *handler) listChronological(
 	hdl.listBase(
 		responseWriter,
 		req,
+		imageListCursorModeChronological,
 		hdl.service.ListChronological,
 	)
 }
@@ -55,6 +57,7 @@ func (hdl *handler) listRecently(
 	hdl.listBase(
 		responseWriter,
 		req,
+		imageListCursorModeRecently,
 		hdl.service.ListRecently,
 	)
 }
@@ -66,6 +69,7 @@ func (hdl *handler) listFirstLove(
 	hdl.listBase(
 		responseWriter,
 		req,
+		imageListCursorModeFirstLove,
 		hdl.service.ListFirstLove,
 	)
 }
@@ -77,6 +81,7 @@ func (hdl *handler) listHallOfFame(
 	hdl.listBase(
 		responseWriter,
 		req,
+		imageListCursorModeHallOfFame,
 		hdl.service.ListHallOfFame,
 	)
 }

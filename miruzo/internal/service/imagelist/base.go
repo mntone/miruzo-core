@@ -24,29 +24,29 @@ func mapPageBounds(total int, limit int) (n int, hasNext bool) {
 	return
 }
 
-type imageListFunc[C persist.ImageListCursor, S any] func(
+type imageListFunc[S model.ImageListCursorScalar, T any] func(
 	requestContext context.Context,
-	spec S,
-) ([]persist.ImageWithCursor[C], error)
+	spec T,
+) ([]persist.ImageWithCursorKey[S], error)
 
-func listBase[C persist.ImageListCursor, S any](
+func listBase[S model.ImageListCursorScalar, T any](
 	requestContext context.Context,
 	limit uint16,
 	excludeFormats []media.ImageFormat,
-	loadFn imageListFunc[C, S],
-	spec S,
+	loadFn imageListFunc[S, T],
+	spec T,
 	variantLayersBuilder *media.VariantLayersBuilder,
 	retryPolicy backoff.Policy,
-) (Result[C], error) {
+) (Result[S], error) {
 	imagesWithCursor, err := retry.Retry(
 		requestContext,
 		retryPolicy,
-		func(retryContext context.Context) ([]persist.ImageWithCursor[C], error) {
+		func(retryContext context.Context) ([]persist.ImageWithCursorKey[S], error) {
 			return loadFn(retryContext, spec)
 		},
 	)
 	if err != nil {
-		return Result[C]{}, serviceerror.MapPersistError(err)
+		return Result[S]{}, serviceerror.MapPersistError(err)
 	}
 
 	n, hasNext := mapPageBounds(len(imagesWithCursor), int(limit))
@@ -62,12 +62,16 @@ func listBase[C persist.ImageListCursor, S any](
 		images[i] = imagesWithCursor[i].Image.ToDTO(layers)
 	}
 
-	var nextCursor mo.Option[C]
+	var nextCursor mo.Option[model.ImageListCursorKey[S]]
 	if hasNext {
-		nextCursor = mo.Some(imagesWithCursor[n-1].Cursor)
+		image := imagesWithCursor[n-1]
+		nextCursor = mo.Some(model.ImageListCursorKey[S]{
+			Primary:   image.PrimaryKey,
+			Secondary: image.Image.IngestID,
+		})
 	}
 
-	result := Result[C]{
+	result := Result[S]{
 		Items:  images,
 		Cursor: nextCursor,
 	}
@@ -82,8 +86,8 @@ func list(
 	retryPolicy backoff.Policy,
 ) (Result[time.Time], error) {
 	spec := persist.ImageListSpec[time.Time]{
-		Cursor: params.Cursor,
-		Limit:  params.Limit + 1,
+		CursorKey: params.Cursor,
+		MaxCount:  params.Limit + 1,
 	}
 	return listBase(
 		requestContext,

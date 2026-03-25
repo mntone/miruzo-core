@@ -12,7 +12,7 @@ func (hdl *handler) listEngaged(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
 ) {
-	params, fieldError := bindParamsForScoreCursor(req.URL.Query())
+	params, fieldError := bindParamsForScoreCursor(req.URL.Query(), imageListCursorModeEngaged)
 	if fieldError != nil {
 		response.WriteJSON(
 			responseWriter,
@@ -28,9 +28,15 @@ func (hdl *handler) listEngaged(
 		return
 	}
 
+	res, mapError := mapEngagedImageListResponse(result, hdl.mediaURLBuilder)
+	if mapError != nil {
+		httperror.WriteInternalServerError(responseWriter)
+		return
+	}
+
 	_ = response.WriteJSON(
 		responseWriter,
 		http.StatusOK,
-		mapImageListResponse(result, hdl.mediaURLBuilder),
+		res,
 	)
 }

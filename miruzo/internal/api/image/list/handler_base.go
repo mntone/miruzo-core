@@ -14,12 +14,13 @@ import (
 func (hdl *handler) listBase(
 	responseWriter http.ResponseWriter,
 	req *http.Request,
+	cursorMode imageListCursorMode,
 	listFn func(
 		requestContext context.Context,
 		params *imagelist.Params[time.Time],
 	) (imagelist.Result[time.Time], error),
 ) {
-	params, fieldError := bindParamsForTimeCursor(req.URL.Query())
+	params, fieldError := bindParamsForTimeCursor(req.URL.Query(), cursorMode)
 	if fieldError != nil {
 		response.WriteJSON(
 			responseWriter,
@@ -35,9 +36,15 @@ func (hdl *handler) listBase(
 		return
 	}
 
+	res, mapError := mapDatetimeImageListResponse(result, hdl.mediaURLBuilder, cursorMode)
+	if mapError != nil {
+		httperror.WriteInternalServerError(responseWriter)
+		return
+	}
+
 	_ = response.WriteJSON(
 		responseWriter,
 		http.StatusOK,
-		mapImageListResponse(result, hdl.mediaURLBuilder),
+		res,
 	)
 }

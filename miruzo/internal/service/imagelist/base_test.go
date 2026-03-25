@@ -24,20 +24,20 @@ func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
 		context.Background(),
 		2,
 		[]media.ImageFormat{},
-		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
+		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursorKey[time.Time], error) {
 			gotSpec = loadSpec
-			return []persist.ImageWithCursor[time.Time]{
+			return []persist.ImageWithCursorKey[time.Time]{
 				{
-					Image:  persist.Image{IngestID: 1001},
-					Cursor: base.Add(3 * time.Hour),
+					Image:      persist.Image{IngestID: 1001},
+					PrimaryKey: base.Add(3 * time.Hour),
 				},
 				{
-					Image:  persist.Image{IngestID: 1002},
-					Cursor: base.Add(2 * time.Hour),
+					Image:      persist.Image{IngestID: 1002},
+					PrimaryKey: base.Add(2 * time.Hour),
 				},
 				{
-					Image:  persist.Image{IngestID: 1003},
-					Cursor: base.Add(1 * time.Hour),
+					Image:      persist.Image{IngestID: 1003},
+					PrimaryKey: base.Add(1 * time.Hour),
 				},
 			}, nil
 		},
@@ -59,7 +59,8 @@ func TestListBaseReturnsLimitedItemsAndNextCursor(t *testing.T) {
 	}
 
 	assert.IsPresent(t, "result.Cursor", result.Cursor)
-	assert.EqualFn(t, "result.Cursor", result.Cursor.MustGet(), base.Add(2*time.Hour))
+	assert.EqualFn(t, "result.Cursor.Value", result.Cursor.MustGet().Primary, base.Add(2*time.Hour))
+	assert.Equal(t, "result.Cursor.ID", result.Cursor.MustGet().Secondary, 1002)
 }
 
 func TestListBaseReturnsNoNextCursorWhenNoMoreItems(t *testing.T) {
@@ -69,15 +70,15 @@ func TestListBaseReturnsNoNextCursorWhenNoMoreItems(t *testing.T) {
 		context.Background(),
 		2,
 		[]media.ImageFormat{},
-		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
-			return []persist.ImageWithCursor[time.Time]{
+		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursorKey[time.Time], error) {
+			return []persist.ImageWithCursorKey[time.Time]{
 				{
-					Image:  persist.Image{IngestID: 2001},
-					Cursor: base.Add(2 * time.Hour),
+					Image:      persist.Image{IngestID: 2001},
+					PrimaryKey: base.Add(2 * time.Hour),
 				},
 				{
-					Image:  persist.Image{IngestID: 2002},
-					Cursor: base.Add(1 * time.Hour),
+					Image:      persist.Image{IngestID: 2002},
+					PrimaryKey: base.Add(1 * time.Hour),
 				},
 			}, nil
 		},
@@ -96,7 +97,7 @@ func TestListBaseMapsPersistErrorToServiceError(t *testing.T) {
 		context.Background(),
 		2,
 		[]media.ImageFormat{},
-		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
+		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursorKey[time.Time], error) {
 			return nil, fmt.Errorf("database unavailable: %w", persist.ErrUnavailable)
 		},
 		0,
@@ -115,7 +116,7 @@ func TestListBaseReturnsContextCanceledWithoutCallingLoad(t *testing.T) {
 		requestContext,
 		2,
 		[]media.ImageFormat{},
-		func(innerContext context.Context, loadSpec int) ([]persist.ImageWithCursor[time.Time], error) {
+		func(innerContext context.Context, loadSpec int) ([]persist.ImageWithCursorKey[time.Time], error) {
 			loadCalled = true
 			return nil, nil
 		},

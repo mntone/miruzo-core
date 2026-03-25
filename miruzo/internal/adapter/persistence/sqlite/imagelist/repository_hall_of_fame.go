@@ -9,7 +9,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-func mapHallOfFameRows(rows []gen.ListImagesHallOfFameRow) ([]persist.ImageWithCursor[time.Time], error) {
+func mapHallOfFameRows(rows []gen.ListImagesHallOfFameRow) ([]persist.ImageWithCursorKey[time.Time], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesHallOfFameRow) gen.Image {
@@ -21,7 +21,7 @@ func mapHallOfFameRows(rows []gen.ListImagesHallOfFameRow) ([]persist.ImageWithC
 	)
 }
 
-func mapHallOfFameAfterRows(rows []gen.ListImagesHallOfFameAfterRow) ([]persist.ImageWithCursor[time.Time], error) {
+func mapHallOfFameAfterRows(rows []gen.ListImagesHallOfFameAfterRow) ([]persist.ImageWithCursorKey[time.Time], error) {
 	return mapRows(
 		rows,
 		func(row gen.ListImagesHallOfFameAfterRow) gen.Image {
@@ -36,12 +36,12 @@ func mapHallOfFameAfterRows(rows []gen.ListImagesHallOfFameAfterRow) ([]persist.
 func (repo repository) ListHallOfFame(
 	ctx context.Context,
 	spec persist.ImageListSpec[time.Time],
-) ([]persist.ImageWithCursor[time.Time], error) {
-	cursor, present := spec.Cursor.Get()
+) ([]persist.ImageWithCursorKey[time.Time], error) {
+	cursor, present := spec.CursorKey.Get()
 	if !present {
 		rows, err := repo.queries.ListImagesHallOfFame(
 			ctx,
-			int64(spec.Limit),
+			int64(spec.MaxCount),
 		)
 		if err != nil {
 			return nil, shared.MapSQLiteError("ListHallOfFame", err)
@@ -53,8 +53,9 @@ func (repo repository) ListHallOfFame(
 	rows, err := repo.queries.ListImagesHallOfFameAfter(
 		ctx,
 		gen.ListImagesHallOfFameAfterParams{
-			HallOfFameAt: shared.NullTimeFromTime(cursor),
-			Limit:        int64(spec.Limit),
+			CursorAt: shared.NullTimeFromTime(cursor.Primary),
+			CursorID: cursor.Secondary,
+			MaxCount: int64(spec.MaxCount),
 		},
 	)
 	if err != nil {
