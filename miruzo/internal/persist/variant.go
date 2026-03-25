@@ -8,7 +8,7 @@ import (
 type Variant struct {
 	RelativePath string             `json:"rel"`
 	LayerID      media.LayerIDType  `json:"layer_id"`
-	Format       string             `json:"format"`
+	Format       media.ImageFormat  `json:"format"`
 	Codecs       string             `json:"codecs,omitempty"`
 	Bytes        uint32             `json:"bytes"`
 	Width        uint16             `json:"width"`

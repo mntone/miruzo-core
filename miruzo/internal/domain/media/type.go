@@ -5,7 +5,7 @@ import "github.com/samber/mo"
 type Variant struct {
 	RelativePath string
 	LayerID      LayerIDType
-	Format       string
+	Format       ImageFormat
 	Codecs       string
 	Bytes        uint32
 	Width        uint16

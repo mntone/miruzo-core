@@ -70,16 +70,16 @@ func (ops Operations) MustAddIngest(t testing.TB, entry persist.Ingest) persist.
 func createVariant(
 	id model.IngestIDType,
 	layerID media.LayerIDType,
-	format string,
+	format media.ImageFormat,
 	width uint16,
 ) persist.Variant {
 	var codecs string
-	if format == "webp" {
+	if format == media.ImageFormatWebP {
 		codecs = "vp8"
 	}
 
 	return persist.Variant{
-		RelativePath: fmt.Sprintf("l%dw%d/%d.%s", layerID, width, id, format),
+		RelativePath: fmt.Sprintf("l%dw%d/%d.%s", layerID, width, id, format.String()),
 		LayerID:      layerID,
 		Format:       format,
 		Codecs:       codecs,
@@ -100,13 +100,13 @@ func (ops Operations) AddIngestAndImage(entry persist.Ingest) error {
 		ops.ctx,
 		entry.ID,
 		entry.IngestedAt,
-		createVariant(entry.ID, 1, "webp", 768),
+		createVariant(entry.ID, 1, media.ImageFormatWebP, 768),
 		mo.None[persist.Variant](),
 		[]persist.Variant{
-			createVariant(entry.ID, 1, "webp", 320),
-			createVariant(entry.ID, 1, "webp", 480),
-			createVariant(entry.ID, 1, "webp", 640),
-			createVariant(entry.ID, media.FallbackLayerID, "jpeg", 320),
+			createVariant(entry.ID, 1, media.ImageFormatWebP, 320),
+			createVariant(entry.ID, 1, media.ImageFormatWebP, 480),
+			createVariant(entry.ID, 1, media.ImageFormatWebP, 640),
+			createVariant(entry.ID, media.FallbackLayerID, media.ImageFormatJPEG, 320),
 		},
 	)
 }
