@@ -11,7 +11,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
-	migrations "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/migrations_min"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
 
@@ -19,7 +18,7 @@ func setupDatabase(t *testing.T, ctx context.Context) *sql.DB {
 	t.Helper()
 
 	db := OpenTestDatabase(t, ctx)
-	if err := migrations.RunMigrations(db); err != nil {
+	if err := sqlite.NewMigrationRunnerFromDB(db).Up(ctx); err != nil {
 		t.Fatalf("run sqlite migrations: %v", err)
 	}
 	return db

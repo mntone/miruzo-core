@@ -5,9 +5,7 @@ package migrations
 import (
 	"embed"
 	"errors"
-	"fmt"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	driver "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source"
@@ -45,22 +43,4 @@ func NewSpec(pool *pgxpool.Pool) migration.Spec {
 		NewDatabaseDriver: newDatabaseDriverFunc(pool),
 		CloseDatabase:     true,
 	}
-}
-
-func RunMigrations(pool *pgxpool.Pool) (err error) {
-	spec := NewSpec(pool)
-	migrateInstance, close, err := spec.NewInstance()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err = errors.Join(err, close())
-	}()
-
-	err = migrateInstance.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("run migrations: %w", err)
-	}
-
-	return nil
 }

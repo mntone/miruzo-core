@@ -5,10 +5,7 @@ package migrations
 import (
 	"database/sql"
 	"embed"
-	"errors"
-	"fmt"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	driver "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source"
@@ -36,22 +33,4 @@ func NewSpec(db *sql.DB) migration.Spec {
 		DatabaseName:      "sqlite3",
 		NewDatabaseDriver: newDatabaseDriverFunc(db),
 	}
-}
-
-func RunMigrations(db *sql.DB) (err error) {
-	spec := NewSpec(db)
-	migrateInstance, close, err := spec.NewInstance()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err = errors.Join(err, close())
-	}()
-
-	err = migrateInstance.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("run migrations: %w", err)
-	}
-
-	return nil
 }

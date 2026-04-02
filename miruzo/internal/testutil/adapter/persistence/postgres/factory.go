@@ -13,7 +13,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
-	migrations "github.com/mntone/miruzo-core/miruzo/internal/database/postgres/migrations_min"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
 
@@ -46,7 +45,7 @@ func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
 		return nil
 	}
 
-	if err := migrations.RunMigrations(pool); err != nil {
+	if err := postgres.NewMigrationRunnerFromPool(pool).Up(ctx); err != nil {
 		closeErr := closeFn()
 		return nil, fmt.Errorf(
 			"run postgres migrations: %w",
