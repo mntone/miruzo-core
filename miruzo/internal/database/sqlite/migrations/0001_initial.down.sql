@@ -1,6 +1,9 @@
 -- Drop users table
 DROP TABLE users;
 
+-- Drop jobs table
+DROP TABLE jobs;
+
 -- Drop actions table
 DROP TABLE actions;
 

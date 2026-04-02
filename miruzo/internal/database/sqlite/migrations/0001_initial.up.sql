@@ -133,6 +133,16 @@ CREATE TABLE actions(
 	occurred_at TEXT NOT NULL
 ) STRICT;
 
+-- Create jobs table
+CREATE TABLE jobs(
+	name TEXT PRIMARY KEY
+		CONSTRAINT ck_jobs_name
+			NOT NULL
+			CHECK (length(name) BETWEEN 8 AND 16),
+	started_at TEXT NOT NULL,
+	finished_at TEXT NOT NULL
+) STRICT;
+
 -- Create users table
 CREATE TABLE users(
 	id INTEGER PRIMARY KEY AUTOINCREMENT

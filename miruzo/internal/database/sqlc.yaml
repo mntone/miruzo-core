@@ -65,5 +65,9 @@ sql:
           go_type: int16
         - column: "actions.occurred_at"
           go_type: time.Time
+        - column: "jobs.started_at"
+          go_type: time.Time
+        - column: "jobs.finished_at"
+          go_type: time.Time
         - column: "users.daily_love_used"
           go_type: int32
