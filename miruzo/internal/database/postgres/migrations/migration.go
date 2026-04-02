@@ -8,63 +8,53 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
 	driver "github.com/golang-migrate/migrate/v4/database/pgx/v5"
+	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/migration"
 )
 
 //go:embed *.sql
 var fs embed.FS
 
-func wrapCloseError(operation string, err error) error {
-	if err == nil {
-		return nil
-	}
+func newSourceDriver() (source.Driver, error) {
+	return iofs.New(fs, ".")
+}
 
-	return fmt.Errorf("%s: %w", operation, err)
+func newDatabaseDriverFunc(pool *pgxpool.Pool) func() (database.Driver, error) {
+	return func() (database.Driver, error) {
+		db := stdlib.OpenDBFromPool(pool)
+		database, err := driver.WithInstance(db, &driver.Config{})
+		if err != nil {
+			databaseCloseErr := db.Close()
+			return nil, errors.Join(err, databaseCloseErr)
+		}
+
+		return database, nil
+	}
+}
+
+func NewSpec(pool *pgxpool.Pool) migration.Spec {
+	return migration.Spec{
+		SourceName:        "iofs",
+		NewSourceDriver:   newSourceDriver,
+		DatabaseName:      "pgx",
+		NewDatabaseDriver: newDatabaseDriverFunc(pool),
+		CloseDatabase:     true,
+	}
 }
 
 func RunMigrations(pool *pgxpool.Pool) (err error) {
-	sourceDriver, err := iofs.New(fs, ".")
+	spec := NewSpec(pool)
+	migrateInstance, close, err := spec.NewInstance()
 	if err != nil {
-		return fmt.Errorf("create migration source: %w", err)
-	}
-
-	db := stdlib.OpenDBFromPool(pool)
-	databaseDriver, err := driver.WithInstance(db, &driver.Config{})
-	if err != nil {
-		sourceCloseErr := sourceDriver.Close()
-		dbCloseErr := db.Close()
-		return errors.Join(
-			fmt.Errorf("create postgresql migration driver: %w", err),
-			wrapCloseError("close migration source", sourceCloseErr),
-			wrapCloseError("close migration database", dbCloseErr),
-		)
-	}
-
-	migrateInstance, err := migrate.NewWithInstance(
-		"iofs",
-		sourceDriver,
-		"pgx",
-		databaseDriver,
-	)
-	if err != nil {
-		sourceCloseErr := sourceDriver.Close()
-		databaseCloseErr := databaseDriver.Close()
-		return errors.Join(
-			fmt.Errorf("create migration instance: %w", err),
-			wrapCloseError("close migration source", sourceCloseErr),
-			wrapCloseError("close migration database", databaseCloseErr),
-		)
+		return err
 	}
 	defer func() {
-		sourceCloseErr, databaseCloseErr := migrateInstance.Close()
-		err = errors.Join(
-			err,
-			wrapCloseError("close migration source", sourceCloseErr),
-			wrapCloseError("close migration database", databaseCloseErr),
-		)
+		err = errors.Join(err, close())
 	}()
 
 	err = migrateInstance.Up()

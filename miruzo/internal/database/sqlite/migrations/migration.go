@@ -9,39 +9,44 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
 	driver "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/migration"
 )
 
 //go:embed *.sql
 var fs embed.FS
 
+func newSourceDriver() (source.Driver, error) {
+	return iofs.New(fs, ".")
+}
+
+func newDatabaseDriverFunc(db *sql.DB) func() (database.Driver, error) {
+	return func() (database.Driver, error) {
+		return driver.WithInstance(db, &driver.Config{})
+	}
+}
+
+func NewSpec(db *sql.DB) migration.Spec {
+	return migration.Spec{
+		SourceName:        "iofs",
+		NewSourceDriver:   newSourceDriver,
+		DatabaseName:      "sqlite3",
+		NewDatabaseDriver: newDatabaseDriverFunc(db),
+	}
+}
+
 func RunMigrations(db *sql.DB) (err error) {
-	sourceDriver, err := iofs.New(fs, ".")
+	spec := NewSpec(db)
+	migrateInstance, close, err := spec.NewInstance()
 	if err != nil {
-		return fmt.Errorf("create migration source: %w", err)
+		return err
 	}
 	defer func() {
-		closeErr := sourceDriver.Close()
-		if closeErr != nil {
-			err = errors.Join(err, fmt.Errorf("close migration source: %w", closeErr))
-		}
+		err = errors.Join(err, close())
 	}()
-
-	databaseDriver, err := driver.WithInstance(db, &driver.Config{})
-	if err != nil {
-		return fmt.Errorf("create sqlite migration driver: %w", err)
-	}
-
-	migrateInstance, err := migrate.NewWithInstance(
-		"iofs",
-		sourceDriver,
-		"sqlite3",
-		databaseDriver,
-	)
-	if err != nil {
-		return fmt.Errorf("create migration instance: %w", err)
-	}
 
 	err = migrateInstance.Up()
 	if err != nil && err != migrate.ErrNoChange {
