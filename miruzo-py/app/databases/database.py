@@ -1,34 +1,10 @@
 from typing import Any, Generator
 
-from alembic.config import Config
-from alembic.runtime.migration import MigrationContext
-from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
 from app.config.environments import DatabaseBackend, env
 from app.databases.sqlite_version import verify_sqlite_supports_returning
-
-
-def _verify_schema_version(db_url: str, alembic_ini: str) -> None:
-	engine = create_engine(db_url)
-	alembic_cfg = Config(alembic_ini)
-	script = ScriptDirectory.from_config(alembic_cfg)
-
-	with engine.connect() as conn:
-		context = MigrationContext.configure(conn)
-		db_revision = context.get_current_revision()
-
-	head_revisions = script.get_heads()
-
-	if db_revision is None:
-		raise RuntimeError('database is not under alembic control')
-
-	if db_revision not in head_revisions:
-		raise RuntimeError(
-			f'schema version mismatch: db={db_revision}, code={head_revisions}',
-		)
-
 
 if env.database_backend == DatabaseBackend.SQLITE:
 	engine = create_engine(
@@ -64,8 +40,6 @@ else:
 
 def init_database() -> None:
 	SQLModel.metadata.create_all(engine)
-
-	_verify_schema_version(env.database_url, 'alembic.ini')
 
 
 def create_session() -> Session:
