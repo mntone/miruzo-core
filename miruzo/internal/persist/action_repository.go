@@ -14,4 +14,11 @@ type ActionRepository interface {
 		kind model.ActionType,
 		occurredAt time.Time,
 	) (model.ActionIDType, error)
+
+	ExistsSince(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		kind model.ActionType,
+		sinceOccurredAt time.Time,
+	) (bool, error)
 }

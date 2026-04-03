@@ -13,3 +13,11 @@ func TestActionRepositoryActionSchemaRejectsInvalidKind(t *testing.T) {
 func TestActionRepositoryCreateAction(t *testing.T) {
 	testutilSQLite.NewActionSuite(t).RunTestCreateAction(t)
 }
+
+func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {
+	testutilSQLite.NewActionSuite(t).RunTestExistsSinceReturnsFalse(t)
+}
+
+func TestActionRepositoryExistsSinceReturnsTrue(t *testing.T) {
+	testutilSQLite.NewActionSuite(t).RunTestExistsSinceReturnsTrue(t)
+}

@@ -66,3 +66,23 @@ func TestActionRepositoryCreateAction(t *testing.T) {
 	factory.MustReset(t, ctx)
 	factory.NewAction(t, ctx).RunTestCreateAction(t)
 }
+
+func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewAction(t, ctx).RunTestExistsSinceReturnsFalse(t)
+}
+
+func TestActionRepositoryExistsSinceReturnsTrue(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewAction(t, ctx).RunTestExistsSinceReturnsTrue(t)
+}

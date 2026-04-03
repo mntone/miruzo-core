@@ -36,3 +36,21 @@ func (repo repository) Create(
 
 	return actionID, nil
 }
+
+func (repo repository) ExistsSince(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	kind model.ActionType,
+	sinceOccurredAt time.Time,
+) (bool, error) {
+	exists, err := repo.queries.ExistsActionSince(ctx, gen.ExistsActionSinceParams{
+		IngestID:        ingestID,
+		Kind:            int16(kind),
+		SinceOccurredAt: sinceOccurredAt,
+	})
+	if err != nil {
+		return false, shared.MapPostgreError("ExistsSince", err)
+	}
+
+	return exists, nil
+}

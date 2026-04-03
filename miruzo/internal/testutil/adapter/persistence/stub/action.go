@@ -13,6 +13,12 @@ type actionRepositoryCreateArgs struct {
 	OccurredAt time.Time
 }
 
+type actionRepositoryExistsSinceArgs struct {
+	IngestID        model.IngestIDType
+	Type            model.ActionType
+	SinceOccurredAt time.Time
+}
+
 type actionStorage struct {
 	Store  []model.Action
 	NextID model.ActionIDType
@@ -21,8 +27,10 @@ type actionStorage struct {
 type actionRepository struct {
 	actionStorage
 
-	CreateError error
-	CreateArgs  []actionRepositoryCreateArgs
+	CreateError      error
+	CreateArgs       []actionRepositoryCreateArgs
+	ExistsSinceError error
+	ExistsSinceArgs  []actionRepositoryExistsSinceArgs
 }
 
 func NewStubActionRepository() *actionRepository {
@@ -79,4 +87,39 @@ func (repo *actionRepository) Create(
 
 	repo.NextID += 1
 	return action.ID, nil
+}
+
+func (repo *actionRepository) ExistsSince(
+	_ context.Context,
+	ingestID model.IngestIDType,
+	kind model.ActionType,
+	sinceOccurredAt time.Time,
+) (bool, error) {
+	repo.ExistsSinceArgs = append(repo.ExistsSinceArgs, actionRepositoryExistsSinceArgs{
+		IngestID:        ingestID,
+		Type:            kind,
+		SinceOccurredAt: sinceOccurredAt,
+	})
+
+	if repo.ExistsSinceError != nil {
+		return false, repo.ExistsSinceError
+	}
+
+	for _, action := range repo.Store {
+		if action.IngestID != ingestID {
+			continue
+		}
+
+		if action.Type != kind {
+			continue
+		}
+
+		if action.OccurredAt.Before(sinceOccurredAt) {
+			continue
+		}
+
+		return true, nil
+	}
+
+	return false, nil
 }
