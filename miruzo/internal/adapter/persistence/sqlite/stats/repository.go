@@ -22,6 +22,28 @@ func NewRepository(queries *gen.Queries) repository {
 	}
 }
 
+func (repo repository) ApplyDecay(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	score model.ScoreType,
+	evaluatedAt time.Time,
+) error {
+	rowCount, err := repo.queries.ApplyDecayToStats(ctx, gen.ApplyDecayToStatsParams{
+		IngestID:    ingestID,
+		Score:       score,
+		EvaluatedAt: shared.NullTimeFromTime(evaluatedAt),
+	})
+	if err != nil {
+		return shared.MapSQLiteError("ApplyDecay", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
+}
+
 func (repo repository) ApplyHallOfFameGranted(
 	ctx context.Context,
 	ingestID model.IngestIDType,

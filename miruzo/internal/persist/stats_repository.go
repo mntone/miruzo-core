@@ -8,6 +8,13 @@ import (
 )
 
 type StatsRepository interface {
+	ApplyDecay(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		score model.ScoreType,
+		evaluatedAt time.Time,
+	) error
+
 	ApplyHallOfFameGranted(
 		ctx context.Context,
 		ingestID model.IngestIDType,

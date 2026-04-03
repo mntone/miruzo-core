@@ -10,6 +10,12 @@ import (
 	"github.com/samber/mo"
 )
 
+type statsRepositoryApplyDecayArgs struct {
+	IngestID    model.IngestIDType
+	Score       model.ScoreType
+	EvaluatedAt time.Time
+}
+
 type statsRepositoryApplyHallOfFameGrantedArgs struct {
 	IngestID                 model.IngestIDType
 	HallOfFameAt             time.Time
@@ -44,6 +50,8 @@ type statsStorage struct {
 type statsRepository struct {
 	statsStorage
 
+	ApplyDecayError             error
+	ApplyDecayArgs              []statsRepositoryApplyDecayArgs
 	ApplyHallOfFameGrantedError error
 	ApplyHallOfFameGrantedArgs  []statsRepositoryApplyHallOfFameGrantedArgs
 	ApplyHallOfFameRevokedError error
@@ -80,6 +88,35 @@ func (repo statsRepository) snapshot() statsStorage {
 	return statsStorage{
 		Store: store,
 	}
+}
+
+func (repo *statsRepository) ApplyDecay(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	score model.ScoreType,
+	evaluatedAt time.Time,
+) error {
+	repo.ApplyDecayArgs = append(repo.ApplyDecayArgs, statsRepositoryApplyDecayArgs{
+		IngestID:    ingestID,
+		Score:       score,
+		EvaluatedAt: evaluatedAt,
+	})
+
+	if repo.ApplyDecayError != nil {
+		return repo.ApplyDecayError
+	}
+
+	stats, ok := repo.Store[ingestID]
+	if !ok {
+		return persist.ErrConflict
+	}
+
+	stats.Score = score
+	stats.ScoreEvaluated = score
+	stats.ScoreEvaluatedAt = mo.Some(evaluatedAt)
+
+	repo.Store[ingestID] = stats
+	return nil
 }
 
 func (repo *statsRepository) ApplyHallOfFameGranted(

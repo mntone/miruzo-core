@@ -14,6 +14,14 @@ func TestStatsRepositoryStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
 	testutilSQLite.NewStatsSuite(t).RunTestStatsSchemaRejectsInvalidScoreEvaluated(t)
 }
 
+func TestStatsRepositoryApplyDecayUpdates(t *testing.T) {
+	testutilSQLite.NewStatsSuite(t).RunTestApplyDecayUpdates(t)
+}
+
+func TestStatsRepositoryApplyDecayReturnsConflictWithoutStats(t *testing.T) {
+	testutilSQLite.NewStatsSuite(t).RunTestApplyDecayReturnsConflictWithoutStats(t)
+}
+
 func TestStatsRepositoryApplyHallOfFameGrantedUpdates(t *testing.T) {
 	testutilSQLite.NewStatsSuite(t).RunTestApplyHallOfFameGrantedUpdates(t)
 }
