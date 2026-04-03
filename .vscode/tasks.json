@@ -20,7 +20,7 @@
 			"isBackground": true
 		},
 		{
-			"label": "miruzo (Go): go build (Debug)",
+			"label": "miruzo-api: build (Debug)",
 			"type": "shell",
 			"command": "go",
 			"options": {
@@ -45,7 +45,7 @@
 			}
 		},
 		{
-			"label": "miruzo (Go): watch (air)",
+			"label": "miruzo-api: watch (Debug)",
 			"type": "shell",
 			"command": "air",
 			"options": {
@@ -60,6 +60,28 @@
 			"isBackground": true,
 			"runOptions": {
 				"runOn": "folderOpen"
+			}
+		},
+		{
+			"label": "miruzo-cli: build (Debug)",
+			"type": "shell",
+			"command": "go",
+			"options": {
+				"cwd": "${workspaceFolder}/miruzo"
+			},
+			"args": [
+				"build",
+				"-gcflags=all=-N -l",
+				"-tags=dev",
+				"-o",
+				"./bin/miruzo-cli",
+				"./cmd/miruzo-cli",
+			],
+			"problemMatcher": "$go",
+			"group": "build",
+			"presentation": {
+				"reveal": "silent",
+				"panel": "shared"
 			}
 		},
 		{
