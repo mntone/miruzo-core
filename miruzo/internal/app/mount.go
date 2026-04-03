@@ -31,6 +31,11 @@ func buildScoreCalculator(
 ) score.Calculator {
 	return score.New(
 		dailyResolver,
+		cfg.DailyDecayNoAccessAdjustment,
+		cfg.DailyDecayPenalty,
+		cfg.DailyDecayInterval10dPenalty,
+		cfg.DailyDecayHighScorePenalty,
+		cfg.DailyDecayHighScoreThreshold,
 		cfg.ViewBonusAtFirst,
 		cfg.ViewBonusByDays,
 		cfg.ViewBonusFallback,

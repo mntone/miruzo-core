@@ -13,6 +13,7 @@ import (
 
 var calc = score.New(
 	period.NewDailyResolver(5*time.Hour),
+	1, -2, -3, -3, 180,
 	10,
 	[]model.ScoreViewBonusRule{
 		{Days: 1, Bonus: 10},
@@ -24,6 +25,63 @@ var calc = score.New(
 	1, -1,
 	20, -18,
 )
+
+func TestScoreCalculatorDailyDecay(t *testing.T) {
+	tests := []struct {
+		name  string
+		score model.ScoreType
+		time  time.Time
+		want  model.ScoreType
+		neg   bool
+	}{
+		{
+			name:  "LastView=-1d (future period), HighScore=No",
+			score: 140,
+			time:  time.Date(2026, 1, 31, 3, 4, 30, 0, time.UTC),
+			want:  138,
+			neg:   true,
+		},
+		{
+			name:  "LastView=0d (current period), HighScore=No",
+			score: 120,
+			time:  time.Date(2026, 1, 29, 5, 0, 0, 0, time.UTC),
+			want:  118,
+		},
+		{
+			name:  "LastView=1d (previous period), HighScore=No",
+			score: 150,
+			time:  time.Date(2026, 1, 29, 3, 4, 30, 0, time.UTC),
+			want:  148,
+		},
+		{
+			name:  "LastView=5d, HighScore=Yes",
+			score: 200,
+			time:  time.Date(2026, 1, 25, 3, 4, 30, 0, time.UTC),
+			want:  198,
+		},
+		{
+			name:  "LastView=10d, HighScore=No",
+			score: 100,
+			time:  time.Date(2026, 1, 20, 3, 4, 30, 0, time.UTC),
+			want:  98,
+		},
+		{
+			name:  "LastView=10d, HighScore=Yes",
+			score: 180,
+			time:  time.Date(2026, 1, 20, 3, 4, 30, 0, time.UTC),
+			want:  178,
+		},
+	}
+
+	evaluatedAt := time.Date(2026, 1, 29, 5, 0, 0, 0, time.UTC)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, negative := calc.DailyDecay(tt.score, tt.time, evaluatedAt)
+			assert.Equal(t, "DailyDecay()", got, tt.want)
+			assert.Equal(t, "DailyDecay() negative", negative, tt.neg)
+		})
+	}
+}
 
 func TestScoreCalculatorViewDelta(t *testing.T) {
 	tests := []struct {
@@ -82,8 +140,8 @@ func TestScoreCalculatorViewDelta(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, negative := calc.ViewDelta(mo.Some(tt.time), evaluatedAt)
-			assert.Equal(t, "ViewDelta()[0]", got, tt.want)
-			assert.Equal(t, "ViewDelta()[1]", negative, false)
+			assert.Equal(t, "ViewDelta()", got, tt.want)
+			assert.Equal(t, "ViewDelta() negative", negative, false)
 		})
 	}
 }

@@ -13,6 +13,14 @@ type ScoreConfig struct {
 	MaximumScore          model.ScoreType `mapstructure:"maximum_score"`
 	EngagedScoreThreshold model.ScoreType `mapstructure:"engaged_threshold"`
 
+	// --- daily decay ---
+
+	DailyDecayNoAccessAdjustment model.ScoreType `mapstructure:"daily_decay_no_access_adjustment"`
+	DailyDecayPenalty            model.ScoreType `mapstructure:"daily_decay_penalty"`
+	DailyDecayInterval10dPenalty model.ScoreType `mapstructure:"daily_decay_interval10d_penalty"`
+	DailyDecayHighScorePenalty   model.ScoreType `mapstructure:"daily_decay_high_score_penalty"`
+	DailyDecayHighScoreThreshold model.ScoreType `mapstructure:"daily_decay_high_score_threshold"`
+
 	// --- view ---
 
 	ViewBonusAtFirst  model.ScoreType            `mapstructure:"view_bonus_at_first"`
@@ -41,6 +49,14 @@ func DefaultScoreConfig() ScoreConfig {
 		PublicMinimumScore:    0,
 		MaximumScore:          200,
 		EngagedScoreThreshold: 160,
+
+		// --- daily decay ---
+
+		DailyDecayNoAccessAdjustment: 1,
+		DailyDecayPenalty:            -2,
+		DailyDecayInterval10dPenalty: -3,
+		DailyDecayHighScorePenalty:   -3,
+		DailyDecayHighScoreThreshold: 180, // == HallOfFameScoreThreshold
 
 		// --- view ---
 
