@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -47,5 +48,13 @@ func LenIs(t *testing.T, name string, got any, wantLen int) {
 	t.Helper()
 	if gotLen := rlen(got); gotLen != wantLen {
 		t.Fatalf("len(%s) = %d, want %d", name, gotLen, wantLen)
+	}
+}
+
+func EqualSlice[T comparable](t *testing.T, name string, got, want []T) {
+	t.Helper()
+	LenIs(t, name, got, len(want))
+	for i := range len(got) {
+		Equal(t, fmt.Sprintf("%s[%d]", name, i), got[i], want[i])
 	}
 }

@@ -7,6 +7,7 @@ type Repositories struct {
 	ImageList ImageListRepository
 	Settings  SettingsRepository
 	Stats     StatsRepository
+	StatsList StatsListRepository
 	User      UserRepository
 	View      ViewRepository
 }

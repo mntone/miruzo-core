@@ -51,3 +51,12 @@ func TestLenIsPanicsForUnsupportedType(t *testing.T) {
 
 	assert.LenIs(t, "value", 10, 1)
 }
+
+func TestEqualSlice(t *testing.T) {
+	requirePass(t, "equal int slice", func(t *testing.T) {
+		assert.EqualSlice(t, "ids", []int{1, 2, 4, 5}, []int{1, 2, 4, 5})
+	})
+	requirePass(t, "equal empty slice", func(t *testing.T) {
+		assert.EqualSlice(t, "empty", []string{}, []string{})
+	})
+}

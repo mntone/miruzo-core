@@ -191,6 +191,20 @@ func (ste *SuiteFactory) NewStats(
 	}
 }
 
+func (ste *SuiteFactory) NewStatsList(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.StatsListSuite {
+	t.Helper()
+
+	queries := gen.New(ste.pool)
+	return testutilPersistence.StatsListSuite{
+		Context:    ctx,
+		Operations: ste.newOperations(ctx, ste.pool, queries),
+		Repository: postgres.NewStatsListRepository(queries),
+	}
+}
+
 func (ste *SuiteFactory) NewView(
 	t *testing.T,
 	ctx context.Context,

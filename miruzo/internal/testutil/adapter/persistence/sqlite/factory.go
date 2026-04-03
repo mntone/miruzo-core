@@ -103,6 +103,19 @@ func NewStatsSuite(t *testing.T) testutilPersistence.StatsSuite {
 	}
 }
 
+func NewStatsListSuite(t *testing.T) testutilPersistence.StatsListSuite {
+	t.Helper()
+
+	ctx := context.Background()
+	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
+	return testutilPersistence.StatsListSuite{
+		Context:    ctx,
+		Operations: newOperations(ctx, db, queries),
+		Repository: sqlite.NewStatsListRepository(queries),
+	}
+}
+
 func NewViewSuite(t *testing.T) testutilPersistence.ViewSuite {
 	t.Helper()
 
