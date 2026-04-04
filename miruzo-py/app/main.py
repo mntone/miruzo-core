@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from datetime import timedelta
 from logging import getLogger
 from typing import AsyncGenerator
 
@@ -8,15 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from app.config.environments import env
-from app.databases import create_session, init_database
-from app.domain.decay_score.calculator import DecayScoreCalculator
-from app.infrastructures.scheduler import create_scheduler, register_daily_job
-from app.jobs.daily_decay import DailyDecayJob
-from app.persist.jobs.factory import create_job_repository
-from app.services.activities.daily_decay import DailyDecayRunner
+from app.databases import init_database
 from app.services.images.variants.bootstrap import configure_pillow
 from app.services.ingests.bootstrap import ensure_ingest_layout
-from app.services.jobs.manager import JobManager
 from app.services.settings.factory import build_daily_period_resolver
 
 log = getLogger('uvicorn.error')
@@ -28,38 +21,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 	init_database()
 	log.info(f'Starting miruzo API in {env.environment.value} mode')
 
-	scheduler = create_scheduler()
-
-	job_manager = JobManager(
-		session_factory=create_session,
-		job_repo_factory=create_job_repository,
-		min_interval=timedelta(minutes=3),
-	)
-
 	period_resolver = build_daily_period_resolver(
 		day_start_offset=env.period.day_start_offset,
 		initial_location=env.period.initial_location,
 	)
-	score_decay = DailyDecayJob(
-		DailyDecayRunner(
-			period_resolver=period_resolver,
-			score_calculator=DecayScoreCalculator(env.score),
-		),
-		session_factory=create_session,
-	)
-
-	register_daily_job(
-		scheduler=scheduler,
-		job_manager=job_manager,
-		job=score_decay,
-		trigger_offset=period_resolver.day_start_offset,
-	)
 
 	app.state['period_resolver'] = period_resolver
 
-	scheduler.start()  # pyright: ignore[reportUnknownMemberType]
 	yield
-	scheduler.shutdown(wait=False)  # pyright: ignore[reportUnknownMemberType]
 
 
 configure_pillow()
