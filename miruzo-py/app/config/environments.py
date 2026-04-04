@@ -4,7 +4,6 @@ from pathlib import Path
 from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.config.period import PeriodConfig
 from app.config.score import ScoreConfig
 from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
 from app.utils.files.permissions import ensure_directory_access
@@ -42,7 +41,6 @@ class Settings(BaseSettings):
 	gataku_symlink_dirname: str = 'gataku'
 
 	score: ScoreConfig = ScoreConfig()
-	period: PeriodConfig = PeriodConfig()
 	variant_layers: tuple[VariantLayerSpec, ...] = DEFAULT_VARIANT_LAYERS
 
 	@property
