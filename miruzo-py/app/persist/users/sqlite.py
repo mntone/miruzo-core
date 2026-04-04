@@ -1,5 +1,0 @@
-from app.databases.mixins.sqlite import SQLiteUniqueViolationMixin
-from app.persist.users.base import BaseUserRepository
-
-
-class SQLiteUserRepository(SQLiteUniqueViolationMixin, BaseUserRepository): ...

@@ -17,7 +17,6 @@ from sqlmodel import Field as SQLField
 from sqlmodel import Relationship, SQLModel
 
 from app.config.constants import (
-	DAILY_LOVE_USED_MAXIMUM,
 	EXECUTION_MAXIMUM,
 	INGEST_ID_MAXIMUM,
 	INGEST_ID_MINIMUM,
@@ -224,22 +223,3 @@ class JobRecord(SQLModel, table=True):
 	name: str = SQLField(min_length=8, max_length=16, primary_key=True)
 	started_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
 	finished_at: datetime | None = SQLField(default=None, sa_column=Column(UTCDateTime()))
-
-
-@final
-class UserRecord(SQLModel, table=True):
-	__tablename__ = 'users'
-
-	id: int = SQLField(default=None, primary_key=True, nullable=False)
-	daily_love_used: int = SQLField(
-		default=0,
-		ge=0,
-		le=DAILY_LOVE_USED_MAXIMUM,
-		sa_column=Column(
-			SmallInteger,
-			CheckConstraint('daily_love_used >= 0'),
-			autoincrement=False,
-			default=0,
-			nullable=False,
-		),
-	)
