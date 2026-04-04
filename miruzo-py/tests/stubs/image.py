@@ -8,9 +8,5 @@ class StubImageRepository:
 
 		self.insert_called_with: ImageRecord | None = None
 
-	def select_by_ingest_id(self, ingest_id: int) -> ImageRecord | None:
-		self.one_called_with = ingest_id
-		return self.one_response
-
 	def insert(self, image: ImageRecord) -> None:
 		self.insert_called_with = image
