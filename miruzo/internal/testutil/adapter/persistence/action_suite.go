@@ -97,7 +97,7 @@ func (ste ActionSuite) RunTestActionSchemaRejectsInvalidOccurredAt(t *testing.T)
 	}
 }
 
-func (ste ActionSuite) RunTestCreateAction(t *testing.T) {
+func (ste ActionSuite) RunTestCreate(t *testing.T) {
 	t.Helper()
 
 	ingest := ste.Operations.MustAddIngest(t, NewIngestFixture(1, actionSuiteBaseTimeUTC))
@@ -108,7 +108,7 @@ func (ste ActionSuite) RunTestCreateAction(t *testing.T) {
 		model.ActionTypeView,
 		suiteBaseTimeUTC.Add(2*time.Hour),
 	)
-	assert.NilError(t, "CreateAction() error", err)
+	assert.NilError(t, "Create() error", err)
 	assert.Equal(t, "actionID", actionID, 1)
 }
 
