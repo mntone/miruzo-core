@@ -4,7 +4,6 @@ dynamic = ["version"]
 license = "GPL-3.0-or-later"
 classifiers = [
 	"Development Status :: 3 - Alpha",
-	"Framework :: FastAPI",
 	"Framework :: Pydantic :: 2",
 	"Framework :: Pytest",
 	"Programming Language :: Python :: 3",
@@ -16,8 +15,6 @@ classifiers = [
 requires-python = ">=3.10"
 
 [project.scripts]
-miruzo-api = "scripts.api:main"
-miruzo-api-dev = "scripts.api:main_dev"
 miruzo-import-gataku = "scripts.gataku_import:main"
 
 [project.urls]

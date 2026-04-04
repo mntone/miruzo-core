@@ -2,21 +2,6 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "miruzo (Python) API server debug",
-			"type": "debugpy",
-			"cwd": "${workspaceFolder}/miruzo-py",
-			"request": "launch",
-			"module": "scripts.api",
-			"args": [
-				"--host",
-				"${input:host}",
-				"--port",
-				"${input:port}",
-				"--dev",
-			],
-			"jinja": true
-		},
-		{
 			"name": "gataku-import debug",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}/miruzo-py",
