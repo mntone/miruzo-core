@@ -126,6 +126,15 @@ func (repo repository) TruncateActions(ctx context.Context) error {
 	return nil
 }
 
+func (repo repository) TruncateJobs(ctx context.Context) error {
+	_, err := repo.pool.Exec(ctx, "TRUNCATE TABLE jobs")
+	if err != nil {
+		return shared.MapPostgreDeleteError("TruncateJobs", err)
+	}
+
+	return nil
+}
+
 func (repo repository) TruncateStats(ctx context.Context) error {
 	_, err := repo.pool.Exec(ctx, "TRUNCATE TABLE stats")
 	if err != nil {

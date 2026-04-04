@@ -140,7 +140,7 @@ CREATE TABLE jobs(
 			NOT NULL
 			CHECK (length(name) BETWEEN 8 AND 16),
 	started_at TEXT NOT NULL,
-	finished_at TEXT NOT NULL
+	finished_at TEXT
 ) STRICT;
 
 -- Create users table

@@ -184,6 +184,15 @@ func (ops Operations) MustTruncateActions(t testing.TB) {
 	}
 }
 
+func (ops Operations) MustTruncateJobs(t testing.TB) {
+	t.Helper()
+
+	err := ops.test.TruncateJobs(ops.ctx)
+	if err != nil {
+		t.Fatalf("truncate jobs: %v", err)
+	}
+}
+
 func (ops Operations) MustTruncateStats(t testing.TB) {
 	t.Helper()
 

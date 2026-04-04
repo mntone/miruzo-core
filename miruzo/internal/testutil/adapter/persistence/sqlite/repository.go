@@ -157,6 +157,15 @@ func (repo repository) TruncateActions(ctx context.Context) error {
 	return nil
 }
 
+func (repo repository) TruncateJobs(ctx context.Context) error {
+	_, err := repo.db.ExecContext(ctx, "DELETE FROM jobs")
+	if err != nil {
+		return shared.MapSQLiteDeleteError("TruncateJobs", err)
+	}
+
+	return nil
+}
+
 func (repo repository) TruncateStats(ctx context.Context) error {
 	_, err := repo.db.ExecContext(ctx, "DELETE FROM stats")
 	if err != nil {

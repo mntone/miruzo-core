@@ -133,12 +133,12 @@ CREATE TABLE actions(
 
 -- Create jobs table
 CREATE TABLE jobs(
-	name VARCHAR PRIMARY KEY
+	name CHAR(16) PRIMARY KEY
 		CONSTRAINT ck_jobs_name
 			NOT NULL
-			CHECK (length(name) BETWEEN 8 AND 16),
+			CHECK (length(name) >= 8),
 	started_at FINITE_TIMESTAMP NOT NULL,
-	finished_at FINITE_TIMESTAMP NOT NULL
+	finished_at FINITE_TIMESTAMP
 );
 
 -- Create users table

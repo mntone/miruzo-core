@@ -5,6 +5,7 @@ import "context"
 type Repositories struct {
 	Action    ActionRepository
 	ImageList ImageListRepository
+	Job       JobRepository
 	Settings  SettingsRepository
 	Stats     StatsRepository
 	StatsList StatsListRepository

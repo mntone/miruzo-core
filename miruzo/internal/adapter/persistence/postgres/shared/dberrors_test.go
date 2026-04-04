@@ -149,6 +149,11 @@ func TestMapPostgreErrorMapsViolations(t *testing.T) {
 		wantErr  error
 	}{
 		{
+			name:     "string_data_right_truncation",
+			sqlState: "22001",
+			wantErr:  persist.ErrCheckViolation,
+		},
+		{
 			name:     "numeric_value_out_of_range",
 			sqlState: "22003",
 			wantErr:  persist.ErrCheckViolation,
@@ -224,7 +229,7 @@ func TestMapPostgreDeleteErrorMapsForeignKeyViolationToReferenced(t *testing.T) 
 func TestMapPostgreErrorOtherErrorIsNotMapped(t *testing.T) {
 	err := shared.MapPostgreError(
 		"ListLatest",
-		&pgconn.PgError{Code: "22001"},
+		&pgconn.PgError{Code: "22026"},
 	)
 
 	if errors.Is(err, persist.ErrRecoverableConflict) {
@@ -262,7 +267,7 @@ func TestMapPostgreErrorOtherErrorIsNotMapped(t *testing.T) {
 	if !errors.As(err, &pgError) {
 		t.Fatalf("expected *pgconn.PgError, got %T", err)
 	}
-	if pgError.Code != "22001" {
+	if pgError.Code != "22026" {
 		t.Fatalf("unexpected sqlstate: %s", pgError.Code)
 	}
 }

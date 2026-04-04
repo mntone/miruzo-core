@@ -63,6 +63,19 @@ func NewImageListSuite(t *testing.T) testutilPersistence.ImageListSuite {
 	}
 }
 
+func NewJobSuite(t *testing.T) testutilPersistence.JobSuite {
+	t.Helper()
+
+	ctx := context.Background()
+	db := setupDatabase(t, ctx)
+	queries := gen.New(db)
+	return testutilPersistence.JobSuite{
+		Context:    ctx,
+		Operations: newOperations(ctx, db, queries),
+		Repository: sqlite.NewJobRepository(queries),
+	}
+}
+
 func NewUserSuite(t *testing.T) testutilPersistence.UserSuite {
 	t.Helper()
 

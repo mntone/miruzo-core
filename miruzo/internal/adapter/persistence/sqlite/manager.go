@@ -29,6 +29,7 @@ func newPersistenceManager(db *sql.DB) persistenceManager {
 		repos: persist.Repositories{
 			Action:    action.NewRepository(queries),
 			ImageList: imagelist.NewRepository(queries),
+			Job:       NewJobRepository(queries),
 			Settings:  NewSettingsRepository(queries),
 			Stats:     stats.NewRepository(queries),
 			StatsList: NewStatsListRepository(queries),
@@ -76,6 +77,7 @@ func (manager persistenceManager) Session(
 	repos := persist.Repositories{
 		Action:    action.NewRepository(queries),
 		ImageList: imagelist.NewRepository(queries),
+		Job:       NewJobRepository(queries),
 		Settings:  NewSettingsRepository(queries),
 		Stats:     stats.NewRepository(queries),
 		StatsList: NewStatsListRepository(queries),

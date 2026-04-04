@@ -9,6 +9,7 @@ import (
 
 type PersistenceManager struct {
 	Action       *actionRepository
+	Job          *jobRepository
 	Stats        *statsRepository
 	User         *UserRepository
 	Repositories persist.Repositories
@@ -19,15 +20,18 @@ func NewStubPersistenceManager(
 	statsEntries ...model.Stats,
 ) PersistenceManager {
 	action := NewStubActionRepository()
+	job := NewStubJobRepository()
 	stats := NewStubStatsRepository(statsEntries...)
 	user := NewStubUserRepository(dailyLoveUsed)
 	return PersistenceManager{
 		Action: action,
+		Job:    job,
 		Stats:  stats,
 		User:   user,
 		Repositories: persist.Repositories{
 			Action:    action,
 			ImageList: nil,
+			Job:       job,
 			Settings:  nil,
 			Stats:     stats,
 			StatsList: stats,
@@ -51,6 +55,7 @@ func (mgr PersistenceManager) Session(
 ) error {
 	// Get snapshots
 	a := mgr.Action.snapshot()
+	j := mgr.Job.snapshot()
 	s := mgr.Stats.snapshot()
 	u := mgr.User.snapshot()
 
@@ -58,6 +63,7 @@ func (mgr PersistenceManager) Session(
 	if err != nil {
 		// Rollback
 		mgr.Action.actionStorage = a
+		mgr.Job.jobStorage = j
 		mgr.Stats.statsStorage = s
 		mgr.User.userStorage = u
 	}

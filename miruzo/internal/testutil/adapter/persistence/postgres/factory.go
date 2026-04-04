@@ -135,6 +135,20 @@ func (ste *SuiteFactory) NewImageList(
 	}
 }
 
+func (ste *SuiteFactory) NewJob(
+	t *testing.T,
+	ctx context.Context,
+) testutilPersistence.JobSuite {
+	t.Helper()
+
+	queries := gen.New(ste.pool)
+	return testutilPersistence.JobSuite{
+		Context:    ctx,
+		Operations: ste.newOperations(ctx, ste.pool, queries),
+		Repository: postgres.NewJobRepository(queries),
+	}
+}
+
 func (ste *SuiteFactory) NewIngest(
 	t *testing.T,
 	ctx context.Context,

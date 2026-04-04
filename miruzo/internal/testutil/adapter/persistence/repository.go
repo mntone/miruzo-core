@@ -44,5 +44,6 @@ type TestRepository interface {
 	ExecuteStatementAndReturnRowCount(ctx context.Context, stmt string, delete bool) (int64, error)
 
 	TruncateActions(ctx context.Context) error
+	TruncateJobs(ctx context.Context) error
 	TruncateStats(ctx context.Context) error
 }
