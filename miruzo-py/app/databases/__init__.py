@@ -6,7 +6,7 @@ from app.databases.database import (
 )
 from app.databases.sqlite_version import (
 	parse_sqlite_version,
-	verify_sqlite_supports_returning,
+	verify_sqlite_supports_returning_and_strict,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
 	'get_session',
 	'init_database',
 	'parse_sqlite_version',
-	'verify_sqlite_supports_returning',
+	'verify_sqlite_supports_returning_and_strict',
 ]

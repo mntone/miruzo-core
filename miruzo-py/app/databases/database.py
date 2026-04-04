@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
 from app.config.environments import DatabaseBackend, env
-from app.databases.sqlite_version import verify_sqlite_supports_returning
+from app.databases.sqlite_version import verify_sqlite_supports_returning_and_strict
 
 if env.database_backend == DatabaseBackend.SQLITE:
 	engine = create_engine(
@@ -18,7 +18,7 @@ if env.database_backend == DatabaseBackend.SQLITE:
 		sqlite_version = conn.exec_driver_sql('SELECT sqlite_version();').scalar_one()
 		if not isinstance(sqlite_version, str):
 			raise RuntimeError('Failed to read SQLite version')
-		verify_sqlite_supports_returning(sqlite_version)
+		verify_sqlite_supports_returning_and_strict(sqlite_version)
 
 		conn.exec_driver_sql('PRAGMA journal_mode=WAL;')
 		conn.exec_driver_sql('PRAGMA synchronous=NORMAL;')

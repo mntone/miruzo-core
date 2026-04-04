@@ -13,10 +13,10 @@ def parse_sqlite_version(version: str) -> tuple[int, int, int]:
 	return major, minor, patch
 
 
-def verify_sqlite_supports_returning(version: str) -> None:
+def verify_sqlite_supports_returning_and_strict(version: str) -> None:
 	parsed = parse_sqlite_version(version)
-	min_required = (3, 35, 0)
+	min_required = (3, 37, 0)
 	if parsed < min_required:
 		raise RuntimeError(
-			f'SQLite 3.35.0+ is required for RETURNING support: detected {version}',
+			f'SQLite 3.37.0+ is required for RETURNING & STRICT support: detected {version}',
 		)
