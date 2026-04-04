@@ -25,8 +25,8 @@ propose changes. For day-to-day commands (install, dev server, tests) refer to
   (`tests/services/images/repository/test_postgre.py`). All other development
   can be done without Docker.
 - macOS, Linux, and WSL are supported environments. API server runs via
-  `cd miruzo-py && python -m scripts.api --dev` and that SQLite 3.35.0+ is
-  available (for importer + tests; `RETURNING` support is required).
+  `cd miruzo-py && python -m scripts.api --dev` and that SQLite 3.37.0+ is
+  available (for importer + tests; `RETURNING` and `STRICT` support is required).
   Verify Python-linked SQLite with
   `python -c "import sqlite3; print(sqlite3.sqlite_version)"`.
 - To exercise importer pipelines, prepare the directories referenced by

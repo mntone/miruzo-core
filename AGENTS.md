@@ -13,7 +13,8 @@ who is executing them.
   compatible with Python 3.10+, so avoid newer-only language features. When
   defining enums, prefer `class Foo(int, Enum)` / `class Bar(str, Enum)` rather
   than Python 3.11+ helpers such as `IntEnum` or `StrEnum`.
-- SQLite 3.35.0+ when using the SQLite backend (`RETURNING` support required).
+- SQLite 3.37.0+ when using the SQLite backend (`RETURNING` and `STRICT` support
+  required).
   Verify Python-linked SQLite via
   `python -c "import sqlite3; print(sqlite3.sqlite_version)"`.
 - Install dependencies:

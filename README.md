@@ -43,7 +43,7 @@ Run miruzo-core locally by following these steps.
 - Python 3.13 (respect [`.python-version`](./.python-version); keep code 3.10+
   compatible)
 - Git
-- SQLite 3.35.0+ when using the SQLite backend (`RETURNING` support)
+- SQLite 3.37.0+ when using the SQLite backend (`RETURNING` and `STRICT` support)
   - verify Python-linked SQLite:
     `python -c "import sqlite3; print(sqlite3.sqlite_version)"`
 - Docker (only if you need to run the PostgreSQL repository tests)
