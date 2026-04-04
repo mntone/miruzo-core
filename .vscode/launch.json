@@ -2,6 +2,26 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "miruzo-api (Debug)",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/miruzo/cmd/miruzo-api/main.go",
+			"cwd": "${workspaceFolder}/miruzo"
+		},
+		{
+			"name": "miruzo-cli job daily-decay (Debug)",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/miruzo/cmd/miruzo-cli",
+			"cwd": "${workspaceFolder}/miruzo",
+			"args": [
+				"job",
+				"daily-decay",
+			],
+		},
+		{
 			"name": "gataku-import debug",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}/miruzo-py",
@@ -13,14 +33,6 @@
 				"--report-variants"
 			],
 			"jinja": true
-		},
-		{
-			"name": "miruzo (Go) API server debug",
-			"type": "go",
-			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/miruzo/cmd/miruzo-api/main.go",
-			"cwd": "${workspaceFolder}/miruzo"
 		}
 	],
 	"inputs": [

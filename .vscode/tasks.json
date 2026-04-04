@@ -2,24 +2,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "miruzo (Python): dev",
-			"type": "shell",
-			"command": "python -c \"from scripts.api import main_dev; main_dev()\"",
-			"options": {
-				"cwd": "${workspaceFolder}/miruzo-py"
-			},
-			"problemMatcher": [],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"isBackground": true
-		},
-		{
 			"label": "miruzo-api: build (Debug)",
 			"type": "shell",
 			"command": "go",
