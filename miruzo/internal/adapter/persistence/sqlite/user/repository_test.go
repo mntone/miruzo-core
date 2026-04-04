@@ -41,3 +41,11 @@ func TestUserRepositoryDecrementDailyLoveUsedReturnsNotFound(t *testing.T) {
 func TestUserRepositoryDecrementDailyLoveUsedReturnsQuotaUnderflow(t *testing.T) {
 	testutilSQLite.NewUserSuite(t).RunTestDecrementDailyLoveUsedReturnsQuotaUnderflow(t)
 }
+
+func TestUserRepositoryResetDailyLoveUsedResets(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestResetDailyLoveUsedResets(t)
+}
+
+func TestUserRepositoryResetDailyLoveUsedReturnsNotFound(t *testing.T) {
+	testutilSQLite.NewUserSuite(t).RunTestResetDailyLoveUsedReturnsNotFound(t)
+}

@@ -115,3 +115,27 @@ func (ste UserSuite) RunTestDecrementDailyLoveUsedReturnsQuotaUnderflow(t *testi
 	_, err := ste.Repository.DecrementDailyLoveUsed(ste.Context)
 	assert.ErrorIs(t, "DecrementDailyLoveUsed() error", err, persist.ErrQuotaUnderflow)
 }
+
+// --- reset daily_love_used ---
+
+func (ste UserSuite) RunTestResetDailyLoveUsedResets(t *testing.T) {
+	t.Helper()
+
+	ste.Operations.MustSetDailyLoveUsed(t, 5)
+
+	err := ste.Repository.ResetDailyLoveUsed(ste.Context)
+	assert.NilError(t, "ResetDailyLoveUsed() error", err)
+
+	user, err := ste.Repository.Get(ste.Context)
+	assert.NilError(t, "Get() error", err)
+	assert.Equal(t, "Get().DailyLoveUsed", user.DailyLoveUsed, 0)
+}
+
+func (ste UserSuite) RunTestResetDailyLoveUsedReturnsNotFound(t *testing.T) {
+	t.Helper()
+
+	ste.Operations.MustRemoveUser(t)
+
+	err := ste.Repository.ResetDailyLoveUsed(ste.Context)
+	assert.ErrorIs(t, "ResetDailyLoveUsed() error", err, persist.ErrNotFound)
+}

@@ -17,4 +17,6 @@ type UserRepository interface {
 	) (model.QuotaInt, error)
 
 	DecrementDailyLoveUsed(ctx context.Context) (model.QuotaInt, error)
+
+	ResetDailyLoveUsed(ctx context.Context) error
 }

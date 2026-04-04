@@ -18,6 +18,7 @@ type UserRepository struct {
 	IncrementError           error
 	IncrementDailyLoveLimits []model.QuotaInt
 	DecrementError           error
+	ResetError               error
 }
 
 func NewStubUserRepository(dailyLoveUsed int32) *UserRepository {
@@ -78,4 +79,15 @@ func (repo *UserRepository) DecrementDailyLoveUsed(
 
 	repo.DailyLoveUsed -= 1
 	return repo.DailyLoveUsed, nil
+}
+
+func (repo *UserRepository) ResetDailyLoveUsed(
+	ctx context.Context,
+) error {
+	if repo.ResetError != nil {
+		return repo.ResetError
+	}
+
+	repo.DailyLoveUsed = 0
+	return nil
 }

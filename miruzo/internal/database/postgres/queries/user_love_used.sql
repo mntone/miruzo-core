@@ -9,3 +9,6 @@ UPDATE users
 SET daily_love_used=daily_love_used-1
 WHERE id=1
 RETURNING daily_love_used;
+
+-- name: ResetDailyLoveUsed :execrows
+UPDATE users SET daily_love_used=0 WHERE id=1;

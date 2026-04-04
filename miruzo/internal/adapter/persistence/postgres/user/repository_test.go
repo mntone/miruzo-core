@@ -126,3 +126,23 @@ func TestUserRepositoryDecrementDailyLoveUsedReturnsQuotaUnderflow(t *testing.T)
 	factory.MustReset(t, ctx)
 	factory.NewUser(t, ctx).RunTestDecrementDailyLoveUsedReturnsQuotaUnderflow(t)
 }
+
+func TestUserRepositoryResetDailyLoveUsedResets(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestResetDailyLoveUsedResets(t)
+}
+
+func TestUserRepositoryResetDailyLoveUsedReturnsNotFound(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewUser(t, ctx).RunTestResetDailyLoveUsedReturnsNotFound(t)
+}

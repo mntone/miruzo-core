@@ -71,3 +71,16 @@ func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (model.QuotaI
 
 	return model.QuotaInt(dailyLoveUsed), nil
 }
+
+func (repo repository) ResetDailyLoveUsed(ctx context.Context) error {
+	rowCount, err := repo.queries.ResetDailyLoveUsed(ctx)
+	if err != nil {
+		return shared.MapPostgreError("ResetDailyLoveUsed", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrNotFound
+	}
+
+	return nil
+}
