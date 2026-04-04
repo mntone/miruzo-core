@@ -25,7 +25,7 @@ import (
 	viewService "github.com/mntone/miruzo-core/miruzo/internal/service/view"
 )
 
-func buildScoreCalculator(
+func BuildScoreCalculator(
 	dailyResolver period.DailyResolver,
 	cfg config.ScoreConfig,
 ) score.Calculator {
@@ -52,7 +52,7 @@ func mountAPI(
 	cfg config.AppConfig,
 	version string,
 ) {
-	dailyResolver, err := newDailyResolver(
+	dailyResolver, err := NewDailyResolver(
 		context.Background(),
 		cfg.Period,
 		manager.Repos().Settings,
@@ -82,7 +82,7 @@ func mountAPI(
 	imageListAPI.RegisterRoutes(mux, cors, imageListHandler)
 
 	clockProvider := clock.NewSystemProvider()
-	scoreCalculator := buildScoreCalculator(dailyResolver, cfg.Score)
+	scoreCalculator := BuildScoreCalculator(dailyResolver, cfg.Score)
 	viewService, err := viewService.New(
 		manager,
 		readBackoff,

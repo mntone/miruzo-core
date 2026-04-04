@@ -14,7 +14,7 @@ import (
 
 const defaultDayStartOffsetLocal = 5 * time.Hour
 
-func newDailyResolver(
+func NewDailyResolver(
 	ctx context.Context,
 	cfg config.PeriodConfig,
 	settingsRepository persist.SettingsRepository,
