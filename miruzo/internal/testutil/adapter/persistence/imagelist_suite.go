@@ -72,6 +72,8 @@ func assertRowsExcludeIngestID[S model.ImageListCursorScalar](
 type ImageListSuite SuiteBase[persist.ImageListRepository]
 
 func (ste ImageListSuite) RunTestListLatest(t *testing.T) {
+	t.Helper()
+
 	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(4, suiteBaseTimeUTC))
 	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(-1*24*time.Hour)))
 	middleTie := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(2, suiteBaseTimeUTC.Add(-2*24*time.Hour)))
@@ -96,6 +98,8 @@ func (ste ImageListSuite) RunTestListLatest(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListChronological(t *testing.T) {
+	t.Helper()
+
 	latest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(3, suiteBaseTimeUTC.Add(2*24*time.Hour)))
 	middle := ste.Operations.MustAddIngestAndImage(t, NewIngestFixtureWithCapturedAt(
 		4,
@@ -128,6 +132,8 @@ func (ste ImageListSuite) RunTestListChronological(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListRecently(t *testing.T) {
+	t.Helper()
+
 	baseTime := mb.GetDefaultStatsBaseTime()
 
 	withoutLastViewedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(24*time.Hour)))
@@ -163,6 +169,8 @@ func (ste ImageListSuite) RunTestListRecently(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListFirstLove(t *testing.T) {
+	t.Helper()
+
 	baseTime := mb.GetDefaultStatsBaseTime()
 
 	withoutFirstLovedAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(24*time.Hour)))
@@ -198,6 +206,8 @@ func (ste ImageListSuite) RunTestListFirstLove(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListHallOfFame(t *testing.T) {
+	t.Helper()
+
 	baseTime := mb.GetDefaultStatsBaseTime()
 
 	withoutHallOfFameAt := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(5, baseTime.Add(24*time.Hour)))
@@ -233,6 +243,8 @@ func (ste ImageListSuite) RunTestListHallOfFame(t *testing.T) {
 }
 
 func (ste ImageListSuite) RunTestListEngaged(t *testing.T) {
+	t.Helper()
+
 	baseTime := mb.GetDefaultStatsBaseTime()
 	evaluatedAt := baseTime.Add(2 * time.Hour)
 
