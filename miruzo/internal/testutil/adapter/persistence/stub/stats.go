@@ -2,6 +2,7 @@ package stub
 
 import (
 	"context"
+	"iter"
 	"maps"
 	"time"
 
@@ -62,6 +63,9 @@ type statsRepository struct {
 	ApplyLoveCanceledArgs       []statsRepositoryApplyLoveCanceledArgs
 	ApplyViewError              error
 	ApplyViewArgs               []statsRepositoryApplyViewArgs
+
+	IterateStatsForDailyDecayError error
+	IterateStatsForDailyDecayArgs  []int32
 }
 
 func NewStubStatsRepository(stats ...model.Stats) *statsRepository {
@@ -324,4 +328,29 @@ func (repo *statsRepository) ApplyViewWithMilestone(
 
 	repo.Store[ingestID] = stats
 	return nil
+}
+
+func (repo *statsRepository) IterateStatsForDailyDecay(
+	_ context.Context,
+	batchCount int32,
+) iter.Seq2[persist.DailyDecayStats, error] {
+	repo.IterateStatsForDailyDecayArgs = append(repo.IterateStatsForDailyDecayArgs, batchCount)
+
+	return func(yield func(persist.DailyDecayStats, error) bool) {
+		if repo.IterateStatsForDailyDecayError != nil {
+			yield(persist.DailyDecayStats{}, repo.IterateStatsForDailyDecayError)
+			return
+		}
+
+		for _, stats := range repo.Store {
+			ok := yield(persist.DailyDecayStats{
+				IngestID:     stats.IngestID,
+				Score:        stats.Score,
+				LastViewedAt: stats.LastViewedAt,
+			}, nil)
+			if !ok {
+				return
+			}
+		}
+	}
 }

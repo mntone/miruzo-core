@@ -30,7 +30,7 @@ func NewStubPersistenceManager(
 			ImageList: nil,
 			Settings:  nil,
 			Stats:     stats,
-			StatsList: nil,
+			StatsList: stats,
 			User:      user,
 			View:      nil,
 		},
