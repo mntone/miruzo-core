@@ -29,14 +29,3 @@ class ImageKind(int, Enum):
 	PHOTO = 1
 	ILLUST = 2
 	GRAPHIC = 3
-
-
-class ActionKind(int, Enum):
-	UNKNOWN = 0
-	DECAY = 1
-	VIEW = 11
-	MEMO = 12
-	LOVE = 13
-	LOVE_CANCELED = 14
-	HALL_OF_FAME_GRANTED = 15
-	HALL_OF_FAME_REVOKED = 16

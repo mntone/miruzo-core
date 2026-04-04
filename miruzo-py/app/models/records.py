@@ -22,7 +22,7 @@ from app.config.constants import (
 	INGEST_ID_MINIMUM,
 )
 from app.config.environments import env
-from app.models.enums import ActionKind, ImageKind, ProcessStatus, VisibilityStatus
+from app.models.enums import ImageKind, ProcessStatus, VisibilityStatus
 from app.models.types import ExecutionEntry, ExecutionsJSON, UTCDateTime, VariantEntry
 
 
@@ -107,7 +107,6 @@ class IngestRecord(SQLModel, table=True):
 	)
 
 	image: Optional['ImageRecord'] = Relationship(back_populates='ingest')
-	actions: Optional['ActionRecord'] = Relationship(back_populates='ingest', cascade_delete=True)
 	stats: Optional['StatsRecord'] = Relationship(back_populates='ingest', cascade_delete=True)
 
 
@@ -132,27 +131,6 @@ class ImageRecord(SQLModel, table=True):
 	variants: Sequence[VariantEntry] = SQLField(sa_column=Column(JSON))
 
 	ingest: IngestRecord = Relationship(back_populates='image')
-
-
-@final
-class ActionRecord(SQLModel, table=True):
-	__tablename__ = 'actions'
-
-	id: int = SQLField(default=None, primary_key=True, nullable=False)
-	ingest_id: int = SQLField(foreign_key='ingests.id', ondelete='CASCADE', nullable=False)
-	kind: ActionKind = SQLField(
-		sa_column=Column(
-			SmallInteger,
-			autoincrement=False,
-			nullable=False,
-		),
-	)
-	occurred_at: datetime = SQLField(
-		default=datetime.min,
-		sa_column=Column(UTCDateTime(), nullable=False),
-	)
-
-	ingest: IngestRecord = Relationship(back_populates='actions')
 
 
 @final
