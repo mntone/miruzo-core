@@ -161,18 +161,10 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	assert len(image.variants) == 1
 	assert image.variants[0]['format'] == 'webp'
 
-	stats = stats_repo.create_response
+	stats = stats_repo.create_called_with
 	assert stats is not None
 	assert stats.ingest_id == ingest_record.id
-	assert stats.score == stats_repo.create_initial_score
-	assert stats.score_evaluated == stats_repo.create_initial_score
-	assert stats.first_loved_at is None
-	assert stats.last_loved_at is None
-	assert stats.hall_of_fame_at is None
-	assert stats.last_viewed_at is None
-	assert stats.view_count == 0
-	assert stats.view_milestone_count == 0
-	assert stats.view_milestone_archived_at is None
+	assert stats.initial_score == 100
 
 	appended = cast(tuple[int, ExecutionEntry] | None, service._ingest_core.appended)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
 	assert appended is not None
