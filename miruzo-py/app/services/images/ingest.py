@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import final
 
 from app.config.environments import env
-from app.models.enums import IngestMode
-from app.models.records import ImageRecord, IngestRecord
+from app.models.enums import ImageKind, IngestMode
+from app.models.image import Image
+from app.models.records import IngestRecord
 from app.persist.images.protocol import ImageRepository
 from app.persist.ingests.protocol import IngestRepository
 from app.persist.stats.protocol import StatsCreateInput, StatsRepository
@@ -84,16 +85,15 @@ class ImageIngestService:
 					original = map_original_info_to_variant_record(original_file)
 					variants = map_commit_results_to_variants(results)
 
-					image = ImageRecord(
+					image = Image(
 						ingest_id=ingest.id,
 						ingested_at=ingest.ingested_at,
+						kind=ImageKind.UNSPECIFIED,
 						original=original,
 						fallback=None,
 						variants=list(variants),
-						ingest=ingest,
 					)
-
-					self._image_repo.insert(image)
+					self._image_repo.create(image)
 		finally:
 			entry = session.to_entry()
 			self._ingest_core.append_execution(ingest.id, entry)

@@ -173,7 +173,7 @@ class UTCDateTime(TypeDecorator[datetime]):
 class VariantEntry(TypedDict):
 	rel: str
 	layer_id: Annotated[int, Field(ge=0, le=9)]
-	format: Annotated[str, Field(ge=3, le=8)]
+	format: Annotated[str, Field(min_length=3, max_length=8)]
 	codecs: Annotated[str | None, Field(default=None)]
 	bytes: Annotated[int, Field(ge=1)]
 	width: Annotated[int, Field(ge=1, le=MAX_IMAGE_WIDTH)]

@@ -1,7 +1,7 @@
 from typing import Protocol
 
-from app.models.records import ImageRecord
+from app.models.image import Image
 
 
 class ImageRepository(Protocol):
-	def insert(self, image: ImageRecord) -> None: ...
+	def create(self, entry: Image) -> None: ...

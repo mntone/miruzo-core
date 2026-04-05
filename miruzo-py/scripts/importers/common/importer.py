@@ -12,7 +12,7 @@ from app.config.environments import Settings
 from app.config.environments import env as global_env
 from app.databases import engine, init_database
 from app.models.enums import IngestMode
-from app.persist.images.factory import create_image_repository
+from app.persist.images.implementation import create_image_repository
 from app.persist.ingests.factory import create_ingest_repository
 from app.persist.stats.implementation import create_stats_repository
 from app.services.images.ingest import ImageIngestService

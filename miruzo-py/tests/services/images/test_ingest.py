@@ -1,7 +1,6 @@
 from collections.abc import Iterator, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from turtle import update
 from typing import cast
 
 import pytest
@@ -14,7 +13,7 @@ from tests.stubs.stats import StubStatsRepository
 
 from app.config.variant import VariantLayerSpec
 from app.models.enums import ExecutionStatus, IngestMode
-from app.models.records import ImageRecord, IngestRecord
+from app.models.records import IngestRecord
 from app.models.types import ExecutionEntry
 from app.services.images.ingest import ImageIngestService
 from app.services.images.variants.types import (
@@ -50,14 +49,6 @@ class DummyIngestCore:
 	def append_execution(self, ingest_id: int, entry: ExecutionEntry) -> IngestRecord:
 		self.appended = (ingest_id, entry)
 		return self.record
-
-
-class DummyPersist:
-	def __init__(self) -> None:
-		self.recorded: ImageRecord | None = None
-
-	def record(self, image: ImageRecord) -> None:
-		self.recorded = image
 
 
 class DummyPipeline:
@@ -137,7 +128,6 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 		initial_score=100,
 	)
 	service._ingest_core = DummyIngestCore(ingest_record)  # pyright: ignore[reportAttributeAccessIssue]
-	service._persist = DummyPersist()  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = DummyPipeline(tmp_path, [layer], results)  # pyright: ignore[reportAttributeAccessIssue]
 
 	ingest = service.ingest(
@@ -148,9 +138,8 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	)
 
 	assert ingest is ingest_record
-	assert image_repo.insert_called_with is not None  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
 
-	image = image_repo.insert_called_with
+	image = image_repo.create_called_with
 	assert image is not None
 	assert image.ingest_id == ingest_record.id
 	assert image.original['rel'] == origin_relpath.__str__()
