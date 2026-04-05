@@ -27,7 +27,7 @@ class BaseIngestRepository:
 			ingested_at=ingested_at,
 			captured_at=captured_at,
 			updated_at=ingested_at,
-			executions=None,
+			executions=[],
 		)
 
 		self._session.add(ingest)

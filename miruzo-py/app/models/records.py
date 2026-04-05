@@ -80,9 +80,8 @@ class IngestRecord(SQLModel, table=True):
 			nullable=False,
 		),
 	)
-	executions: Sequence[ExecutionEntry] | None = SQLField(
-		default=None,
-		min_length=1,
+	executions: Sequence[ExecutionEntry] = SQLField(
+		default=[],
 		max_length=EXECUTION_MAXIMUM,
 		sa_column=Column(ExecutionsJSON),
 	)
