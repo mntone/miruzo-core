@@ -3,7 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import final
 
-from app.models.enums import IngestMode, VisibilityStatus
+from app.models.enums import IngestMode
 from app.models.records import ExecutionEntry, IngestRecord
 from app.persist.ingests.protocol import IngestRepository
 from app.services.ingests.utils.file import copy_origin_file, delete_origin_file
@@ -69,20 +69,8 @@ class IngestService:
 
 		return ingest
 
-	def get_ingest(self, ingest_id: int) -> IngestRecord | None:
-		"""Fetch an ingest record by its identifier."""
-		ingest = self._repository.get_ingest(ingest_id)
-
-		return ingest
-
 	def append_execution(self, ingest_id: int, execution: ExecutionEntry) -> IngestRecord | None:
 		"""Append an execution entry to the ingest record."""
 		ingest = self._repository.append_execution(ingest_id, execution)
-
-		return ingest
-
-	def set_visibility(self, ingest_id: int, visibility: VisibilityStatus) -> IngestRecord | None:
-		"""Update visibility for a given ingest record."""
-		ingest = self._repository.set_visibility(ingest_id, visibility)
 
 		return ingest

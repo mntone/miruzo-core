@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlmodel import Session
 
 from app.config.constants import EXECUTION_MAXIMUM
-from app.models.enums import ExecutionStatus, ProcessStatus, VisibilityStatus
+from app.models.enums import ExecutionStatus, ProcessStatus
 from app.models.records import ExecutionEntry, IngestRecord
 
 
@@ -36,12 +36,6 @@ class BaseIngestRepository:
 
 		return ingest
 
-	def get_ingest(self, ingest_id: int) -> IngestRecord | None:
-		"""Fetch an ingest record by its identifier."""
-		ingest = self._session.get(IngestRecord, ingest_id)
-
-		return ingest
-
 	def append_execution(
 		self,
 		ingest_id: int,
@@ -66,23 +60,6 @@ class BaseIngestRepository:
 
 		ingest.executions = executions[-EXECUTION_MAXIMUM:]
 		ingest.updated_at = datetime.now(timezone.utc)
-
-		self._session.flush()
-		self._session.refresh(ingest)
-
-		return ingest
-
-	def set_visibility(
-		self,
-		ingest_id: int,
-		visibility: VisibilityStatus,
-	) -> IngestRecord | None:
-		"""Update the ingest visibility flag."""
-		ingest = self._session.get(IngestRecord, ingest_id)
-		if ingest is None:
-			return None
-
-		ingest.visibility = visibility
 
 		self._session.flush()
 		self._session.refresh(ingest)
