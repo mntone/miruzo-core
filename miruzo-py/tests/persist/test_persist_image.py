@@ -1,29 +1,15 @@
 from datetime import datetime, timezone
-from typing import Any, Generator
 
 import pytest
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from tests.persist.utils import add_ingest_row, get_image_row
 from tests.services.images.utils import build_variant
 
-from app.databases.metadata import metadata
 from app.models.enums import ImageKind
 from app.models.image import Image
 from app.models.types import VariantEntry
 from app.persist.images.implementation import create_image_repository
-
-
-@pytest.fixture()
-def session() -> Generator[Session, Any, None]:
-	engine = create_engine(
-		'sqlite+pysqlite:///:memory:',
-		connect_args={'check_same_thread': False},
-	)
-	metadata.create_all(engine)
-	with Session(engine) as session:
-		yield session
 
 
 @pytest.mark.parametrize(

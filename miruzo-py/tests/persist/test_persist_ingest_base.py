@@ -17,17 +17,6 @@ from app.persist.ingests.base import _IngestRepositoryBaseImpl
 from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreateInput
 
 
-@pytest.fixture()
-def session() -> Generator[Session, Any, None]:
-	engine = create_engine(
-		'sqlite+pysqlite:///:memory:',
-		connect_args={'check_same_thread': False},
-	)
-	metadata.create_all(engine)
-	with Session(engine) as session:
-		yield session
-
-
 def _build_execution(status: ExecutionStatus, *, offset: int = 0) -> Execution:
 	now = datetime(2026, 1, 1, tzinfo=timezone.utc)
 	return Execution(
