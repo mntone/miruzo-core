@@ -1,7 +1,7 @@
 from typing import Any, Generator
 
 from sqlalchemy import create_engine
-from sqlmodel import Session, SQLModel
+from sqlalchemy.orm import Session
 
 from app.config.environments import DatabaseBackend, env
 from app.databases.sqlite_version import verify_sqlite_supports_returning_and_strict
@@ -36,10 +36,6 @@ elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
 
 else:
 	raise ValueError(f'Unsupported database type: {env.database_backend}')
-
-
-def init_database() -> None:
-	SQLModel.metadata.create_all(engine)
 
 
 def create_session() -> Session:

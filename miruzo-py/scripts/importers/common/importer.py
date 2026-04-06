@@ -1,8 +1,6 @@
 from pathlib import Path
 from shutil import rmtree
 
-from sqlmodel import Session
-
 from scripts.importers.common.ingest_time import resolve_captured_at
 from scripts.importers.common.origin import OriginResolver
 from scripts.importers.common.readers.jsonl import JsonlReader
@@ -10,7 +8,7 @@ from scripts.importers.common.report import ImportStats, ProgressReporter
 
 from app.config.environments import Settings
 from app.config.environments import env as global_env
-from app.databases import engine, init_database
+from app.databases.database import create_session
 from app.models.enums import IngestMode
 from app.persist.images.implementation import create_image_repository
 from app.persist.ingests.factory import create_ingest_repository
@@ -98,9 +96,8 @@ def import_jsonl(
 		mode=mode,
 		force=force,
 	)
-	init_database()
 
-	session = Session(engine)
+	session = create_session()
 	image_repo = create_image_repository(session)
 	ingest_repo = create_ingest_repository(session)
 	stats_repo = create_stats_repository(session)
