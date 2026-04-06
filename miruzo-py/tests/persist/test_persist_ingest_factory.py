@@ -1,7 +1,8 @@
 from typing import Any, Generator
 
 import pytest
-from sqlmodel import Session, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 from app.config.environments import DatabaseBackend, env
 from app.persist.ingests.base import _IngestRepositoryBaseImpl

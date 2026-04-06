@@ -1,10 +1,11 @@
+from datetime import datetime, timezone
 from typing import Any, Generator
 
 import pytest
-from sqlmodel import Session, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
-from tests.persist.utils import get_stats_row
-from tests.services.images.utils import add_ingest_record
+from tests.persist.utils import add_ingest_row, get_stats_row
 
 from app.databases.metadata import metadata
 from app.persist.stats.implementation import create_stats_repository
@@ -23,15 +24,17 @@ def session() -> Generator[Session, Any, None]:
 
 
 def test_create_persists_stats_row(session: Session) -> None:
-	ingest = add_ingest_record(session, 20)
+	now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+	ingest_id = add_ingest_row(session, ingested_at=now)
+
 	create_stats_repository(session).create(
 		StatsCreateInput(
-			ingest_id=ingest.id,
+			ingest_id=ingest_id,
 			initial_score=42,
 		),
 	)
 
-	row = get_stats_row(session, ingest_id=ingest.id)
-	assert row['ingest_id'] == ingest.id
+	row = get_stats_row(session, ingest_id=ingest_id)
+	assert row['ingest_id'] == ingest_id
 	assert row['score'] == 42
 	assert row['score_evaluated'] == 42

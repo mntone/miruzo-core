@@ -2,10 +2,11 @@ from datetime import datetime, timezone
 from typing import Any, Generator
 
 import pytest
-from sqlmodel import Session, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
-from tests.persist.utils import get_image_row
-from tests.services.images.utils import add_ingest_record, build_variant
+from tests.persist.utils import add_ingest_row, get_image_row
+from tests.services.images.utils import build_variant
 
 from app.databases.metadata import metadata
 from app.models.enums import ImageKind
@@ -26,20 +27,19 @@ def session() -> Generator[Session, Any, None]:
 
 
 @pytest.mark.parametrize(
-	('ingest_id', 'kind', 'fallback'),
+	('kind', 'fallback'),
 	[
-		(1, ImageKind.PHOTO, None),
-		(2, ImageKind.ILLUST, build_variant('jpeg', 1024, layer_id=9, label='fallback')),
+		(ImageKind.PHOTO, None),
+		(ImageKind.ILLUST, build_variant('jpeg', 1024, layer_id=9, label='fallback')),
 	],
 )
 def test_create_persists_image_row(
 	session: Session,
-	ingest_id: int,
 	kind: ImageKind,
 	fallback: VariantEntry | None,
 ) -> None:
 	now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-	add_ingest_record(session, ingest_id, ingested_at=now, captured_at=now)
+	ingest_id = add_ingest_row(session, ingested_at=now)
 
 	widths = [320, 480, 640, 960]
 	original = build_variant('webp', 1024)

@@ -1,13 +1,7 @@
-from collections.abc import Iterable
-from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import gettempdir
 
-from sqlmodel import Session
-
 from app.config.variant import VariantFormat, VariantSlot, VariantSpec
-from app.models.enums import ProcessStatus, VisibilityStatus
-from app.models.records import ImageRecord, IngestRecord
 from app.models.types import VariantEntry
 
 TEST_VARIANT_ROOT = Path(gettempdir()) / 'miruzo-test-variants'
@@ -28,112 +22,6 @@ def build_variant(fmt: str, width: int, *, layer_id: int = 1, label: str = 'prim
 		'height': round(width * 0.75),
 		'quality': None,
 	}
-
-
-def _make_ingest_record(
-	ingest_id: int,
-	*,
-	relative_path: str = '/foo/bar.webp',
-	process: ProcessStatus = ProcessStatus.PROCESSING,
-	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
-	ingested_at: datetime | None = None,
-	captured_at: datetime | None = None,
-) -> IngestRecord:
-	current = datetime.now(timezone.utc)
-	ingested_at = ingested_at or current
-	captured_at = captured_at or ingested_at
-	return IngestRecord(
-		id=ingest_id,
-		process=process,
-		visibility=visibility,
-		relative_path=relative_path,
-		fingerprint=f'{ingest_id:064d}',
-		ingested_at=ingested_at,
-		captured_at=captured_at,
-		updated_at=ingested_at,
-	)
-
-
-def _make_image_record(
-	ingest_id: int,
-	*,
-	ingested_at: datetime | None = None,
-	widths: Iterable[int] = [320, 480, 640],
-) -> ImageRecord:
-	timestamp = ingested_at or datetime.now(timezone.utc)
-	return ImageRecord(
-		ingest_id=ingest_id,
-		ingested_at=timestamp,
-		original=build_variant('webp', 1024),
-		fallback=None,
-		variants=[
-			*[build_variant('webp', width, layer_id=1) for width in widths],
-			build_variant('jpeg', 320, layer_id=9, label='fallback'),
-		],
-	)
-
-
-def build_image_record(ingest_id: int) -> ImageRecord:
-	return _make_image_record(
-		ingest_id=ingest_id,
-	)
-
-
-def add_ingest_record(
-	session: Session,
-	idx: int,
-	*,
-	relative_path: str = 'foo/bar.webp',
-	process: ProcessStatus = ProcessStatus.PROCESSING,
-	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
-	ingested_at: datetime | None = None,
-	captured_at: datetime | None = None,
-) -> IngestRecord:
-	record = _make_ingest_record(
-		ingest_id=idx,
-		relative_path=relative_path,
-		process=process,
-		visibility=visibility,
-		ingested_at=ingested_at,
-		captured_at=captured_at,
-	)
-	session.add(record)
-	session.flush()
-	session.refresh(record)
-	return record
-
-
-def add_image_record(
-	session: Session,
-	idx: int,
-	*,
-	relative_path: str = 'foo/bar.webp',
-	process: ProcessStatus = ProcessStatus.PROCESSING,
-	visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
-	ingested_at: datetime | None = None,
-	captured_at: datetime | None = None,
-) -> ImageRecord:
-	ingest = _make_ingest_record(
-		ingest_id=idx,
-		relative_path=relative_path,
-		process=process,
-		visibility=visibility,
-		ingested_at=ingested_at,
-		captured_at=captured_at,
-	)
-	session.add(ingest)
-	session.flush()
-	session.refresh(ingest)
-
-	image = _make_image_record(
-		ingest_id=idx,
-		ingested_at=ingest.ingested_at,
-	)
-	session.add(image)
-
-	session.commit()
-	session.refresh(image)
-	return image
 
 
 def build_variant_spec(
