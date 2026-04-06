@@ -5,7 +5,7 @@ from typing import final
 from app.config.environments import env
 from app.models.enums import ImageKind, IngestMode
 from app.models.image import Image
-from app.models.records import IngestRecord
+from app.models.ingest import Ingest
 from app.persist.images.protocol import ImageRepository
 from app.persist.ingests.protocol import IngestRepository
 from app.persist.stats.protocol import StatsCreateInput, StatsRepository
@@ -49,7 +49,7 @@ class ImageIngestService:
 		fingerprint: str | None,
 		captured_at: datetime,
 		ingest_mode: IngestMode,
-	) -> IngestRecord:
+	) -> tuple[Ingest, Image]:
 		ingest = self._ingest_core.create_ingest(
 			origin_path=origin_path,
 			fingerprint=fingerprint,
@@ -95,7 +95,7 @@ class ImageIngestService:
 					)
 					self._image_repo.create(image)
 		finally:
-			entry = session.to_entry()
+			entry = session.to_dto()
 			self._ingest_core.append_execution(ingest.id, entry)
 
-		return ingest
+		return ingest, image

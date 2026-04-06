@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import final
 
 from app.models.enums import IngestMode
-from app.models.records import ExecutionEntry, IngestRecord
-from app.persist.ingests.protocol import IngestRepository
+from app.models.ingest import Execution, Ingest
+from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreateInput, IngestRepository
 from app.services.ingests.utils.file import copy_origin_file, delete_origin_file
 from app.services.ingests.utils.fingerprint import compute_fingerprint, normalize_fingerprint
 from app.services.ingests.utils.path import (
@@ -30,7 +30,7 @@ class IngestService:
 		fingerprint: str | None,
 		captured_at: datetime,
 		ingest_mode: IngestMode,
-	) -> IngestRecord:
+	) -> Ingest:
 		"""Create an ingest record and optionally persist the original asset."""
 
 		origin_absolute_path = resolve_origin_absolute_path(origin_path)
@@ -54,23 +54,39 @@ class IngestService:
 				log.warning('invalid fingerprint detected; recomputing for %s', origin_path)
 				fingerprint = compute_fingerprint(output_path)
 
-		current = datetime.now(timezone.utc)
+		now = datetime.now(timezone.utc)
 		try:
-			ingest = self._repository.create_ingest(
-				relative_path=relative_path,
-				fingerprint=fingerprint,
-				ingested_at=current,
-				captured_at=captured_at,
+			ingest_id = self._repository.create(
+				IngestCreateInput(
+					relative_path=relative_path,
+					fingerprint=fingerprint,
+					ingested_at=now,
+					captured_at=captured_at,
+				),
 			)
 		except Exception:
 			if ingest_mode == IngestMode.COPY:
 				delete_origin_file(output_path)
 			raise
 
-		return ingest
+		return Ingest(
+			id=ingest_id,
+			relative_path=relative_path,
+			fingerprint=fingerprint,
+			ingested_at=now,
+			captured_at=captured_at,
+			updated_at=now,
+			executions=[],
+		)
 
-	def append_execution(self, ingest_id: int, execution: ExecutionEntry) -> IngestRecord | None:
+	def append_execution(self, ingest_id: int, execution: Execution) -> None:
 		"""Append an execution entry to the ingest record."""
-		ingest = self._repository.append_execution(ingest_id, execution)
 
-		return ingest
+		now = datetime.now(timezone.utc)
+		self._repository.append_execution(
+			IngestAppendExecutionInput(
+				ingest_id=ingest_id,
+				updated_at=now,
+				execution=execution,
+			),
+		)

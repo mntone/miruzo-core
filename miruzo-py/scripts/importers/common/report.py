@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import IO
 
-from app.models.records import IngestRecord
+from app.models.image import Image
+from app.models.ingest import Ingest
 
 
 @dataclass(slots=True)
@@ -49,14 +50,13 @@ class ProgressReporter:
 			return
 		print(line, file=self._stream)
 
-	def maybe_report_variants(self, record: IngestRecord) -> None:
+	def maybe_report_variants(self, entry: tuple[Ingest, Image]) -> None:
 		if not self._report_variants:
 			return
-		image = record.image
-		if image is None:
-			return
 
-		self._write(f'[importer] variant report ({record.relative_path}):')
+		ingest, image = entry
+
+		self._write(f'[importer] variant report ({ingest.relative_path}):')
 		header = f'{"Label":<10} {"Resolution":<12} {"Size":>10} {"Ratio":<12}'
 		self._write(header)
 		self._write('-' * len(header))

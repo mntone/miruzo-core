@@ -14,7 +14,7 @@ TEST_VARIANT_ROOT = Path(gettempdir()) / 'miruzo-test-variants'
 
 
 def build_variant(fmt: str, width: int, *, layer_id: int = 1, label: str = 'primary') -> VariantEntry:
-	filepath = TEST_VARIANT_ROOT / f'{label}-{width}.{fmt}'
+	filepath = TEST_VARIANT_ROOT / f'l{layer_id}w{width}-{label}.{fmt}'
 	filepath.parent.mkdir(parents=True, exist_ok=True)
 	payload = f'{label}-{width}-{fmt}'.encode('utf-8')
 	filepath.write_bytes(payload)
@@ -64,7 +64,7 @@ def _make_image_record(
 	return ImageRecord(
 		ingest_id=ingest_id,
 		ingested_at=timestamp,
-		original=build_variant('webp', 960),
+		original=build_variant('webp', 1024),
 		fallback=None,
 		variants=[
 			*[build_variant('webp', width, layer_id=1) for width in widths],

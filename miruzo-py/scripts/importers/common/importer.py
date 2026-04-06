@@ -145,7 +145,7 @@ def import_jsonl(
 			if used_fallback:
 				stats.fallback += 1
 
-			ingest_record = ingest.ingest(
+			entry = ingest.ingest(
 				origin_path=origin_relative_path,
 				fingerprint=row.sha256,
 				captured_at=captured_at,
@@ -153,7 +153,7 @@ def import_jsonl(
 			)
 			stats.ingested += 1
 
-			reporter.maybe_report_variants(ingest_record)
+			reporter.maybe_report_variants(entry)
 			reporter.report_progress(stats, force=stats.read == limit)
 
 	reporter.report_summary(stats)

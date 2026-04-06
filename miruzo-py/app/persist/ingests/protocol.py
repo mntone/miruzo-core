@@ -1,22 +1,35 @@
 from datetime import datetime
-from typing import Protocol
+from typing import Annotated, Protocol, final
 
-from app.models.records import IngestRecord
-from app.models.types import ExecutionEntry
+from pydantic import BaseModel, Field
+
+from app.config import constants as c
+from app.models.ingest import Execution
+
+
+@final
+class IngestCreateInput(BaseModel):
+	relative_path: Annotated[str, Field(min_length=4)]
+	fingerprint: Annotated[str, Field(min_length=64, max_length=64)]
+	ingested_at: datetime
+	captured_at: datetime
+
+
+@final
+class IngestAppendExecutionInput(BaseModel):
+	ingest_id: Annotated[
+		int,
+		Field(ge=c.INGEST_ID_MINIMUM, le=c.INGEST_ID_MAXIMUM),
+	]
+	updated_at: datetime
+	execution: Execution
 
 
 class IngestRepository(Protocol):
-	def create_ingest(
-		self,
-		*,
-		relative_path: str,
-		fingerprint: str,
-		ingested_at: datetime,
-		captured_at: datetime,
-	) -> IngestRecord: ...
+	def create(self, entry: IngestCreateInput) -> int:
+		"""Insert a new ingest row."""
+		...
 
-	def append_execution(
-		self,
-		ingest_id: int,
-		execution: ExecutionEntry,
-	) -> IngestRecord | None: ...
+	def append_execution(self, entry: IngestAppendExecutionInput) -> None:
+		"""Append an execution entry to an existing ingest row."""
+		...

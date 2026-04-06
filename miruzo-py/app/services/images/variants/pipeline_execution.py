@@ -11,7 +11,7 @@ from PIL.Image import DecompressionBombError as PILDecompressionBombError
 from sqlalchemy.exc import DataError, IntegrityError, OperationalError
 
 from app.models.enums import ExecutionStatus
-from app.models.types import ExecutionEntry
+from app.models.ingest import Execution
 from app.services.images.variants.executors.executor import VariantExecutor
 from app.services.images.variants.types import (
 	OriginalFile,
@@ -128,11 +128,11 @@ class VariantPipelineExecutionSession:
 
 		return results
 
-	def to_entry(self) -> ExecutionEntry:
+	def to_dto(self) -> Execution:
 		if self._executed_at is None:
 			raise RuntimeError('VariantExecutionSession must be used as a context manager')
 
-		entry = ExecutionEntry(
+		entry = Execution(
 			status=self._status,
 			error_type=self._error_type,
 			error_message=self._error_message,

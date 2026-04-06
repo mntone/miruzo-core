@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from PIL import Image as PILImage
 
+from tests.fixtures.image_file import new_image_file_fixture
+from tests.fixtures.ingest import make_ingest_fixture
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_variant_file
 from tests.stubs.image import StubImageRepository
@@ -13,8 +14,7 @@ from tests.stubs.stats import StubStatsRepository
 
 from app.config.variant import VariantLayerSpec
 from app.models.enums import ExecutionStatus, IngestMode
-from app.models.records import IngestRecord
-from app.models.types import ExecutionEntry
+from app.models.ingest import Execution, Ingest
 from app.services.images.ingest import ImageIngestService
 from app.services.images.variants.types import (
 	OriginalFile,
@@ -25,10 +25,10 @@ from app.services.images.variants.types import (
 
 
 class DummyIngestCore:
-	def __init__(self, record: IngestRecord) -> None:
-		self.record = record
+	def __init__(self, dto: Ingest) -> None:
+		self.entry = dto
 		self.created_args: dict[str, object] | None = None
-		self.appended: tuple[int, ExecutionEntry] | None = None
+		self.appended: tuple[int, Execution] | None = None
 
 	def create_ingest(
 		self,
@@ -37,18 +37,17 @@ class DummyIngestCore:
 		fingerprint: str | None,
 		captured_at: datetime,
 		ingest_mode: IngestMode,
-	) -> IngestRecord:
+	) -> Ingest:
 		self.created_args = {
 			'origin_path': origin_path,
 			'fingerprint': fingerprint,
 			'captured_at': captured_at,
 			'ingest_mode': ingest_mode,
 		}
-		return self.record
+		return self.entry
 
-	def append_execution(self, ingest_id: int, entry: ExecutionEntry) -> IngestRecord:
+	def append_execution(self, ingest_id: int, entry: Execution) -> None:
 		self.appended = (ingest_id, entry)
-		return self.record
 
 
 class DummyPipeline:
@@ -91,121 +90,93 @@ class FailingPipeline:
 		raise ValueError('boom')
 
 
-def test_image_ingest_service_records_image(tmp_path: Path) -> None:
-	origin_relpath = Path('l0orig/sample.png')
-	origin_path = tmp_path / origin_relpath
-	origin_path.parent.mkdir(parents=True, exist_ok=True)
-	PILImage.new('RGB', (10, 8), color='blue').save(origin_path)
-
-	ingest_record = IngestRecord(
-		id=5,
-		relative_path=str(origin_relpath),
-		fingerprint='f' * 64,
-		ingested_at=datetime.now(timezone.utc),
-		captured_at=datetime.now(timezone.utc),
-		updated_at=datetime.now(timezone.utc),
+def new_image_ingest_service_fixture() -> ImageIngestService:
+	policy = VariantPolicy(
+		durable_write=False,
+		regenerate_mismatched=False,
+		generate_missing=True,
+		delete_orphaned=False,
 	)
+
+	image_repo = StubImageRepository()
+	stats_repo = StubStatsRepository()
+	service = ImageIngestService(
+		image_repo=image_repo,
+		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
+		stats_repo=stats_repo,
+		policy=policy,
+		initial_score=100,
+	)
+	return service
+
+
+def test_image_ingest_service_records_image(tmp_path: Path) -> None:
+	ingest_id = 5
+	image_pathes = new_image_file_fixture(tmp_path)
+	ingest = make_ingest_fixture(ingest_id)
 
 	spec = build_variant_spec(1, 320, container='webp', codecs='vp8')
 	layer = VariantLayerSpec(name='primary', layer_id=1, specs=(spec,))
 	variant_file = build_variant_file(spec, width=320)
 	results = [VariantCommitResult.success('generate', VariantReport(spec, variant_file))]
 
-	policy = VariantPolicy(
-		durable_write=False,
-		regenerate_mismatched=False,
-		generate_missing=True,
-		delete_orphaned=False,
-	)
-
-	image_repo = StubImageRepository()
-	stats_repo = StubStatsRepository()
-	service = ImageIngestService(
-		image_repo=image_repo,
-		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
-		stats_repo=stats_repo,
-		policy=policy,
-		initial_score=100,
-	)
-	service._ingest_core = DummyIngestCore(ingest_record)  # pyright: ignore[reportAttributeAccessIssue]
+	ingest_core = DummyIngestCore(ingest)
+	service = new_image_ingest_service_fixture()
+	service._ingest_core = ingest_core  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = DummyPipeline(tmp_path, [layer], results)  # pyright: ignore[reportAttributeAccessIssue]
 
-	ingest = service.ingest(
-		origin_path=origin_relpath,
+	entry = service.ingest(
+		origin_path=image_pathes.relpath,
 		fingerprint=None,
 		captured_at=datetime.now(timezone.utc),
 		ingest_mode=IngestMode.COPY,
 	)
 
-	assert ingest is ingest_record
+	assert entry[0] is ingest
 
-	image = image_repo.create_called_with
+	image = entry[1]
 	assert image is not None
-	assert image.ingest_id == ingest_record.id
-	assert image.original['rel'] == origin_relpath.__str__()
+	assert image.ingest_id == ingest_id
+	assert image.original['rel'] == image_pathes.relpath_str
 	assert image.original['format'] == 'png'
 	assert image.original['width'] == 10
 	assert image.original['height'] == 8
-	assert image.original['bytes'] == origin_path.stat().st_size
+	assert image.original['bytes'] == image_pathes.path.stat().st_size
 	assert len(image.variants) == 1
 	assert image.variants[0]['format'] == 'webp'
 
-	stats = stats_repo.create_called_with
+	stats = cast(StubStatsRepository, service._stats_repo).create_called_with
 	assert stats is not None
-	assert stats.ingest_id == ingest_record.id
+	assert stats.ingest_id == ingest_id
 	assert stats.initial_score == 100
 
-	appended = cast(tuple[int, ExecutionEntry] | None, service._ingest_core.appended)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+	appended = ingest_core.appended
 	assert appended is not None
-	ingest_id, entry = appended
-	assert ingest_id == ingest_record.id
-	assert entry['status'] == ExecutionStatus.SUCCESS
+	appended_ingest_id, entry = appended
+	assert appended_ingest_id == ingest_id
+	assert entry.status == ExecutionStatus.SUCCESS
 
 
 def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
-	origin_relpath = Path('l0orig/sample.png')
-	origin_path = tmp_path / origin_relpath
-	origin_path.parent.mkdir(parents=True, exist_ok=True)
-	PILImage.new('RGB', (10, 8), color='blue').save(origin_path)
+	ingest_id = 7
+	image_pathes = new_image_file_fixture(tmp_path)
+	ingest = make_ingest_fixture(ingest_id)
 
-	ingest_record = IngestRecord(
-		id=7,
-		relative_path=str(origin_relpath),
-		fingerprint='f' * 64,
-		ingested_at=datetime.now(timezone.utc),
-		captured_at=datetime.now(timezone.utc),
-		updated_at=datetime.now(timezone.utc),
-	)
-
-	policy = VariantPolicy(
-		durable_write=False,
-		regenerate_mismatched=False,
-		generate_missing=True,
-		delete_orphaned=False,
-	)
-
-	image_repo = StubImageRepository()
-	stats_repo = StubStatsRepository()
-	service = ImageIngestService(
-		image_repo=image_repo,
-		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
-		stats_repo=stats_repo,
-		policy=policy,
-		initial_score=100,
-	)
-	service._ingest_core = DummyIngestCore(ingest_record)  # pyright: ignore[reportAttributeAccessIssue]
+	service = new_image_ingest_service_fixture()
+	ingest_core = DummyIngestCore(ingest)
+	service._ingest_core = ingest_core  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = FailingPipeline(tmp_path, [])  # pyright: ignore[reportAttributeAccessIssue]
 
 	with pytest.raises(ValueError, match='boom'):
 		service.ingest(
-			origin_path=origin_relpath,
+			origin_path=image_pathes.relpath,
 			fingerprint=None,
 			captured_at=datetime.now(timezone.utc),
 			ingest_mode=IngestMode.COPY,
 		)
 
-	appended = cast(tuple[int, ExecutionEntry] | None, service._ingest_core.appended)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+	appended = ingest_core.appended
 	assert appended is not None
-	ingest_id, entry = appended
-	assert ingest_id == ingest_record.id
-	assert entry['status'] == ExecutionStatus.UNKNOWN_ERROR
+	appended_ingest_id, entry = appended
+	assert appended_ingest_id == ingest_id
+	assert entry.status == ExecutionStatus.UNKNOWN_ERROR

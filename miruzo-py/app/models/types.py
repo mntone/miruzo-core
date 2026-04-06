@@ -2,12 +2,29 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, TypedDict, final
 
-from pydantic import Field
+from annotated_types import Interval
+from pydantic import AfterValidator, Field, StrictStr
 from sqlalchemy import DateTime
 from sqlalchemy.types import JSON, TypeDecorator
 
+from app.config import constants as c
 from app.config.constants import MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH
 from app.models.enums import ExecutionStatus
+
+OptionalStrictStr = StrictStr | None
+
+IngestIdType = Annotated[int, Interval(ge=c.INGEST_ID_MINIMUM, le=c.INGEST_ID_MAXIMUM)]
+
+
+def _to_utc(value: datetime) -> datetime:
+	if value.tzinfo is None:
+		value = value.replace(tzinfo=timezone.utc)
+	else:
+		value = value.astimezone(timezone.utc)
+	return value
+
+
+UtcDateTime = Annotated[datetime, AfterValidator(_to_utc)]
 
 # @final
 # class _CommitPlainJson(TypedDict):

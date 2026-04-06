@@ -7,7 +7,7 @@ import pytest
 
 from app.config.environments import env
 from app.models.enums import IngestMode
-from app.models.records import IngestRecord
+from app.persist.ingests.protocol import IngestCreateInput
 from app.services.ingests.service import IngestService
 from app.services.ingests.utils.fingerprint import compute_fingerprint
 
@@ -15,32 +15,13 @@ from app.services.ingests.utils.fingerprint import compute_fingerprint
 class _StubRepository:
 	def __init__(self, *, fail: bool = False) -> None:
 		self.fail = fail
-		self.created: dict[str, object] | None = None
+		self.created: IngestCreateInput | None = None
 
-	def create_ingest(
-		self,
-		*,
-		relative_path: str,
-		fingerprint: str,
-		ingested_at: datetime,
-		captured_at: datetime,
-	) -> IngestRecord:
-		self.created = {
-			'relative_path': relative_path,
-			'fingerprint': fingerprint,
-			'ingested_at': ingested_at,
-			'captured_at': captured_at,
-		}
+	def create(self, entry: IngestCreateInput) -> int:
+		self.created = entry
 		if self.fail:
 			raise RuntimeError('boom')
-		return IngestRecord(
-			id=1,
-			relative_path=relative_path,
-			fingerprint=fingerprint,
-			ingested_at=ingested_at,
-			captured_at=captured_at,
-			updated_at=ingested_at,
-		)
+		return 1
 
 
 def _setup_roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -175,5 +156,5 @@ def test_create_ingest_recomputes_invalid_fingerprint(
 	assert ingest.relative_path == 'l0orig/foo/bar.webp'
 	output_path = tmp_path / 'media' / 'l0orig' / 'foo' / 'bar.webp'
 	assert repo.created is not None
-	assert repo.created['fingerprint'] == compute_fingerprint(output_path)
+	assert repo.created.fingerprint == compute_fingerprint(output_path)
 	assert 'invalid fingerprint detected' in caplog.text

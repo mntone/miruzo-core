@@ -34,13 +34,12 @@ def test_execution_session_to_entry_records_success() -> None:
 		with session.phase('inspect'):
 			pass
 
-	entry = session.to_entry()
-
-	assert entry['status'] == ExecutionStatus.SUCCESS
-	assert entry['error_type'] is None
-	assert entry['error_message'] is None
-	assert entry['inspect'] is not None
-	assert entry['overall'] is not None
+	entry = session.to_dto()
+	assert entry.status == ExecutionStatus.SUCCESS
+	assert entry.error_type is None
+	assert entry.error_message is None
+	assert entry.inspect is not None
+	assert entry.overall is not None
 
 
 @pytest.mark.parametrize(
@@ -90,13 +89,12 @@ def test_execution_session_to_entry_records_errors(
 		with pytest.raises(type(exc)):
 			raise_in_session()
 
-	entry = session.to_entry()
-
-	assert entry['status'] == status
-	assert entry['error_type'] == error_type
+	entry = session.to_dto()
+	assert entry.status == status
+	assert entry.error_type == error_type
 	if error_message is None:
-		assert entry['error_message']
+		assert entry.error_message
 	else:
-		assert entry['error_message'] == error_message
-	assert entry['inspect'] is not None
-	assert entry['overall'] is not None
+		assert entry.error_message == error_message
+	assert entry.inspect is not None
+	assert entry.overall is not None

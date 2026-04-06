@@ -1,12 +1,10 @@
 import io
-from datetime import datetime, timezone
 
 import pytest
 
 from scripts.importers.common.report import ImportStats, ProgressReporter, _format_bytes
-
-from app.models.records import ImageRecord, IngestRecord
-from app.models.types import VariantEntry
+from tests.fixtures.image import make_image_fixture
+from tests.fixtures.ingest import make_ingest_fixture
 
 
 @pytest.mark.parametrize(
@@ -26,48 +24,6 @@ from app.models.types import VariantEntry
 )
 def test_format_bytes_formats_sizes(size: float, expected: str) -> None:
 	assert _format_bytes(int(round(size))) == expected
-
-
-def _build_record() -> IngestRecord:
-	original: VariantEntry = {
-		'rel': 'l0orig/foo.jpg',
-		'layer_id': 0,
-		'format': 'jpeg',
-		'codecs': None,
-		'bytes': 100,
-		'width': 10,
-		'height': 10,
-		'quality': None,
-	}
-	variant: VariantEntry = {
-		'rel': 'l1w5/foo.jpg',
-		'layer_id': 1,
-		'format': 'webp',
-		'codecs': 'vp8',
-		'bytes': 50,
-		'width': 5,
-		'height': 5,
-		'quality': 80,
-	}
-
-	image = ImageRecord(
-		ingest_id=1,
-		ingested_at=datetime.now(timezone.utc),
-		original=original,
-		fallback=None,
-		variants=[variant],
-	)
-
-	record = IngestRecord(
-		relative_path='l0orig/foo.jpg',
-		fingerprint='a' * 64,
-		ingested_at=datetime.now(timezone.utc),
-		captured_at=datetime.now(timezone.utc),
-		updated_at=datetime.now(timezone.utc),
-	)
-	record.image = image
-
-	return record
 
 
 def test_progress_reporter_writes_progress_and_summary() -> None:
@@ -94,11 +50,18 @@ def test_progress_reporter_writes_progress_and_summary() -> None:
 def test_progress_reporter_writes_variant_report() -> None:
 	stream = io.StringIO()
 	reporter = ProgressReporter(report_variants=True, stream=stream)
-	record = _build_record()
+	ingest = make_ingest_fixture(6)
+	image = make_image_fixture(6)
 
-	reporter.maybe_report_variants(record)
+	reporter.maybe_report_variants((ingest, image))
 
-	output = stream.getvalue()
-	assert '[importer] variant report' in output
-	assert 'l0orig' in output
-	assert 'l1w5' in output
+	output = stream.getvalue().splitlines()
+	assert output[0].startswith('[importer] variant report (')
+	assert output[1].startswith('Label      Resolution')
+	assert output[2].startswith('---------------------------')
+	assert output[3].startswith('l0orig     1024x768')
+	assert output[4].startswith('l1w320     320x240')
+	assert output[5].startswith('l1w480     480x360')
+	assert output[6].startswith('l1w640     640x480')
+	assert output[7].startswith('l1w960     960x720')
+	assert output[8].startswith('l9w320     320x240')
