@@ -6,9 +6,8 @@ from app.config.environments import env
 from app.models.enums import ImageKind, IngestMode
 from app.models.image import Image
 from app.models.ingest import Ingest
-from app.persist.images.protocol import ImageRepository
-from app.persist.ingests.protocol import IngestRepository
-from app.persist.stats.protocol import StatsCreateInput, StatsRepository
+from app.persist.stats.protocol import StatsCreateInput
+from app.persist.uow import Repositories
 from app.services.images.variants.executors.local import LocalVariantExecutor
 from app.services.images.variants.mapper import (
 	map_commit_results_to_variants,
@@ -26,15 +25,13 @@ from app.services.ingests.service import IngestService
 class ImageIngestService:
 	def __init__(
 		self,
-		image_repo: ImageRepository,
-		ingest_repo: IngestRepository,
-		stats_repo: StatsRepository,
+		repos: Repositories,
 		policy: VariantPolicy,
 		initial_score: int,
 	) -> None:
-		self._image_repo = image_repo
-		self._stats_repo = stats_repo
-		self._ingest_core = IngestService(ingest_repo)
+		self._image_repo = repos.image
+		self._stats_repo = repos.stats
+		self._ingest_core = IngestService(repos.ingest)
 		self._pipeline = VariantPipeline(
 			media_root=env.media_root,
 			policy=policy,

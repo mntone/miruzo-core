@@ -10,9 +10,7 @@ from app.config.environments import Settings
 from app.config.environments import env as global_env
 from app.databases.database import create_session
 from app.models.enums import IngestMode
-from app.persist.images.implementation import create_image_repository
-from app.persist.ingests.factory import create_ingest_repository
-from app.persist.stats.implementation import create_stats_repository
+from app.persist.uow import UnitOfWork
 from app.services.images.ingest import ImageIngestService
 from app.services.images.variants.bootstrap import configure_pillow
 from app.services.images.variants.types import DEFAULT_VARIANT_POLICY
@@ -97,18 +95,6 @@ def import_jsonl(
 		force=force,
 	)
 
-	session = create_session()
-	image_repo = create_image_repository(session)
-	ingest_repo = create_ingest_repository(session)
-	stats_repo = create_stats_repository(session)
-	ingest = ImageIngestService(
-		image_repo=image_repo,
-		ingest_repo=ingest_repo,
-		stats_repo=stats_repo,
-		policy=DEFAULT_VARIANT_POLICY,
-		initial_score=env.score.initial_score,
-	)
-
 	stats = ImportStats()
 	warned_created_at_fallback = False
 	reporter = ProgressReporter(report_variants=report_variants)
@@ -118,7 +104,13 @@ def import_jsonl(
 		gataku_assets_root=gataku_assets_root,
 	)
 
-	with session:
+	with UnitOfWork(session_factory=create_session) as uow:
+		ingest = ImageIngestService(
+			repos=uow.repositories,
+			policy=DEFAULT_VARIANT_POLICY,
+			initial_score=env.score.initial_score,
+		)
+
 		for row in reader.read(limit=limit):
 			stats.read += 1
 

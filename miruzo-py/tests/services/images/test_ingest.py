@@ -15,6 +15,7 @@ from tests.stubs.stats import StubStatsRepository
 from app.config.variant import VariantLayerSpec
 from app.models.enums import ExecutionStatus, IngestMode
 from app.models.ingest import Execution, Ingest
+from app.persist.uow import Repositories
 from app.services.images.ingest import ImageIngestService
 from app.services.images.variants.types import (
 	OriginalFile,
@@ -98,12 +99,12 @@ def new_image_ingest_service_fixture() -> ImageIngestService:
 		delete_orphaned=False,
 	)
 
-	image_repo = StubImageRepository()
-	stats_repo = StubStatsRepository()
 	service = ImageIngestService(
-		image_repo=image_repo,
-		ingest_repo=object(),  # pyright: ignore[reportArgumentType]
-		stats_repo=stats_repo,
+		repos=Repositories(
+			ingest=object(),  # pyright: ignore[reportArgumentType]
+			image=StubImageRepository(),
+			stats=StubStatsRepository(),
+		),
 		policy=policy,
 		initial_score=100,
 	)
