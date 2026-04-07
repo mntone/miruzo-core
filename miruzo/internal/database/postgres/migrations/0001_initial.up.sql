@@ -41,8 +41,7 @@ CREATE TABLE ingests(
 		CONSTRAINT ck_ingests_executions
 			NOT NULL
 			CHECK (jsonb_typeof(executions) = 'array' AND jsonb_array_length(executions) <= 5)
-			DEFAULT '[]'::jsonb,
-	UNIQUE (fingerprint)
+			DEFAULT '[]'::jsonb
 );
 
 -- Create images table

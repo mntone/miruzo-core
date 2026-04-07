@@ -37,8 +37,7 @@ CREATE TABLE ingests(
 		CONSTRAINT ck_ingests_executions
 			NOT NULL
 			CHECK (json_type(executions) IS 'array' AND json_array_length(executions) <= 5)
-			DEFAULT '[]',
-	UNIQUE (fingerprint)
+			DEFAULT '[]'
 );
 
 -- Create images table
