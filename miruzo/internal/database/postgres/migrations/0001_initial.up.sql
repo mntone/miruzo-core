@@ -26,10 +26,14 @@ CREATE TABLE ingests(
 			NOT NULL
 			CHECK (visibility IN (0, 1))
 			DEFAULT 0,
-	relative_path VARCHAR
+	relative_path VARCHAR(255)
 		CONSTRAINT ck_ingests_relative_path
 			NOT NULL
-			CHECK (length(relative_path) >= 4 AND relative_path !~ '^/'),
+			CHECK (
+				length(relative_path) >= 5
+				AND relative_path NOT LIKE '/%'
+				AND relative_path NOT LIKE '..%'
+			),
 	fingerprint VARCHAR(64)
 		CONSTRAINT uq_ingests_fingerprint
 			NOT NULL

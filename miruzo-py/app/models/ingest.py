@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, final
 
-from annotated_types import Len, MaxLen, MinLen
+from annotated_types import Len, MaxLen
 from pydantic import (
 	AfterValidator,
 	BaseModel,
@@ -17,7 +17,7 @@ from pydantic import (
 )
 
 from app.models.enums import ExecutionStatus, ProcessStatus, VisibilityStatus
-from app.models.types import IngestIdType, OptionalStrictStr, UtcDateTime
+from app.models.types import IngestIdType, OptionalStrictStr, RelativePathType, UtcDateTime
 
 MAX_EXECUTIONS = 5
 
@@ -89,19 +89,12 @@ class Ingest(BaseModel):
 	id: IngestIdType
 	process: ProcessStatus = ProcessStatus.PROCESSING
 	visibility: VisibilityStatus = VisibilityStatus.PRIVATE
-	relative_path: Annotated[str, MinLen(4)]
+	relative_path: RelativePathType
 	fingerprint: Annotated[str, Len(64, 64)]
 	ingested_at: UtcDateTime
 	captured_at: UtcDateTime
 	updated_at: UtcDateTime
 	executions: Annotated[Sequence[Execution], Field(default_factory=list), MaxLen(MAX_EXECUTIONS)]
-
-	@field_validator('relative_path')
-	@staticmethod
-	def validate_relative_path(value: str) -> str:
-		if value.startswith('/'):
-			raise ValueError('relative_path must not start with "/"')
-		return value
 
 	@model_validator(mode='after')
 	def validate_datetime(self) -> 'Ingest':

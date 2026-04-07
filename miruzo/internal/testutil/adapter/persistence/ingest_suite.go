@@ -13,6 +13,48 @@ var ingestSuiteBaseTimeUTC = time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
 
 type IngestSuite SuiteBase[bool]
 
+func (ste IngestSuite) RunTestIngestSchemaRejectsInvalidRelativePath(t *testing.T) {
+	t.Helper()
+
+	tests := []struct {
+		name         string
+		relativePath string
+		wantErr      error
+	}{
+		{
+			name:         "relative_path=.bin",
+			relativePath: ".bin",
+			wantErr:      persist.ErrCheckViolation,
+		},
+		{
+			name:         "relative_path=../orig/test.png",
+			relativePath: "../orig/test.png",
+			wantErr:      persist.ErrCheckViolation,
+		},
+		{
+			name:         "relative_path=/orig/test.png",
+			relativePath: "/orig/test.png",
+			wantErr:      persist.ErrCheckViolation,
+		},
+	}
+
+	timestamp := ingestSuiteBaseTimeUTC.Format(time.RFC3339Nano)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stmt := fmt.Sprintf(
+				"INSERT INTO ingests(relative_path, fingerprint, ingested_at, captured_at, updated_at) VALUES('%s', '%s', '%s', '%s', '%s')",
+				tt.relativePath,
+				fmt.Sprintf("%064d", 1),
+				timestamp,
+				timestamp,
+				timestamp,
+			)
+			err := ste.Operations.ExecuteStatement(stmt)
+			assert.ErrorIs(t, "insert error", err, tt.wantErr)
+		})
+	}
+}
+
 // PostgreSQL only
 func (ste IngestSuite) RunTestIngestSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	t.Helper()

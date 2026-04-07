@@ -5,11 +5,12 @@ from pydantic import BaseModel, Field
 
 from app.config import constants as c
 from app.models.ingest import Execution
+from app.models.types import RelativePathType
 
 
 @final
 class IngestCreateInput(BaseModel):
-	relative_path: Annotated[str, Field(min_length=4)]
+	relative_path: RelativePathType
 	fingerprint: Annotated[str, Field(min_length=64, max_length=64)]
 	ingested_at: datetime
 	captured_at: datetime

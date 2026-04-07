@@ -37,7 +37,7 @@ _ingest_table = Table(
 	),
 	Column(
 		'relative_path',
-		String,
+		String(length=255),
 		nullable=False,
 	),
 	Column('fingerprint', String(length=64), nullable=False, unique=True),
@@ -66,7 +66,7 @@ _ingest_table = Table(
 # PostgreSQL constraints
 _ingest_table.append_constraint(
 	CheckConstraint(
-		"length(relative_path) >= 4 AND relative_path !~ '^/'",
+		"length(relative_path) >= 5 AND relative_path NOT LIKE '/%' AND relative_path NOT LIKE '..%'",
 		'ck_ingests_relative_path',
 	).ddl_if(dialect='postgresql'),
 )
@@ -80,7 +80,7 @@ _ingest_table.append_constraint(
 # SQLite constraints
 _ingest_table.append_constraint(
 	CheckConstraint(
-		"length(relative_path) >= 4 AND relative_path NOT LIKE '/%'",
+		"length(relative_path) BETWEEN 5 AND 255 AND relative_path NOT LIKE '/%' AND relative_path NOT LIKE '..%'",
 		'ck_ingests_relative_path',
 	).ddl_if(dialect='sqlite'),
 )

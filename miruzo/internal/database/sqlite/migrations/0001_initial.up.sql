@@ -25,7 +25,11 @@ CREATE TABLE ingests(
 	relative_path TEXT
 		CONSTRAINT ck_ingests_relative_path
 			NOT NULL
-			CHECK (length(relative_path) >= 4 AND relative_path NOT LIKE '/%'),
+			CHECK (
+				length(relative_path) BETWEEN 5 AND 255
+				AND relative_path NOT LIKE '/%'
+				AND relative_path NOT LIKE '..%'
+			),
 	fingerprint TEXT
 		CONSTRAINT uq_ingests_fingerprint
 			NOT NULL

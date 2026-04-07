@@ -37,6 +37,16 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+func TestIngestSchemaRejectsInvalidRelativePath(t *testing.T) {
+	if factory == nil {
+		t.Fatal("suite is nil")
+	}
+
+	ctx := context.Background()
+	factory.MustReset(t, ctx)
+	factory.NewIngest(t, ctx).RunTestIngestSchemaRejectsInvalidRelativePath(t)
+}
+
 func TestIngestSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")
