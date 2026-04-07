@@ -1,7 +1,6 @@
 from sqlalchemy import bindparam, insert, select, update
 from sqlalchemy.orm import Session
 
-from app.config.constants import EXECUTION_MAXIMUM
 from app.databases.tables import ingest_table
 from app.models.enums import ExecutionStatus, ProcessStatus
 from app.models.ingest import Execution, executions_adapter
@@ -13,8 +12,9 @@ _EXECUTIONS_SELECT_STATEMENT = select(ingest_table.c.executions).where(
 
 
 class _IngestRepositoryBaseImpl:
-	def __init__(self, session: Session) -> None:
+	def __init__(self, session: Session, *, max_executions: int) -> None:
 		self._session = session
+		self._max_executions = max_executions
 
 	def create(self, entry: IngestCreateInput) -> int:
 		stmt = insert(ingest_table).values(
@@ -40,7 +40,7 @@ class _IngestRepositoryBaseImpl:
 
 		values = {
 			'updated_at': entry.updated_at,
-			'executions': executions_adapter.dump_python(executions[-EXECUTION_MAXIMUM:], mode='json'),
+			'executions': executions_adapter.dump_python(executions[-self._max_executions :], mode='json'),
 		}
 		if entry.execution.status == ExecutionStatus.SUCCESS:
 			values['process'] = ProcessStatus.FINISHED

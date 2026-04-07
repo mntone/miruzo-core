@@ -1,9 +1,25 @@
 from sqlalchemy.orm import Session
 
 from app.config.environments import DatabaseBackend, env
+from app.models.ingest import MAX_EXECUTIONS
 from app.persist.ingests.base import _IngestRepositoryBaseImpl
 from app.persist.ingests.postgres import _IngestRepositoryPostgresImpl
 from app.persist.ingests.protocol import IngestRepository
+
+
+def _create_ingest_repository_from_backend(
+	session: Session,
+	*,
+	backend: DatabaseBackend,
+	max_executions: int,
+) -> IngestRepository:
+	match backend:
+		case DatabaseBackend.POSTGRE_SQL:
+			return _IngestRepositoryPostgresImpl(session, max_executions=max_executions)
+		case DatabaseBackend.SQLITE:
+			return _IngestRepositoryBaseImpl(session, max_executions=max_executions)
+		case _:
+			raise ValueError(f'Unsupported database type: {backend}')
 
 
 def create_ingest_repository(session: Session) -> IngestRepository:
@@ -20,9 +36,8 @@ def create_ingest_repository(session: Session) -> IngestRepository:
 		ValueError: if the configured backend is unsupported.
 	"""
 
-	if env.database_backend == DatabaseBackend.SQLITE:
-		return _IngestRepositoryBaseImpl(session)
-	elif env.database_backend == DatabaseBackend.POSTGRE_SQL:
-		return _IngestRepositoryPostgresImpl(session)
-	else:
-		raise ValueError(f'Unsupported database type: {env.database_backend}')
+	return _create_ingest_repository_from_backend(
+		session,
+		backend=env.database_backend,
+		max_executions=MAX_EXECUTIONS,
+	)

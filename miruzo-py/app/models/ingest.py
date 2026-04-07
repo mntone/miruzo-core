@@ -19,6 +19,8 @@ from pydantic import (
 from app.models.enums import ExecutionStatus, ProcessStatus, VisibilityStatus
 from app.models.types import IngestIdType, OptionalStrictStr, UtcDateTime
 
+MAX_EXECUTIONS = 5
+
 
 def _parse_timedelta(value: Any) -> Any:
 	if isinstance(value, (int, float)):
@@ -92,7 +94,7 @@ class Ingest(BaseModel):
 	ingested_at: UtcDateTime
 	captured_at: UtcDateTime
 	updated_at: UtcDateTime
-	executions: Annotated[Sequence[Execution], Field(default_factory=list), MaxLen(5)]
+	executions: Annotated[Sequence[Execution], Field(default_factory=list), MaxLen(MAX_EXECUTIONS)]
 
 	@field_validator('relative_path')
 	@staticmethod

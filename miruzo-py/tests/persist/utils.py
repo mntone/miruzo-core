@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import cast
 
 from sqlalchemy import RowMapping, insert, select
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.databases.tables import image_table, ingest_table, stats_table
 from app.models.enums import ProcessStatus, VisibilityStatus
 from app.models.ingest import Ingest
+from app.persist.ingests.protocol import IngestRepository
 
 next_id = 0
 
@@ -55,7 +57,15 @@ def get_image_row(session: Session, *, ingest_id: int) -> RowMapping:
 	return row
 
 
-def get_ingest_row(session: Session, *, ingest_id: int) -> RowMapping:
+def get_ingest_row(session_or_repo: Session | IngestRepository, *, ingest_id: int) -> RowMapping:
+	session: Session
+	if hasattr(session_or_repo, '_session'):
+		session = cast(Session, session_or_repo._session)  # pyright: ignore[reportAttributeAccessIssue]
+	elif isinstance(session_or_repo, Session):
+		session = session_or_repo
+	else:
+		raise RuntimeError('Could not resolve SQLAlchemy session from session_or_repo.')
+
 	row = (
 		session.execute(
 			select(ingest_table).where(ingest_table.c.id == ingest_id),
@@ -66,8 +76,8 @@ def get_ingest_row(session: Session, *, ingest_id: int) -> RowMapping:
 	return row
 
 
-def get_ingest_dto(session: Session, *, ingest_id: int) -> Ingest:
-	row = get_ingest_row(session, ingest_id=ingest_id)
+def get_ingest_dto(session_or_repo: Session | IngestRepository, *, ingest_id: int) -> Ingest:
+	row = get_ingest_row(session_or_repo, ingest_id=ingest_id)
 	dto = Ingest.model_validate(row)
 	return dto
 
