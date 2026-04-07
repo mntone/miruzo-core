@@ -1,18 +1,27 @@
-from typing import Any, Generator
+from collections.abc import Iterator
 
 import pytest
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from app.databases.metadata import metadata
+from tests.persist.fixtures.backends.postgres import postgres_dsn, postgres_session
+from tests.persist.fixtures.backends.sqlite import sqlite_session
+
+from app.config.environments import DatabaseBackend
+
+__all__ = [
+	'postgres_dsn',
+	'postgres_session',
+	'sqlite_session',
+]
 
 
 @pytest.fixture()
-def session() -> Generator[Session, Any, None]:
-	engine = create_engine(
-		'sqlite+pysqlite:///:memory:',
-		connect_args={'check_same_thread': False},
-	)
-	metadata.create_all(engine)
-	with Session(engine) as session:
-		yield session
+def session(request: pytest.FixtureRequest) -> Iterator[Session]:
+	backend = getattr(request, 'param', DatabaseBackend.SQLITE)
+	match backend:
+		case DatabaseBackend.SQLITE:
+			yield request.getfixturevalue('sqlite_session')
+		case DatabaseBackend.POSTGRE_SQL:
+			yield request.getfixturevalue('postgres_session')
+		case _:
+			raise RuntimeError(f'Unsupported test database backend: {backend!r}')

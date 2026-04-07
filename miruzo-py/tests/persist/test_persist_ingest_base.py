@@ -17,12 +17,22 @@ from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreat
 
 @pytest.fixture()
 def ingest_repo(request: pytest.FixtureRequest) -> Iterator[IngestRepository]:
-	with request.getfixturevalue('session') as session:
-		yield _create_ingest_repository_from_backend(
-			session,
-			backend=DatabaseBackend.SQLITE,
-			max_executions=MAX_EXECUTIONS,
-		)
+	backend = getattr(request, 'param', DatabaseBackend.SQLITE)
+	match backend:
+		case DatabaseBackend.SQLITE:
+			with request.getfixturevalue('sqlite_session') as session:
+				yield _create_ingest_repository_from_backend(
+					session,
+					backend=backend,
+					max_executions=MAX_EXECUTIONS,
+				)
+		case DatabaseBackend.POSTGRE_SQL:
+			with request.getfixturevalue('postgres_session') as session:
+				yield _create_ingest_repository_from_backend(
+					session,
+					backend=backend,
+					max_executions=MAX_EXECUTIONS,
+				)
 
 
 def _build_execution(status: ExecutionStatus, *, offset: int = 0) -> Execution:
@@ -57,6 +67,11 @@ def _assert_execution(execution: Execution, *, offset: int = 0) -> None:
 	assert execution.overall.total_seconds() == offset + 120
 
 
+@pytest.mark.parametrize(
+	'ingest_repo',
+	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	indirect=True,
+)
 def test_append_execution_replaces_previous_success(ingest_repo: IngestRepository) -> None:
 	now = datetime.now(timezone.utc)
 	ingest_id = ingest_repo.create(
@@ -137,6 +152,11 @@ class IngestAppendExecutionContext:
 		assert len(row.executions) == min(1 + offset, self.max_executions)
 
 
+@pytest.mark.parametrize(
+	'ingest_repo',
+	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	indirect=True,
+)
 def test_append_execution_trims_to_maximum(ingest_repo: IngestRepository) -> None:
 	now = datetime.now(timezone.utc)
 	ingest_id = ingest_repo.create(
@@ -194,13 +214,22 @@ def test_append_execution_trims_to_maximum(ingest_repo: IngestRepository) -> Non
 	_assert_execution(dto2.executions[2], offset=MAX_EXECUTIONS + EXTRA_EXECUTION_COUNT + 2)
 
 
-def test_append_execution_returns_none_for_missing_ingest(ingest_repo: IngestRepository) -> None:
+@pytest.mark.parametrize('status', [ExecutionStatus.SUCCESS, ExecutionStatus.UNKNOWN_ERROR])
+@pytest.mark.parametrize(
+	'ingest_repo',
+	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	indirect=True,
+)
+def test_append_execution_returns_none_for_missing_ingest(
+	ingest_repo: IngestRepository,
+	status: ExecutionStatus,
+) -> None:
 	now = datetime.now(timezone.utc)
 	with pytest.raises(NoResultFound, match='No row was found when one was required'):
 		ingest_repo.append_execution(
 			IngestAppendExecutionInput(
 				ingest_id=999,
 				updated_at=now,
-				execution=_build_execution(ExecutionStatus.SUCCESS),
+				execution=_build_execution(status),
 			),
 		)
