@@ -38,9 +38,7 @@ SET
 	first_loved_at=
 		CASE
 			WHEN l.occurred_at IS NULL THEN NULL
-			WHEN stats.first_loved_at IS NULL
-			  OR stats.first_loved_at > l.occurred_at
-			THEN l.occurred_at
+			WHEN stats.first_loved_at > l.occurred_at THEN l.occurred_at
 			ELSE stats.first_loved_at
 		END,
 	last_loved_at=l.occurred_at
