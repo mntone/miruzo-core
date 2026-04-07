@@ -72,6 +72,31 @@ def _assert_execution(execution: Execution, *, offset: int = 0) -> None:
 	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
 	indirect=True,
 )
+def test_create_returns_id_and_persists_row(ingest_repo: IngestRepository) -> None:
+	now = datetime.now(timezone.utc)
+	ingest_id = ingest_repo.create(
+		IngestCreateInput(
+			relative_path='l0orig/new.webp',
+			fingerprint='2' * 64,
+			ingested_at=now,
+			captured_at=now,
+		),
+	)
+	assert isinstance(ingest_id, int)
+	assert ingest_id > 0
+
+	row = get_ingest_row(ingest_repo, ingest_id=ingest_id)
+	assert row is not None
+	assert row['id'] == ingest_id
+	assert row['relative_path'] == 'l0orig/new.webp'
+	assert row['fingerprint'] == '2' * 64
+
+
+@pytest.mark.parametrize(
+	'ingest_repo',
+	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	indirect=True,
+)
 def test_append_execution_replaces_previous_success(ingest_repo: IngestRepository) -> None:
 	now = datetime.now(timezone.utc)
 	ingest_id = ingest_repo.create(
@@ -167,7 +192,6 @@ def test_append_execution_trims_to_maximum(ingest_repo: IngestRepository) -> Non
 			captured_at=now,
 		),
 	)
-	assert ingest_id == 1
 
 	context = IngestAppendExecutionContext(
 		repo=ingest_repo,
