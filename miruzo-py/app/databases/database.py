@@ -1,5 +1,3 @@
-from typing import Any, Generator
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -42,11 +40,3 @@ def create_session() -> Session:
 	session = Session(engine)
 
 	return session
-
-
-def get_session() -> Generator[Session, Any, None]:
-	session = create_session()
-	try:
-		yield session
-	finally:
-		session.close()
