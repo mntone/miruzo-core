@@ -7,15 +7,15 @@ from collections.abc import Iterator
 
 import psycopg2
 import pytest
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from app.databases.database import _create_postgres_engine
 from app.databases.metadata import metadata
 
 POSTGRES_IMAGE = 'postgres:18-alpine'
 POSTGRES_DB = 'miruzo'
-POSTGRES_USER = 'miruzo'
-POSTGRES_PASSWORD = 'miruzo'
+POSTGRES_USER = 'm'
+POSTGRES_PASSWORD = 'miruzo1234'
 
 
 def _find_free_port() -> int:
@@ -34,7 +34,7 @@ def postgres_dsn() -> Iterator[str]:
 	except PermissionError:
 		pytest.skip('cannot bind socket to discover free port (insufficient permissions)')
 
-	container_name = f'miruzo-test-{uuid.uuid4().hex[:8]}'
+	container_name = f'miruzo-postgres-{uuid.uuid4().hex[:8]}'
 	run_cmd = [
 		'docker',
 		'run',
@@ -74,7 +74,7 @@ def postgres_dsn() -> Iterator[str]:
 @pytest.fixture()
 def postgres_session(request: pytest.FixtureRequest) -> Iterator[Session]:
 	dsn = request.getfixturevalue('postgres_dsn')
-	engine = create_engine(dsn, echo=False)
+	engine = _create_postgres_engine(dsn, pool_size=1, max_overflow=2)
 	metadata.create_all(engine)
 	with Session(engine) as postgres_session:
 		yield postgres_session

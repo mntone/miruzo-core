@@ -10,6 +10,7 @@ from app.utils.files.permissions import ensure_directory_access
 
 
 class DatabaseBackend(str, Enum):
+	MYSQL = 'mysql'
 	POSTGRE_SQL = 'postgres'
 	SQLITE = 'sqlite'
 

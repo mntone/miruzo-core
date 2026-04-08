@@ -19,8 +19,8 @@ from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreat
 def ingest_repo(request: pytest.FixtureRequest) -> Iterator[IngestRepository]:
 	backend = getattr(request, 'param', DatabaseBackend.SQLITE)
 	match backend:
-		case DatabaseBackend.SQLITE:
-			with request.getfixturevalue('sqlite_session') as session:
+		case DatabaseBackend.MYSQL:
+			with request.getfixturevalue('mysql_session') as session:
 				yield _create_ingest_repository_from_backend(
 					session,
 					backend=backend,
@@ -28,6 +28,13 @@ def ingest_repo(request: pytest.FixtureRequest) -> Iterator[IngestRepository]:
 				)
 		case DatabaseBackend.POSTGRE_SQL:
 			with request.getfixturevalue('postgres_session') as session:
+				yield _create_ingest_repository_from_backend(
+					session,
+					backend=backend,
+					max_executions=MAX_EXECUTIONS,
+				)
+		case DatabaseBackend.SQLITE:
+			with request.getfixturevalue('sqlite_session') as session:
 				yield _create_ingest_repository_from_backend(
 					session,
 					backend=backend,
@@ -69,7 +76,7 @@ def _assert_execution(execution: Execution, *, offset: int = 0) -> None:
 
 @pytest.mark.parametrize(
 	'ingest_repo',
-	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	[DatabaseBackend.MYSQL, DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
 	indirect=True,
 )
 def test_create_returns_id_and_persists_row(ingest_repo: IngestRepository) -> None:
@@ -94,7 +101,7 @@ def test_create_returns_id_and_persists_row(ingest_repo: IngestRepository) -> No
 
 @pytest.mark.parametrize(
 	'ingest_repo',
-	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	[DatabaseBackend.MYSQL, DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
 	indirect=True,
 )
 def test_append_execution_replaces_previous_success(ingest_repo: IngestRepository) -> None:
@@ -179,7 +186,7 @@ class IngestAppendExecutionContext:
 
 @pytest.mark.parametrize(
 	'ingest_repo',
-	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	[DatabaseBackend.MYSQL, DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
 	indirect=True,
 )
 def test_append_execution_trims_to_maximum(ingest_repo: IngestRepository) -> None:
@@ -241,7 +248,7 @@ def test_append_execution_trims_to_maximum(ingest_repo: IngestRepository) -> Non
 @pytest.mark.parametrize('status', [ExecutionStatus.SUCCESS, ExecutionStatus.UNKNOWN_ERROR])
 @pytest.mark.parametrize(
 	'ingest_repo',
-	[DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
+	[DatabaseBackend.MYSQL, DatabaseBackend.POSTGRE_SQL, DatabaseBackend.SQLITE],
 	indirect=True,
 )
 def test_append_execution_returns_none_for_missing_ingest(

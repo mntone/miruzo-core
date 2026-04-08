@@ -43,7 +43,7 @@ class _IngestRepositoryBaseImpl:
 			'executions': executions_adapter.dump_python(executions[-self._max_executions :], mode='json'),
 		}
 		if entry.execution.status == ExecutionStatus.SUCCESS:
-			values['process'] = ProcessStatus.FINISHED
+			values['process'] = int(ProcessStatus.FINISHED)
 
 		stmt = update(ingest_table).where(ingest_table.c.id == entry.ingest_id).values(**values)
 		self._session.execute(stmt)
