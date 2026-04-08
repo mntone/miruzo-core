@@ -3,15 +3,17 @@ from collections.abc import Iterator
 import pytest
 from sqlalchemy.orm import Session
 
-from tests.persist.fixtures.backends.mysql import mysql_dsn, mysql_session
-from tests.persist.fixtures.backends.postgres import postgres_dsn, postgres_session
+from tests.persist.fixtures.backends.mysql import mysql_container, mysql_dsn, mysql_session
+from tests.persist.fixtures.backends.postgres import postgres_container, postgres_dsn, postgres_session
 from tests.persist.fixtures.backends.sqlite import sqlite_session
 
 from app.config.environments import DatabaseBackend
 
 __all__ = [
+	'mysql_container',
 	'mysql_dsn',
 	'mysql_session',
+	'postgres_container',
 	'postgres_dsn',
 	'postgres_session',
 	'sqlite_session',
