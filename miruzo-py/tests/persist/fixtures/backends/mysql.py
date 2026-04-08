@@ -6,13 +6,14 @@ from sqlalchemy.orm import Session
 
 from tests.persist.fixtures.backends.runtime import _ensure_runtime_api_available
 
-from app.databases.database import _create_mysql_engine
+from app.databases.database import MYSQL_CHARSET, MYSQL_COLLATION, _create_mysql_engine
 from app.databases.metadata import metadata
 
 MYSQL_IMAGE = 'mysql:9-oracle'
 MYSQL_DB = 'miruzo'
 MYSQL_USER = 'm'
 MYSQL_PASSWORD = 'miruzo1234'
+MYSQL_COMMAND = f'--character-set-server={MYSQL_CHARSET} --collation-server={MYSQL_COLLATION}'
 
 
 @pytest.fixture(scope='session')
@@ -32,7 +33,7 @@ def mysql_container() -> Iterator[Any]:
 		root_password=MYSQL_PASSWORD,
 		password=MYSQL_PASSWORD,
 		dbname=MYSQL_DB,
-	) as mysql_container:
+	).with_command(MYSQL_COMMAND) as mysql_container:
 		yield mysql_container
 
 

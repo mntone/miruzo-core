@@ -14,6 +14,7 @@ POSTGRES_IMAGE = 'postgres:18-alpine'
 POSTGRES_DB = 'miruzo'
 POSTGRES_USER = 'm'
 POSTGRES_PASSWORD = 'miruzo1234'
+POSTGRES_ARGS = '--encoding=UTF8 --lc-collate=C --lc-ctype=C'
 
 
 @pytest.fixture(scope='session')
@@ -26,6 +27,9 @@ def postgres_container() -> Iterator[PostgresContainer]:
 		password=POSTGRES_PASSWORD,
 		dbname=POSTGRES_DB,
 		driver='psycopg2',
+	).with_env(
+		'POSTGRES_INITDB_ARGS',
+		POSTGRES_ARGS,
 	) as postgres_container:
 		yield postgres_container
 

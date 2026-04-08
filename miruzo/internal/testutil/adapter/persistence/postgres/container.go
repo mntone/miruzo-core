@@ -13,17 +13,21 @@ import (
 const (
 	postgresImageName = "postgres:18-alpine"
 	postgresDatabase  = "miruzo"
-	postgresUsername  = "miruzo"
+	postgresUsername  = "m"
 	postgresPassword  = "miruzo1234"
+	postgresArgs      = "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
 )
 
 func startPostgreContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 	container, err := postgres.Run(
 		ctx,
 		postgresImageName,
-		postgres.WithDatabase(postgresDatabase),
-		postgres.WithUsername(postgresUsername),
-		postgres.WithPassword(postgresPassword),
+		testcontainers.WithEnv(map[string]string{
+			"POSTGRES_DB":          postgresDatabase,
+			"POSTGRES_USER":        postgresUsername,
+			"POSTGRES_PASSWORD":    postgresPassword,
+			"POSTGRES_INITDB_ARGS": postgresArgs,
+		}),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(5*time.Second),
 		),
