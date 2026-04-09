@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type jobCommandCallback func(cfg config.AppConfig, mgr persist.PersistenceManager) error
+type jobCommandCallback func(cfg config.AppConfig, mgr persist.PersistenceProvider) error
 
 func withJobRunGuard(
 	name string,
@@ -33,8 +33,8 @@ func withJobRunGuard(
 	}()
 
 	clk := clock.NewSystemProvider()
-	mgr := hdl.PersistenceManager()
-	guard := jobguard.NewWithJobRepository(mgr.Repos().Job)
+	prov := hdl.PersistenceProvider()
+	guard := jobguard.NewWithJobRepository(prov.Repos().Job())
 	acquired, err := guard.TryAcquire(command.Context(), name, clk.Now())
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func withJobRunGuard(
 		}
 	}()
 
-	return callback(cfg, mgr)
+	return callback(cfg, prov)
 }
 
 var Command = &cobra.Command{

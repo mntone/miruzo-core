@@ -8,7 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-type UserSuite SuiteBase[persist.UserRepository]
+type UserSuite SuiteBase[persist.SessionUserRepository]
 
 func (ste UserSuite) RunTestUserSchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 	t.Helper()

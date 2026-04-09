@@ -10,6 +10,10 @@ type UserRepository interface {
 	Get(
 		ctx context.Context,
 	) (User, error)
+}
+
+type SessionUserRepository interface {
+	UserRepository
 
 	IncrementDailyLoveUsed(
 		ctx context.Context,

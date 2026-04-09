@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	mgr                  persist.PersistenceManager
+	prov                 persist.PersistenceProvider
 	backoff              backoff.Policy
 	clk                  clock.Provider
 	scoreCalculator      score.Calculator
@@ -20,7 +20,7 @@ type Service struct {
 }
 
 func New(
-	persistenceManager persist.PersistenceManager,
+	persistenceProvider persist.PersistenceProvider,
 	backoff backoff.Policy,
 	clockProvider clock.Provider,
 	scoreCalculator score.Calculator,
@@ -32,7 +32,7 @@ func New(
 	}
 
 	return Service{
-		mgr:                  persistenceManager,
+		prov:                 persistenceProvider,
 		backoff:              backoff,
 		clk:                  clockProvider,
 		scoreCalculator:      scoreCalculator,

@@ -28,13 +28,13 @@ func (srv *Service) LoveCancel(
 			Remaining: 0,
 		},
 	}
-	err := srv.mgr.Session(requestContext, func(ctx context.Context, repos persist.Repositories) error {
-		stats, err := repos.Stats.ApplyLoveCanceled(ctx, ingestID, scoreDelta, periodStartAt, dayStartOffset)
+	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
+		stats, err := repos.Stats().ApplyLoveCanceled(ctx, ingestID, scoreDelta, periodStartAt, dayStartOffset)
 		if err != nil {
 			return err
 		}
 
-		_, err = repos.Action.Create(
+		_, err = repos.Action().Create(
 			ctx,
 			ingestID,
 			model.ActionTypeLoveCanceled,
@@ -44,7 +44,7 @@ func (srv *Service) LoveCancel(
 			return err
 		}
 
-		dailyLoveUsed, err := repos.User.DecrementDailyLoveUsed(ctx)
+		dailyLoveUsed, err := repos.User().DecrementDailyLoveUsed(ctx)
 		if err != nil {
 			if !errors.Is(err, persist.ErrQuotaUnderflow) {
 				return err

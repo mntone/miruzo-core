@@ -48,14 +48,14 @@ func BuildScoreCalculator(
 
 func mountAPI(
 	mux *http.ServeMux,
-	manager persist.PersistenceManager,
+	provider persist.PersistenceProvider,
 	cfg config.AppConfig,
 	version string,
 ) {
 	dailyResolver, err := NewDailyResolver(
 		context.Background(),
 		cfg.Period,
-		manager.Repos().Settings,
+		provider.Repos().Settings(),
 	)
 	if err != nil {
 		log.Fatalf("app: failed to build daily resolver: %v", err)
@@ -65,7 +65,7 @@ func mountAPI(
 	variantLayersBuilder := media.NewVariantLayerBuilder(cfg.API.VariantLayers)
 	readBackoff := newBackoffPolicyFromConfig(cfg.API.Retry.Read)
 	imageListService, err := imageListService.New(
-		manager.Repos().ImageList,
+		provider.Repos().ImageList(),
 		readBackoff,
 		cfg.Score.EngagedScoreThreshold,
 		variantLayersBuilder,
@@ -84,7 +84,7 @@ func mountAPI(
 	clockProvider := clock.NewSystemProvider()
 	scoreCalculator := BuildScoreCalculator(dailyResolver, cfg.Score)
 	viewService, err := viewService.New(
-		manager,
+		provider,
 		readBackoff,
 		clockProvider,
 		scoreCalculator,
@@ -98,7 +98,7 @@ func mountAPI(
 	contextAPI.RegisterRoutes(mux, cors, imageItemHandler)
 
 	reactionService, err := reactionService.New(
-		manager,
+		provider,
 		clockProvider,
 		dailyResolver,
 		scoreCalculator,
@@ -112,7 +112,7 @@ func mountAPI(
 	reactionAPI.RegisterRoutes(mux, cors, reactionHandler)
 
 	userService, err := userService.New(
-		manager.Repos().User,
+		provider.Repos().User(),
 		clockProvider,
 		dailyResolver,
 		cfg.Quota.DailyLoveLimit,
@@ -132,7 +132,7 @@ func mountAPI(
 
 func MountAll(
 	mux *http.ServeMux,
-	manager persist.PersistenceManager,
+	manager persist.PersistenceProvider,
 	cfg config.AppConfig,
 	version string,
 ) {

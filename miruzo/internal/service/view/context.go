@@ -34,17 +34,17 @@ func (srv *Service) GetContext(requestContext context.Context, args ContextArgs)
 	viewedAt := srv.clk.Now()
 
 	var result persist.ImageWithStats
-	err := srv.mgr.Session(
+	err := srv.prov.Session(
 		requestContext,
 		func(
 			ctx context.Context,
-			repos persist.Repositories,
+			repos persist.SessionRepositories,
 		) error {
 			imageWithStats, err := retry.Retry(
 				ctx,
 				srv.backoff,
 				func(requestContext context.Context) (persist.ImageWithStats, error) {
-					return repos.View.GetImageWithStatsForUpdate(requestContext, args.IngestID)
+					return repos.View().GetImageWithStatsForUpdate(requestContext, args.IngestID)
 				},
 			)
 			if err != nil {
@@ -63,7 +63,7 @@ func (srv *Service) GetContext(requestContext context.Context, args ContextArgs)
 			}
 
 			if srv.shouldTriggerViewMilestone(imageWithStats.Stats) {
-				err = repos.Stats.ApplyViewWithMilestone(
+				err = repos.Stats().ApplyViewWithMilestone(
 					ctx,
 					args.IngestID,
 					scoreDelta,
@@ -74,7 +74,7 @@ func (srv *Service) GetContext(requestContext context.Context, args ContextArgs)
 				imageWithStats.Stats.ViewCount += 1
 				imageWithStats.Stats.ViewMilestoneCount = imageWithStats.Stats.ViewCount
 			} else {
-				err = repos.Stats.ApplyView(
+				err = repos.Stats().ApplyView(
 					ctx,
 					args.IngestID,
 					scoreDelta,
@@ -88,7 +88,7 @@ func (srv *Service) GetContext(requestContext context.Context, args ContextArgs)
 				return err
 			}
 
-			_, err = repos.Action.Create(
+			_, err = repos.Action().Create(
 				ctx,
 				args.IngestID,
 				model.ActionTypeView,

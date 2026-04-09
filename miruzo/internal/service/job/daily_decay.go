@@ -16,20 +16,20 @@ import (
 const applyDailyDecayBatchCount int32 = 500
 
 type DailyDecayService struct {
-	mgr                 persist.PersistenceManager
+	prov                persist.PersistenceProvider
 	clk                 clock.Provider
 	dailyPeriodResolver period.DailyResolver
 	scoreCalculator     score.Calculator
 }
 
 func NewDailyDecay(
-	persistenceManager persist.PersistenceManager,
+	persistenceProvider persist.PersistenceProvider,
 	clockProvider clock.Provider,
 	dailyPeriodResolver period.DailyResolver,
 	scoreCalculator score.Calculator,
 ) *DailyDecayService {
 	return &DailyDecayService{
-		mgr:                 persistenceManager,
+		prov:                persistenceProvider,
 		clk:                 clockProvider,
 		dailyPeriodResolver: dailyPeriodResolver,
 		scoreCalculator:     scoreCalculator,
@@ -40,11 +40,11 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 	occurredAt := srv.clk.Now()
 	periodStartAt := srv.dailyPeriodResolver.PeriodStart(occurredAt)
 
-	err := srv.mgr.Session(ctx, func(ctx context.Context, repos persist.Repositories) error {
+	err := srv.prov.Session(ctx, func(ctx context.Context, repos persist.SessionRepositories) error {
 		reporter := dailyDecayProgressReporter{}
 		defer reporter.Print()
 
-		iter := repos.StatsList.IterateStatsForDailyDecay(ctx, applyDailyDecayBatchCount)
+		iter := repos.StatsList().IterateStatsForDailyDecay(ctx, applyDailyDecayBatchCount)
 		for row, err := range iter {
 			if err != nil {
 				reporter.AddFailed(err)
@@ -57,7 +57,7 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 				continue
 			}
 
-			existsDecayAction, err := repos.Action.ExistsSince(
+			existsDecayAction, err := repos.Action().ExistsSince(
 				ctx,
 				row.IngestID,
 				model.ActionTypeDecay,
@@ -72,7 +72,7 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 				continue
 			}
 
-			_, err = repos.Action.Create(
+			_, err = repos.Action().Create(
 				ctx,
 				row.IngestID,
 				model.ActionTypeDecay,
@@ -97,7 +97,7 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 				)
 			}
 
-			err = repos.Stats.ApplyDecay(
+			err = repos.Stats().ApplyDecay(
 				ctx,
 				row.IngestID,
 				newScore,
@@ -111,7 +111,7 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 			reporter.AddProcessed()
 		}
 
-		return repos.User.ResetDailyLoveUsed(ctx)
+		return repos.User().ResetDailyLoveUsed(ctx)
 	})
 	if err != nil {
 		return serviceerror.MapPersistError(err)

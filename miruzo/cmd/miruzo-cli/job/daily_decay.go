@@ -13,11 +13,11 @@ var dailyDecayCommand = &cobra.Command{
 	Use:   "daily-decay",
 	Short: "Apply daily score decay",
 	RunE: func(command *cobra.Command, args []string) error {
-		return withJobRunGuard("daily_decay", command, func(cfg config.AppConfig, mgr persist.PersistenceManager) error {
+		return withJobRunGuard("daily_decay", command, func(cfg config.AppConfig, prov persist.PersistenceProvider) error {
 			dailyPeriodResolver, err := app.NewDailyResolver(
 				command.Context(),
 				cfg.Period,
-				mgr.Repos().Settings,
+				prov.Repos().Settings(),
 			)
 			if err != nil {
 				return err
@@ -25,7 +25,7 @@ var dailyDecayCommand = &cobra.Command{
 
 			return jobService.
 				NewDailyDecay(
-					mgr,
+					prov,
 					clock.NewSystemProvider(),
 					dailyPeriodResolver,
 					app.BuildScoreCalculator(dailyPeriodResolver, cfg.Score),

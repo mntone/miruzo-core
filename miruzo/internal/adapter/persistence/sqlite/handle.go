@@ -14,8 +14,8 @@ func (hdl sqliteHandle) Close() error {
 	return hdl.db.Close()
 }
 
-func (hdl sqliteHandle) PersistenceManager() persist.PersistenceManager {
-	return newPersistenceManager(hdl.db)
+func (hdl sqliteHandle) PersistenceProvider() persist.PersistenceProvider {
+	return newProvider(hdl.db)
 }
 
 func (hdl sqliteHandle) MigrationRunner() persist.MigrationRunner {

@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	mgr                      persist.PersistenceManager
+	prov                     persist.PersistenceProvider
 	clk                      clock.Provider
 	dailyPeriodResolver      period.DailyResolver
 	scoreCalculator          score.Calculator
@@ -20,7 +20,7 @@ type Service struct {
 }
 
 func New(
-	persistenceManager persist.PersistenceManager,
+	persistenceProvider persist.PersistenceProvider,
 	clockProvider clock.Provider,
 	dailyPeriodResolver period.DailyResolver,
 	scoreCalculator score.Calculator,
@@ -32,7 +32,7 @@ func New(
 	}
 
 	return &Service{
-		mgr:                      persistenceManager,
+		prov:                     persistenceProvider,
 		clk:                      clockProvider,
 		dailyPeriodResolver:      dailyPeriodResolver,
 		scoreCalculator:          scoreCalculator,

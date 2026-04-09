@@ -14,8 +14,8 @@ func (hdl postgresHandle) Close() error {
 	return nil
 }
 
-func (hdl postgresHandle) PersistenceManager() persist.PersistenceManager {
-	return newPersistenceManager(hdl.pool)
+func (hdl postgresHandle) PersistenceProvider() persist.PersistenceProvider {
+	return newProvider(hdl.pool)
 }
 
 func (hdl postgresHandle) MigrationRunner() persist.MigrationRunner {

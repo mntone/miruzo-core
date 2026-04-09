@@ -26,7 +26,7 @@ func main() {
 	defer hdl.Close()
 
 	mux := http.NewServeMux()
-	app.MountAll(mux, hdl.PersistenceManager(), cfg, version)
+	app.MountAll(mux, hdl.PersistenceProvider(), cfg, version)
 
 	httpServer := server.NewHTTPServer(
 		m.RequestLog(mux),

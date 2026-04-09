@@ -15,8 +15,8 @@ func (srv *Service) GrantHallOfFame(
 ) (HallOfFameResult, error) {
 	hallOfFameAt := srv.clk.Now()
 
-	err := srv.mgr.Session(requestContext, func(ctx context.Context, repos persist.Repositories) error {
-		err := repos.Stats.ApplyHallOfFameGranted(
+	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
+		err := repos.Stats().ApplyHallOfFameGranted(
 			ctx,
 			ingestID,
 			hallOfFameAt,
@@ -26,7 +26,7 @@ func (srv *Service) GrantHallOfFame(
 			return err
 		}
 
-		_, err = repos.Action.Create(
+		_, err = repos.Action().Create(
 			ctx,
 			ingestID,
 			model.ActionTypeHallOfFameGranted,
@@ -51,13 +51,13 @@ func (srv *Service) RevokeHallOfFame(
 ) (HallOfFameResult, error) {
 	hallOfFameAt := srv.clk.Now()
 
-	err := srv.mgr.Session(requestContext, func(ctx context.Context, repos persist.Repositories) error {
-		err := repos.Stats.ApplyHallOfFameRevoked(ctx, ingestID)
+	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
+		err := repos.Stats().ApplyHallOfFameRevoked(ctx, ingestID)
 		if err != nil {
 			return err
 		}
 
-		_, err = repos.Action.Create(
+		_, err = repos.Action().Create(
 			ctx,
 			ingestID,
 			model.ActionTypeHallOfFameRevoked,

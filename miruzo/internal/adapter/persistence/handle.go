@@ -8,7 +8,7 @@ type DatabaseCloser interface {
 
 type DatabaseAppHandle interface {
 	DatabaseCloser
-	PersistenceManager() persist.PersistenceManager
+	PersistenceProvider() persist.PersistenceProvider
 }
 
 type DatabaseManagementHandle interface {

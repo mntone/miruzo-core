@@ -24,8 +24,8 @@ func (srv *Service) Love(
 			Remaining: 0,
 		},
 	}
-	err := srv.mgr.Session(requestContext, func(ctx context.Context, repos persist.Repositories) error {
-		dailyLoveUsed, err := repos.User.IncrementDailyLoveUsed(ctx, srv.dailyLoveLimit)
+	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
+		dailyLoveUsed, err := repos.User().IncrementDailyLoveUsed(ctx, srv.dailyLoveLimit)
 		if err != nil {
 			return err
 		}
@@ -33,7 +33,7 @@ func (srv *Service) Love(
 			result.Quota.Remaining = srv.dailyLoveLimit - dailyLoveUsed
 		}
 
-		stats, err := repos.Stats.ApplyLove(
+		stats, err := repos.Stats().ApplyLove(
 			ctx,
 			ingestID,
 			scoreDelta,
@@ -45,7 +45,7 @@ func (srv *Service) Love(
 			return err
 		}
 
-		_, err = repos.Action.Create(
+		_, err = repos.Action().Create(
 			ctx,
 			ingestID,
 			model.ActionTypeLove,

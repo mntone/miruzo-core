@@ -1,0 +1,79 @@
+package postgres
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	sharedPostgre "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+)
+
+type postgresProvider struct {
+	pool  *pgxpool.Pool
+	repos postgresRepositories
+}
+
+func newProvider(pool *pgxpool.Pool) postgresProvider {
+	return postgresProvider{
+		pool: pool,
+		repos: postgresRepositories{
+			queries: gen.New(pool),
+		},
+	}
+}
+
+func (prov postgresProvider) Repos() persist.Repositories {
+	return prov.repos
+}
+
+func (prov postgresProvider) Session(
+	ctx context.Context,
+	callback persist.SessionCallback,
+) error {
+	tx, err := prov.pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel:       pgx.ReadCommitted,
+		AccessMode:     pgx.ReadWrite,
+		DeferrableMode: pgx.Deferrable,
+	})
+	if err != nil {
+		return fmt.Errorf(
+			"begin postgres transaction: %w",
+			sharedPostgre.MapPostgreError("Session()", err),
+		)
+	}
+
+	repos := postgresSessionRepositories{
+		postgresRepositories: postgresRepositories{
+			queries: gen.New(tx),
+		},
+	}
+	err = callback(ctx, repos)
+	if err != nil {
+		rollbackErr := tx.Rollback(ctx)
+		if rollbackErr != nil {
+			return fmt.Errorf(
+				"rollback postgres: %w",
+				shared.JoinErrors(
+					err,
+					sharedPostgre.MapPostgreError("Session()", rollbackErr),
+				),
+			)
+		}
+
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf(
+			"commit postgres: %w",
+			sharedPostgre.MapPostgreError("Session()", err),
+		)
+	}
+
+	return nil
+}
