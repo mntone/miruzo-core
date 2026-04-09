@@ -5,35 +5,36 @@ import (
 	"fmt"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/role"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 )
 
-func NewMigrationRunner(
+func OpenAppHandle(
 	ctx context.Context,
-	conf config.DatabaseConfig,
-) (persist.MigrationRunner, error) {
-	switch conf.Backend {
-	case config.DatabaseBackendPostgres:
-		return postgres.NewMigrationRunner(ctx, conf)
-	case config.DatabaseBackendSQLite:
-		return sqlite.NewMigrationRunner(ctx, conf)
+	appConfig config.DatabaseConfig,
+) (DatabaseAppHandle, error) {
+	switch appConfig.Backend {
+	case backend.PostgreSQL:
+		return postgres.OpenHandle(ctx, appConfig, role.App)
+	case backend.SQLite:
+		return sqlite.OpenHandle(ctx, appConfig, role.App)
 	default:
-		return nil, fmt.Errorf("unsupported database backend: %s", conf.Backend)
+		return nil, fmt.Errorf("unsupported database backend: %s", appConfig.Backend)
 	}
 }
 
-func NewPersistenceManager(
+func OpenManagementHandle(
 	ctx context.Context,
-	conf config.DatabaseConfig,
-) (persist.PersistenceManager, error) {
-	switch conf.Backend {
-	case config.DatabaseBackendPostgres:
-		return postgres.NewPersistenceManager(ctx, conf)
-	case config.DatabaseBackendSQLite:
-		return sqlite.NewPersistenceManager(ctx, conf)
+	appConfig config.DatabaseConfig,
+) (DatabaseManagementHandle, error) {
+	switch appConfig.Backend {
+	case backend.PostgreSQL:
+		return postgres.OpenHandle(ctx, appConfig, role.Management)
+	case backend.SQLite:
+		return sqlite.OpenHandle(ctx, appConfig, role.Management)
 	default:
-		return nil, fmt.Errorf("unsupported database backend: %s", conf.Backend)
+		return nil, fmt.Errorf("unsupported database backend: %s", appConfig.Backend)
 	}
 }

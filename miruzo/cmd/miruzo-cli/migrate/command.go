@@ -20,17 +20,17 @@ func withMigrationService(
 		return err
 	}
 
-	runner, err := persistence.NewMigrationRunner(command.Context(), cfg.Database)
+	hdl, err := persistence.OpenManagementHandle(command.Context(), cfg.Database)
 	if err != nil {
 		return err
 	}
 
-	srv, err := migration.New(runner)
+	srv, err := migration.New(hdl.MigrationRunner())
 	if err != nil {
 		return err
 	}
 	defer func() {
-		err = errors.Join(err, srv.Close())
+		err = errors.Join(err, hdl.Close())
 	}()
 
 	return callback(srv)

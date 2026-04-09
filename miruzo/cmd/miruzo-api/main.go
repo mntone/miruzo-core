@@ -19,14 +19,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	factory, err := persistence.NewPersistenceManager(context.Background(), cfg.Database)
+	hdl, err := persistence.OpenAppHandle(context.Background(), cfg.Database)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer factory.Close()
+	defer hdl.Close()
 
 	mux := http.NewServeMux()
-	app.MountAll(mux, factory, cfg, version)
+	app.MountAll(mux, hdl.PersistenceManager(), cfg, version)
 
 	httpServer := server.NewHTTPServer(
 		m.RequestLog(mux),

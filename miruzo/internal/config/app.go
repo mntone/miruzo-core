@@ -27,7 +27,12 @@ func DefaultAppConfig() AppConfig {
 }
 
 func (c *AppConfig) Validate() error {
-	err := c.Quota.Validate()
+	err := c.Database.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid config: database.%w", err)
+	}
+
+	err = c.Quota.Validate()
 	if err != nil {
 		return fmt.Errorf("invalid config: quota.%w", err)
 	}

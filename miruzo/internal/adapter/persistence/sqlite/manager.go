@@ -11,55 +11,40 @@ import (
 	sharedSQLite "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
-	database "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type persistenceManager struct {
+type sqlitePersistenceManager struct {
 	db    *sql.DB
 	repos persist.Repositories
 }
 
-func newPersistenceManager(db *sql.DB) persistenceManager {
-	queries := gen.New(db)
-	return persistenceManager{
-		db: db,
-		repos: persist.Repositories{
-			Action:    action.NewRepository(queries),
-			ImageList: imagelist.NewRepository(queries),
-			Job:       NewJobRepository(queries),
-			Settings:  NewSettingsRepository(queries),
-			Stats:     stats.NewRepository(queries),
-			StatsList: NewStatsListRepository(queries),
-			User:      user.NewRepository(queries),
-			View:      NewViewRepository(queries),
-		},
+func newRepositories(queries *gen.Queries) persist.Repositories {
+	return persist.Repositories{
+		Action:    action.NewRepository(queries),
+		ImageList: imagelist.NewRepository(queries),
+		Job:       NewJobRepository(queries),
+		Settings:  NewSettingsRepository(queries),
+		Stats:     stats.NewRepository(queries),
+		StatsList: NewStatsListRepository(queries),
+		User:      user.NewRepository(queries),
+		View:      NewViewRepository(queries),
 	}
 }
 
-func NewPersistenceManager(
-	ctx context.Context,
-	conf config.DatabaseConfig,
-) (persistenceManager, error) {
-	db, err := database.OpenDatabase(ctx, conf)
-	if err != nil {
-		return persistenceManager{}, err
+func newPersistenceManager(db *sql.DB) sqlitePersistenceManager {
+	return sqlitePersistenceManager{
+		db:    db,
+		repos: newRepositories(gen.New(db)),
 	}
-
-	return newPersistenceManager(db), nil
 }
 
-func (manager persistenceManager) Close() error {
-	return manager.db.Close()
-}
-
-func (manager persistenceManager) Repos() persist.Repositories {
+func (manager sqlitePersistenceManager) Repos() persist.Repositories {
 	return manager.repos
 }
 
-func (manager persistenceManager) Session(
+func (manager sqlitePersistenceManager) Session(
 	ctx context.Context,
 	callback persist.SessionCallback,
 ) error {
@@ -73,18 +58,7 @@ func (manager persistenceManager) Session(
 		)
 	}
 
-	queries := gen.New(tx)
-	repos := persist.Repositories{
-		Action:    action.NewRepository(queries),
-		ImageList: imagelist.NewRepository(queries),
-		Job:       NewJobRepository(queries),
-		Settings:  NewSettingsRepository(queries),
-		Stats:     stats.NewRepository(queries),
-		StatsList: NewStatsListRepository(queries),
-		User:      user.NewRepository(queries),
-		View:      NewViewRepository(queries),
-	}
-
+	repos := newRepositories(gen.New(tx))
 	err = callback(ctx, repos)
 	if err != nil {
 		rollbackErr := tx.Rollback()

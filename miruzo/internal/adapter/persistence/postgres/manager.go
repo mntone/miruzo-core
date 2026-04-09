@@ -12,56 +12,40 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
-	database "github.com/mntone/miruzo-core/miruzo/internal/database/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type persistenceManager struct {
+type postgresPersistenceManager struct {
 	pool  *pgxpool.Pool
 	repos persist.Repositories
 }
 
-func newPersistenceManager(pool *pgxpool.Pool) persistenceManager {
-	queries := gen.New(pool)
-	return persistenceManager{
-		pool: pool,
-		repos: persist.Repositories{
-			Action:    action.NewRepository(queries),
-			ImageList: imagelist.NewRepository(queries),
-			Job:       NewJobRepository(queries),
-			Settings:  NewSettingsRepository(queries),
-			Stats:     stats.NewRepository(queries),
-			StatsList: NewStatsListRepository(queries),
-			User:      user.NewRepository(queries),
-			View:      NewViewRepository(queries),
-		},
+func newRepositories(queries *gen.Queries) persist.Repositories {
+	return persist.Repositories{
+		Action:    action.NewRepository(queries),
+		ImageList: imagelist.NewRepository(queries),
+		Job:       NewJobRepository(queries),
+		Settings:  NewSettingsRepository(queries),
+		Stats:     stats.NewRepository(queries),
+		StatsList: NewStatsListRepository(queries),
+		User:      user.NewRepository(queries),
+		View:      NewViewRepository(queries),
 	}
 }
 
-func NewPersistenceManager(
-	ctx context.Context,
-	conf config.DatabaseConfig,
-) (persistenceManager, error) {
-	pool, err := database.OpenDatabase(ctx, conf)
-	if err != nil {
-		return persistenceManager{}, err
+func newPersistenceManager(pool *pgxpool.Pool) postgresPersistenceManager {
+	return postgresPersistenceManager{
+		pool:  pool,
+		repos: newRepositories(gen.New(pool)),
 	}
-
-	return newPersistenceManager(pool), nil
 }
 
-func (manager persistenceManager) Close() error {
-	manager.pool.Close()
-	return nil
-}
-
-func (manager persistenceManager) Repos() persist.Repositories {
+func (manager postgresPersistenceManager) Repos() persist.Repositories {
 	return manager.repos
 }
 
-func (manager persistenceManager) Session(
+func (manager postgresPersistenceManager) Session(
 	ctx context.Context,
 	callback persist.SessionCallback,
 ) error {
@@ -77,18 +61,7 @@ func (manager persistenceManager) Session(
 		)
 	}
 
-	queries := gen.New(tx)
-	repos := persist.Repositories{
-		Action:    action.NewRepository(queries),
-		ImageList: imagelist.NewRepository(queries),
-		Job:       NewJobRepository(queries),
-		Settings:  NewSettingsRepository(queries),
-		Stats:     stats.NewRepository(queries),
-		StatsList: NewStatsListRepository(queries),
-		User:      user.NewRepository(queries),
-		View:      NewViewRepository(queries),
-	}
-
+	repos := newRepositories(gen.New(tx))
 	err = callback(ctx, repos)
 	if err != nil {
 		rollbackErr := tx.Rollback(ctx)

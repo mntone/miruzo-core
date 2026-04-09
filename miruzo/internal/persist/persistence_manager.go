@@ -16,8 +16,6 @@ type Repositories struct {
 type SessionCallback func(ctx context.Context, repos Repositories) error
 
 type PersistenceManager interface {
-	Close() error
-
 	Repos() Repositories
 	Session(
 		ctx context.Context,

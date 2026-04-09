@@ -17,7 +17,7 @@ import (
 func setupDatabase(t *testing.T, ctx context.Context) *sql.DB {
 	t.Helper()
 
-	db := OpenTestDatabase(t, ctx)
+	db := openTestDatabase(t, ctx)
 	if err := sqlite.NewMigrationRunnerFromDB(db).Up(ctx); err != nil {
 		t.Fatalf("run sqlite migrations: %v", err)
 	}

@@ -24,15 +24,16 @@ func withJobRunGuard(
 		return err
 	}
 
-	mgr, err := persistence.NewPersistenceManager(command.Context(), cfg.Database)
+	hdl, err := persistence.OpenManagementHandle(command.Context(), cfg.Database)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		err = errors.Join(err, mgr.Close())
+		err = errors.Join(err, hdl.Close())
 	}()
 
 	clk := clock.NewSystemProvider()
+	mgr := hdl.PersistenceManager()
 	guard := jobguard.NewWithJobRepository(mgr.Repos().Job)
 	acquired, err := guard.TryAcquire(command.Context(), name, clk.Now())
 	if err != nil {

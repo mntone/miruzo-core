@@ -6,21 +6,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
-	db "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
+	database "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
+	"github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/shared"
 )
 
-func OpenTestDatabase(t testing.TB, ctx context.Context) *sql.DB {
+func openTestDatabase(t testing.TB, ctx context.Context) *sql.DB {
 	t.Helper()
 
-	conf := config.DefaultDatabaseConfig()
-	conf.DSN = fmt.Sprintf(
-		"file:%s?mode=memory&cache=shared",
-		t.Name(),
-	)
-	conf.MaxOpenConnections = 1
-
-	databaseHandle, err := db.OpenDatabase(ctx, conf)
+	cfg := database.ConnectConfig{
+		DSN:              fmt.Sprintf("file:%s?mode=memory&cache=shared", t.Name()),
+		ConnectionTuning: shared.NewTestConnectionTuning(),
+	}
+	databaseHandle, err := database.Open(ctx, cfg)
 	if err != nil {
 		t.Fatalf("open sqlite database: %v", err)
 	}

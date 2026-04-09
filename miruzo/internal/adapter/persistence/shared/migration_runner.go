@@ -10,15 +10,6 @@ import (
 
 type MigrationRunner struct {
 	migration.Spec
-	CloseDatabase func() error
-}
-
-func (r MigrationRunner) Close() error {
-	if r.CloseDatabase == nil {
-		return nil
-	}
-
-	return r.CloseDatabase()
 }
 
 func (r MigrationRunner) Migrate(ctx context.Context, version int) (err error) {

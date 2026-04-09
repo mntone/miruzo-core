@@ -27,7 +27,12 @@ func NewSuiteFactory(ctx context.Context) (*SuiteFactory, error) {
 		return nil, err
 	}
 
-	pool, err := openTestPoolFromContainer(ctx, container)
+	dsn, err := container.ConnectionString(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get postgres container dsn: %w", err)
+	}
+
+	pool, err := openTestPoolFromDSN(ctx, dsn)
 	if err != nil {
 		containerErr := container.Terminate(ctx)
 		return nil, fmt.Errorf(

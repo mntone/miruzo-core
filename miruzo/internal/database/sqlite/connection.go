@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	sqlite3 "github.com/mattn/go-sqlite3"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
 )
 
 var sqliteTimestampFormatsOnce sync.Once
@@ -41,13 +40,10 @@ func buildSQLiteDSN(dsn string) (string, error) {
 	return parsed.String(), nil
 }
 
-func OpenDatabase(
-	ctx context.Context,
-	conf config.DatabaseConfig,
-) (*sql.DB, error) {
+func Open(ctx context.Context, cfg ConnectConfig) (*sql.DB, error) {
 	configureSQLiteTimestampFormats()
 
-	dsn, err := buildSQLiteDSN(conf.DSN)
+	dsn, err := buildSQLiteDSN(cfg.DSN)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +52,12 @@ func OpenDatabase(
 	if err != nil {
 		return nil, err
 	}
-	db.SetConnMaxIdleTime(conf.MaxConnectionIdleTime)
-	db.SetConnMaxLifetime(conf.MaxConnectionLifeTime)
-	db.SetMaxOpenConns(int(conf.MaxOpenConnections))
+	db.SetConnMaxIdleTime(cfg.MaxConnectionIdleTime)
+	db.SetConnMaxLifetime(cfg.MaxConnectionLifeTime)
+	db.SetMaxIdleConns(int(cfg.PoolWarmConnections))
+	db.SetMaxOpenConns(int(cfg.MaxOpenConnections))
 
-	timeoutContext, cancel := context.WithTimeout(ctx, conf.ConnectionTimeout)
+	timeoutContext, cancel := context.WithTimeout(ctx, cfg.ConnectionTimeout)
 	defer cancel()
 
 	if err := db.PingContext(timeoutContext); err != nil {

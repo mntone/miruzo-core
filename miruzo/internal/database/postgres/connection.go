@@ -4,31 +4,26 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mntone/miruzo-core/miruzo/internal/config"
 )
 
-func OpenDatabase(
-	ctx context.Context,
-	conf config.DatabaseConfig,
-) (*pgxpool.Pool, error) {
-	cfg, err := pgxpool.ParseConfig(conf.DSN)
+func Open(ctx context.Context, cfg ConnectConfig) (*pgxpool.Pool, error) {
+	poolConfig, err := pgxpool.ParseConfig(cfg.DSN)
 	if err != nil {
 		return nil, err
 	}
-	cfg.MaxConnIdleTime = conf.MaxConnectionIdleTime
-	cfg.MaxConnLifetime = conf.MaxConnectionLifeTime
-	cfg.MaxConns = conf.MaxOpenConnections
-	cfg.ConnConfig.RuntimeParams["timezone"] = "UTC"
+	poolConfig.ConnConfig.ConnectTimeout = cfg.ConnectionTimeout
+	poolConfig.MaxConnIdleTime = cfg.MaxConnectionIdleTime
+	poolConfig.MaxConnLifetime = cfg.MaxConnectionLifeTime
+	poolConfig.MinConns = cfg.PoolWarmConnections
+	poolConfig.MaxConns = cfg.MaxOpenConnections
+	poolConfig.ConnConfig.RuntimeParams["timezone"] = "UTC"
 
-	timeoutContext, cancel := context.WithTimeout(ctx, conf.ConnectionTimeout)
-	defer cancel()
-
-	pool, err := pgxpool.NewWithConfig(timeoutContext, cfg)
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pool.Ping(timeoutContext); err != nil {
+	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
 		return nil, err
 	}
