@@ -2,26 +2,15 @@ package stats
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
-	"github.com/samber/mo"
 )
-
-type repository struct {
-	queries *gen.Queries
-}
-
-func NewRepository(queries *gen.Queries) repository {
-	return repository{
-		queries: queries,
-	}
-}
 
 func (repo repository) ApplyDecay(
 	ctx context.Context,
@@ -32,10 +21,10 @@ func (repo repository) ApplyDecay(
 	rowCount, err := repo.queries.ApplyDecayToStats(ctx, gen.ApplyDecayToStatsParams{
 		IngestID:    ingestID,
 		Score:       score,
-		EvaluatedAt: &evaluatedAt,
+		EvaluatedAt: shared.NullTimeFromTime(evaluatedAt),
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyDecay", err)
+		return shared.MapSQLiteError("ApplyDecay", err)
 	}
 
 	if rowCount == 0 {
@@ -53,11 +42,11 @@ func (repo repository) ApplyHallOfFameGranted(
 ) error {
 	rowCount, err := repo.queries.ApplyHallOfFameGrantedToStats(ctx, gen.ApplyHallOfFameGrantedToStatsParams{
 		IngestID:                 ingestID,
-		HallOfFameAt:             &hallOfFameAt,
+		HallOfFameAt:             shared.NullTimeFromTime(hallOfFameAt),
 		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyHallOfFameGranted", err)
+		return shared.MapSQLiteError("ApplyHallOfFameGranted", err)
 	}
 
 	if rowCount == 0 {
@@ -73,7 +62,7 @@ func (repo repository) ApplyHallOfFameRevoked(
 ) error {
 	rowCount, err := repo.queries.ApplyHallOfFameRevokedToStats(ctx, ingestID)
 	if err != nil {
-		return shared.MapPostgreError("ApplyHallOfFameRevoked", err)
+		return shared.MapSQLiteError("ApplyHallOfFameRevoked", err)
 	}
 
 	if rowCount == 0 {
@@ -94,22 +83,22 @@ func (repo repository) ApplyLove(
 	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
 		IngestID:           ingestID,
 		ScoreDelta:         scoreDelta,
-		LovedAt:            &lovedAt,
-		PeriodStartAt:      &periodStartAt,
+		LovedAt:            shared.NullTimeFromTime(lovedAt),
+		PeriodStartAt:      shared.NullTimeFromTime(periodStartAt),
 		LoveScoreThreshold: loveScoreThreshold,
 	})
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, shared.MapPostgreError("ApplyLove", err)
+		return model.LoveStats{}, shared.MapSQLiteError("ApplyLove", err)
 	}
 
 	return model.LoveStats{
-		Score:        loveStats.Score,
-		FirstLovedAt: mo.PointerToOption(loveStats.FirstLovedAt),
-		LastLovedAt:  mo.PointerToOption(loveStats.LastLovedAt),
+		Score:        model.ScoreType(loveStats.Score),
+		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
+		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil
 }
 
@@ -123,21 +112,21 @@ func (repo repository) ApplyLoveCanceled(
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
-		PeriodStartAt:  &periodStartAt,
-		DayStartOffset: shared.PgtypeIntervalFromDuration(dayStartOffset),
+		PeriodStartAt:  shared.NullTimeFromTime(periodStartAt),
+		DayStartOffset: int64(dayStartOffset.Seconds()),
 	})
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, shared.MapPostgreError("ApplyLoveCanceled", err)
+		return model.LoveStats{}, shared.MapSQLiteError("ApplyLoveCanceled", err)
 	}
 
 	return model.LoveStats{
-		Score:        loveStats.Score,
-		FirstLovedAt: mo.PointerToOption(loveStats.FirstLovedAt),
-		LastLovedAt:  mo.PointerToOption(loveStats.LastLovedAt),
+		Score:        model.ScoreType(loveStats.Score),
+		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
+		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil
 }
 
@@ -150,10 +139,10 @@ func (repo repository) ApplyView(
 	rowCount, err := repo.queries.ApplyViewToStats(ctx, gen.ApplyViewToStatsParams{
 		IngestID:   ingestID,
 		ScoreDelta: scoreDelta,
-		ViewedAt:   &viewedAt,
+		ViewedAt:   shared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyView", err)
+		return shared.MapSQLiteError("ApplyView", err)
 	}
 
 	if rowCount == 0 {
@@ -172,10 +161,10 @@ func (repo repository) ApplyViewWithMilestone(
 	rowCount, err := repo.queries.ApplyViewToStatsWithMilestone(ctx, gen.ApplyViewToStatsWithMilestoneParams{
 		IngestID:   ingestID,
 		ScoreDelta: scoreDelta,
-		ViewedAt:   &viewedAt,
+		ViewedAt:   shared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyViewWithMilestone", err)
+		return shared.MapSQLiteError("ApplyViewWithMilestone", err)
 	}
 
 	if rowCount == 0 {

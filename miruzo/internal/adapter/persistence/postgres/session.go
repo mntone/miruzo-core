@@ -41,10 +41,6 @@ func (repos postgresSessionRepositories) Stats() persist.StatsRepository {
 	return stats.NewRepository(repos.queries)
 }
 
-func (repos postgresSessionRepositories) StatsList() persist.StatsListRepository {
-	return NewStatsListRepository(repos.queries)
-}
-
 func (repos postgresSessionRepositories) User() persist.SessionUserRepository {
 	return user.NewRepository(repos.queries)
 }

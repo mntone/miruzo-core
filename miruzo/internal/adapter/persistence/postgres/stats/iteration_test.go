@@ -1,4 +1,4 @@
-package postgres_test
+package stats_test
 
 import (
 	"context"
@@ -12,7 +12,7 @@ func TestStatsListRepositoryIterateStatsPaginatesWithoutDuplicates(t *testing.T)
 
 	ctx := context.Background()
 	factory.MustReset(t, ctx)
-	factory.NewStatsList(t, ctx).RunTestIterateStatsPaginatesWithoutDuplicates(t)
+	factory.NewStats(t, ctx).RunTestIterateStatsPaginatesWithoutDuplicates(t)
 }
 
 func TestStatsListRepositoryIterateStatsReturnsEmpty(t *testing.T) {
@@ -22,5 +22,5 @@ func TestStatsListRepositoryIterateStatsReturnsEmpty(t *testing.T) {
 
 	ctx := context.Background()
 	factory.MustReset(t, ctx)
-	factory.NewStatsList(t, ctx).RunTestIterateStatsReturnsEmpty(t)
+	factory.NewStats(t, ctx).RunTestIterateStatsReturnsEmpty(t)
 }

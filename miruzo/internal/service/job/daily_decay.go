@@ -44,7 +44,7 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 		reporter := dailyDecayProgressReporter{}
 		defer reporter.Print()
 
-		iter := repos.StatsList().IterateStatsForDailyDecay(ctx, applyDailyDecayBatchCount)
+		iter := repos.Stats().IterateStatsForDailyDecay(ctx, applyDailyDecayBatchCount)
 		for row, err := range iter {
 			if err != nil {
 				reporter.AddFailed(err)

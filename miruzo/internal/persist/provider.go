@@ -17,7 +17,6 @@ type SessionRepositories interface {
 	commonRepositories
 	Action() ActionRepository
 	Stats() StatsRepository
-	StatsList() StatsListRepository
 	User() SessionUserRepository
 	View() ViewRepository
 }

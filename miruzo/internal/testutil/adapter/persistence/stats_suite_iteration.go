@@ -10,9 +10,7 @@ import (
 	mb "github.com/mntone/miruzo-core/miruzo/internal/testutil/modelbuilder"
 )
 
-type StatsListSuite SuiteBase[persist.StatsListRepository]
-
-func (ste StatsListSuite) RunTestIterateStatsPaginatesWithoutDuplicates(t *testing.T) {
+func (ste StatsSuite) RunTestIterateStatsPaginatesWithoutDuplicates(t *testing.T) {
 	t.Helper()
 
 	baseTime := mb.GetDefaultStatsBaseTime()
@@ -56,7 +54,7 @@ func (ste StatsListSuite) RunTestIterateStatsPaginatesWithoutDuplicates(t *testi
 	assert.IsAbsent(t, "rows(IngestID=5).LastViewedAt", gotRows[5].LastViewedAt)
 }
 
-func (ste StatsListSuite) RunTestIterateStatsReturnsEmpty(t *testing.T) {
+func (ste StatsSuite) RunTestIterateStatsReturnsEmpty(t *testing.T) {
 	t.Helper()
 
 	i := 0

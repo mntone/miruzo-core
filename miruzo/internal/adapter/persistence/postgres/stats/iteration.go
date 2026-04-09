@@ -1,4 +1,4 @@
-package postgres
+package stats
 
 import (
 	"context"
@@ -11,17 +11,7 @@ import (
 	"github.com/samber/mo"
 )
 
-type statsListRepository struct {
-	queries *gen.Queries
-}
-
-func NewStatsListRepository(queries *gen.Queries) statsListRepository {
-	return statsListRepository{
-		queries: queries,
-	}
-}
-
-func (repo statsListRepository) IterateStatsForDailyDecay(
+func (repo repository) IterateStatsForDailyDecay(
 	ctx context.Context,
 	batchCount int32,
 ) iter.Seq2[persist.DailyDecayStats, error] {

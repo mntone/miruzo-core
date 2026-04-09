@@ -1,4 +1,4 @@
-package sqlite_test
+package stats_test
 
 import (
 	"testing"
@@ -7,9 +7,9 @@ import (
 )
 
 func TestStatsListRepositoryIterateStatsPaginatesWithoutDuplicates(t *testing.T) {
-	testutilSQLite.NewStatsListSuite(t).RunTestIterateStatsPaginatesWithoutDuplicates(t)
+	testutilSQLite.NewStatsSuite(t).RunTestIterateStatsPaginatesWithoutDuplicates(t)
 }
 
 func TestStatsListRepositoryIterateStatsReturnsEmpty(t *testing.T) {
-	testutilSQLite.NewStatsListSuite(t).RunTestIterateStatsReturnsEmpty(t)
+	testutilSQLite.NewStatsSuite(t).RunTestIterateStatsReturnsEmpty(t)
 }

@@ -41,10 +41,6 @@ func (repos sqliteSessionRepositories) Stats() persist.StatsRepository {
 	return stats.NewRepository(repos.queries)
 }
 
-func (repos sqliteSessionRepositories) StatsList() persist.StatsListRepository {
-	return NewStatsListRepository(repos.queries)
-}
-
 func (repos sqliteSessionRepositories) View() persist.ViewRepository {
 	return NewViewRepository(repos.queries)
 }

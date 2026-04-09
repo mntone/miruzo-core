@@ -37,10 +37,6 @@ func (s *txSession) Stats() persist.StatsRepository {
 	return s.StatsStub
 }
 
-func (s *txSession) StatsList() persist.StatsListRepository {
-	return s.StatsStub
-}
-
 func (s *txSession) User() persist.SessionUserRepository {
 	return s.UserStub
 }
