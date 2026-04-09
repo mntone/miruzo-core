@@ -6,7 +6,7 @@ type session struct {
 	ActionStub *actionRepository
 	JobStub    *jobRepository
 	StatsStub  *statsRepository
-	UserStub   *UserRepository
+	UserStub   *userRepository
 }
 
 func (s *session) ImageList() persist.ImageListRepository {

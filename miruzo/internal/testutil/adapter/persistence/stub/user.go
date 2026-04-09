@@ -11,7 +11,7 @@ type userStorage struct {
 	DailyLoveUsed model.QuotaInt
 }
 
-type UserRepository struct {
+type userRepository struct {
 	userStorage
 
 	GetError                 error
@@ -21,21 +21,21 @@ type UserRepository struct {
 	ResetError               error
 }
 
-func NewStubUserRepository(dailyLoveUsed int32) *UserRepository {
-	return &UserRepository{
+func NewStubUserRepository(dailyLoveUsed int32) *userRepository {
+	return &userRepository{
 		userStorage: userStorage{
 			DailyLoveUsed: model.QuotaInt(dailyLoveUsed),
 		},
 	}
 }
 
-func (repo UserRepository) snapshot() userStorage {
+func (repo userRepository) snapshot() userStorage {
 	return userStorage{
 		DailyLoveUsed: repo.DailyLoveUsed,
 	}
 }
 
-func (repo UserRepository) Get(
+func (repo userRepository) Get(
 	ctx context.Context,
 ) (persist.User, error) {
 	if repo.GetError != nil {
@@ -48,7 +48,7 @@ func (repo UserRepository) Get(
 	}, nil
 }
 
-func (repo *UserRepository) IncrementDailyLoveUsed(
+func (repo *userRepository) IncrementDailyLoveUsed(
 	ctx context.Context,
 	dailyLoveLimit model.QuotaInt,
 ) (model.QuotaInt, error) {
@@ -66,7 +66,7 @@ func (repo *UserRepository) IncrementDailyLoveUsed(
 	return repo.DailyLoveUsed, nil
 }
 
-func (repo *UserRepository) DecrementDailyLoveUsed(
+func (repo *userRepository) DecrementDailyLoveUsed(
 	ctx context.Context,
 ) (model.QuotaInt, error) {
 	if repo.DecrementError != nil {
@@ -81,7 +81,7 @@ func (repo *UserRepository) DecrementDailyLoveUsed(
 	return repo.DailyLoveUsed, nil
 }
 
-func (repo *UserRepository) ResetDailyLoveUsed(
+func (repo *userRepository) ResetDailyLoveUsed(
 	ctx context.Context,
 ) error {
 	if repo.ResetError != nil {

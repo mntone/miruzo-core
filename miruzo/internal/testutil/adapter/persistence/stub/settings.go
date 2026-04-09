@@ -11,7 +11,7 @@ type keyValuePair struct {
 	Value string
 }
 
-type SettingsRepository struct {
+type settingsRepository struct {
 	Store map[string]string
 
 	GetError    error
@@ -19,8 +19,8 @@ type SettingsRepository struct {
 	Updates     []keyValuePair
 }
 
-func NewStubSettingsRepository() *SettingsRepository {
-	return &SettingsRepository{
+func NewStubSettingsRepository() *settingsRepository {
+	return &settingsRepository{
 		Store: make(map[string]string),
 	}
 }
@@ -28,28 +28,28 @@ func NewStubSettingsRepository() *SettingsRepository {
 func NewStubSettingsRepositoryWithKeyValue(
 	key string,
 	value string,
-) *SettingsRepository {
+) *settingsRepository {
 	store := make(map[string]string)
 	store[key] = value
-	return &SettingsRepository{
+	return &settingsRepository{
 		Store: store,
 	}
 }
 
-func NewStubSettingsRepositoryWithStore(store map[string]string) *SettingsRepository {
-	return &SettingsRepository{
+func NewStubSettingsRepositoryWithStore(store map[string]string) *settingsRepository {
+	return &settingsRepository{
 		Store: store,
 	}
 }
 
-func NewStubSettingsRepositoryWithGetError(getError error) *SettingsRepository {
-	return &SettingsRepository{
+func NewStubSettingsRepositoryWithGetError(getError error) *settingsRepository {
+	return &settingsRepository{
 		Store:    make(map[string]string),
 		GetError: getError,
 	}
 }
 
-func (repo *SettingsRepository) GetValue(
+func (repo *settingsRepository) GetValue(
 	_ context.Context,
 	key string,
 ) (string, error) {
@@ -65,7 +65,7 @@ func (repo *SettingsRepository) GetValue(
 	return value, nil
 }
 
-func (repo *SettingsRepository) UpdateValue(
+func (repo *settingsRepository) UpdateValue(
 	_ context.Context,
 	key string,
 	value string,
