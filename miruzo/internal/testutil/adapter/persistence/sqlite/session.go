@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
+	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
@@ -98,6 +99,10 @@ func (s sqliteTxSession) Rollback(t testing.TB) {
 
 func (s sqliteTxSession) Action() persist.ActionRepository {
 	return action.NewRepository(s.queries)
+}
+
+func (s sqliteTxSession) Job() persist.JobRepository {
+	return database.NewJobRepository(s.queries)
 }
 
 func (s sqliteTxSession) User() persist.SessionUserRepository {

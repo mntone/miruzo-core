@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
+	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
@@ -93,6 +94,10 @@ func (s postgresTxSession) Rollback(t testing.TB) {
 
 func (s postgresTxSession) Action() persist.ActionRepository {
 	return action.NewRepository(s.queries)
+}
+
+func (s postgresTxSession) Job() persist.JobRepository {
+	return database.NewJobRepository(s.queries)
 }
 
 func (s postgresTxSession) User() persist.SessionUserRepository {

@@ -60,19 +60,6 @@ func NewIngestSuite(t *testing.T) testutilPersistence.IngestSuite {
 	}
 }
 
-func NewJobSuite(t *testing.T) testutilPersistence.JobSuite {
-	t.Helper()
-
-	ctx := context.Background()
-	db := setupDatabase(t, ctx)
-	queries := gen.New(db)
-	return testutilPersistence.JobSuite{
-		Context:    ctx,
-		Operations: newOperations(ctx, db, queries),
-		Repository: sqlite.NewJobRepository(queries),
-	}
-}
-
 func NewSettingsSuite(t *testing.T) testutilPersistence.SettingsSuite {
 	t.Helper()
 
