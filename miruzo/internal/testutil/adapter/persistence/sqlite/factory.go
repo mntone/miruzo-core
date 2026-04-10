@@ -48,18 +48,6 @@ func NewImageListSuite(t *testing.T) testutilPersistence.ImageListSuite {
 	}
 }
 
-func NewIngestSuite(t *testing.T) testutilPersistence.IngestSuite {
-	t.Helper()
-
-	ctx := context.Background()
-	db := setupDatabase(t, ctx)
-	queries := gen.New(db)
-	return testutilPersistence.IngestSuite{
-		Context:    ctx,
-		Operations: newOperations(ctx, db, queries),
-	}
-}
-
 func NewStatsSuite(t *testing.T) testutilPersistence.StatsSuite {
 	t.Helper()
 
