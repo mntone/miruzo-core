@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"encoding/json"
 	"testing"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
@@ -93,6 +94,40 @@ func (s sqliteTxSession) Rollback(t testing.TB) {
 	assert.NilError(t, "Rollback()", err)
 
 	modelbuilder.SetNextID(s.nextID)
+}
+
+func (s sqliteTxSession) InsertImage(t testing.TB, e persist.Image) error {
+	originalBytes, err := json.Marshal(e.Original)
+	if err != nil {
+		return err
+	}
+
+	var fallbackBytes *[]byte
+	if fallbackValue, present := e.Fallback.Get(); present {
+		bytes, err := json.Marshal(fallbackValue)
+		if err != nil {
+			return err
+		}
+
+		fallbackBytes = &bytes
+	}
+
+	layersBytes, err := json.Marshal(e.Layers)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.tx.ExecContext(
+		t.Context(),
+		"INSERT INTO images(ingest_id,ingested_at,kind,original,fallback,variants)VALUES(?,?,?,?,?,?)",
+		e.IngestID, e.IngestedAt, e.Type,
+		originalBytes, fallbackBytes, layersBytes,
+	)
+	if err != nil {
+		return dbshared.MapSQLiteError("InsertImage", err)
+	}
+
+	return nil
 }
 
 // --- RepositoryProvider ---

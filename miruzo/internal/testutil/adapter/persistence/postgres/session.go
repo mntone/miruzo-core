@@ -90,6 +90,20 @@ func (s postgresTxSession) Rollback(t testing.TB) {
 	modelbuilder.SetNextID(s.nextID)
 }
 
+func (s postgresTxSession) InsertImage(t testing.TB, e persist.Image) error {
+	_, err := s.tx.Exec(
+		t.Context(),
+		"INSERT INTO images(ingest_id,ingested_at,kind,original,fallback,variants)VALUES($1,$2,$3,$4,$5,$6)",
+		e.IngestID, e.IngestedAt, e.Type,
+		e.Original, e.Fallback.ToPointer(), e.Layers,
+	)
+	if err != nil {
+		return dbshared.MapPostgreError("InsertImage", err)
+	}
+
+	return nil
+}
+
 // --- RepositoryProvider ---
 
 func (s postgresTxSession) Action() persist.ActionRepository {

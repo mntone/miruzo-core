@@ -38,6 +38,8 @@ type TransactionOperations interface {
 	ExecReturningInt64(t testing.TB, stmt string, args ...any) (int64, error)
 	ExecAndGetRowCount(t testing.TB, stmt string, args ...any) (int64, error)
 	Rollback(t testing.TB)
+
+	InsertImage(t testing.TB, e persist.Image) error
 }
 
 type RepositoryProvider interface {
@@ -116,6 +118,35 @@ func (s TxSession) MustAddIngest(t testing.TB, e model.Ingest) model.Ingest {
 		e.Process, e.Visibility,
 		e.RelativePath, e.Fingerprint,
 		e.IngestedAt, e.CapturedAt, e.UpdatedAt,
+	)
+	return e
+}
+
+func (s TxSession) MustAddImage(t testing.TB, e persist.Image) persist.Image {
+	t.Helper()
+
+	err := s.InsertImage(t, e)
+	assert.NilError(t, "InsertImage() error", err)
+	return e
+}
+
+func (s TxSession) MustAddStats(t testing.TB, e model.Stats) model.Stats {
+	t.Helper()
+
+	stmt := fmt.Sprintf(
+		"INSERT INTO stats(ingest_id, score, score_evaluated, first_loved_at, last_loved_at, hall_of_fame_at, last_viewed_at, view_count) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)",
+		s.Param(1), s.Param(2), s.Param(3), s.Param(4),
+		s.Param(5), s.Param(6), s.Param(7), s.Param(8),
+	)
+	s.MustExec(
+		t, stmt,
+		e.IngestID,
+		e.Score, e.ScoreEvaluated,
+		e.FirstLovedAt.ToPointer(),
+		e.LastLovedAt.ToPointer(),
+		e.HallOfFameAt.ToPointer(),
+		e.LastViewedAt.ToPointer(),
+		e.ViewCount,
 	)
 	return e
 }
