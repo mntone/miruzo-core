@@ -24,43 +24,6 @@ type StatsSuite struct {
 	ViewRepository persist.ViewRepository
 }
 
-// --- daily decay ---
-
-func (ste StatsSuite) RunTestApplyDecayUpdates(t *testing.T) {
-	t.Helper()
-
-	baseTime := mb.GetDefaultStatsBaseTime()
-	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime))
-	stats := ste.Operations.MustAddStat(t, mb.Stats(ingest.ID).Build())
-
-	evaluatedAt := baseTime.Add(24 * time.Hour)
-	err := ste.Repository.ApplyDecay(ste.Context, ingest.ID, stats.Score-2, evaluatedAt)
-	assert.NilError(t, "ApplyDecay() error", err)
-
-	imageWithStats, err := ste.ViewRepository.GetImageWithStatsForUpdate(ste.Context, ingest.ID)
-	assert.NilError(t, "GetImageWithStatsForUpdate() error", err)
-	assert.Equal(t, "imageWithStats.Stats.Score", imageWithStats.Stats.Score, stats.Score-2)
-	assert.Equal(t, "imageWithStats.Stats.ScoreEvaluated", imageWithStats.Stats.ScoreEvaluated, stats.Score-2)
-	assert.IsPresent(t, "imageWithStats.Stats.ScoreEvaluatedAt", imageWithStats.Stats.ScoreEvaluatedAt)
-	assert.Equal(t, "imageWithStats.Stats.ScoreEvaluatedAt", imageWithStats.Stats.ScoreEvaluatedAt.MustGet(), evaluatedAt)
-}
-
-func (ste StatsSuite) RunTestApplyDecayReturnsConflictWithoutStats(t *testing.T) {
-	t.Helper()
-
-	baseTime := mb.GetDefaultStatsBaseTime()
-	ingest := ste.Operations.MustAddIngestAndImage(t, NewIngestFixture(1, baseTime))
-
-	evaluatedAt := baseTime.Add(24 * time.Hour)
-	err := ste.Repository.ApplyDecay(
-		ste.Context,
-		ingest.ID,
-		98,
-		evaluatedAt,
-	)
-	assert.ErrorIs(t, "ApplyDecay() error", err, persist.ErrConflict)
-}
-
 // --- hall of fame granted ---
 
 func (ste StatsSuite) RunTestApplyHallOfFameGrantedUpdates(t *testing.T) {

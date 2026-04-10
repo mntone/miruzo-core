@@ -131,6 +131,37 @@ func (s sqliteTxSession) InsertImage(t testing.TB, e persist.Image) error {
 	return nil
 }
 
+func (s sqliteTxSession) SelectStats(t testing.TB, id model.IngestIDType) (model.Stats, error) {
+	row := s.tx.QueryRowContext(t.Context(), "SELECT * FROM stats WHERE ingest_id=?", id)
+
+	var e model.Stats
+	var scoreEvaluatedAt, firstLovedAt, lastLovedAt, hallOfFameAt, lastViewedAt, viewMilestoneArchivedAt sql.NullTime
+	err := row.Scan(
+		&e.IngestID,
+		&e.Score,
+		&e.ScoreEvaluated,
+		&scoreEvaluatedAt,
+		&firstLovedAt,
+		&lastLovedAt,
+		&hallOfFameAt,
+		&lastViewedAt,
+		&e.ViewCount,
+		&e.ViewMilestoneCount,
+		&viewMilestoneArchivedAt,
+	)
+	if err != nil {
+		return e, err
+	}
+
+	e.ScoreEvaluatedAt = dbshared.OptionTimeFromSql(scoreEvaluatedAt)
+	e.FirstLovedAt = dbshared.OptionTimeFromSql(firstLovedAt)
+	e.LastLovedAt = dbshared.OptionTimeFromSql(lastLovedAt)
+	e.HallOfFameAt = dbshared.OptionTimeFromSql(hallOfFameAt)
+	e.LastViewedAt = dbshared.OptionTimeFromSql(lastViewedAt)
+	e.ViewMilestoneArchivedAt = dbshared.OptionTimeFromSql(viewMilestoneArchivedAt)
+	return e, nil
+}
+
 // --- RepositoryProvider ---
 
 func (s sqliteTxSession) Action() persist.ActionRepository {

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
@@ -16,6 +17,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/modelbuilder"
+	"github.com/samber/mo"
 )
 
 type postgresTxSession struct {
@@ -103,6 +105,37 @@ func (s postgresTxSession) InsertImage(t testing.TB, e persist.Image) error {
 	}
 
 	return nil
+}
+
+func (s postgresTxSession) SelectStats(t testing.TB, id model.IngestIDType) (model.Stats, error) {
+	row := s.tx.QueryRow(t.Context(), "SELECT * FROM stats WHERE ingest_id=$1", id)
+
+	var e model.Stats
+	var scoreEvaluatedAt, firstLovedAt, lastLovedAt, hallOfFameAt, lastViewedAt, viewMilestoneArchivedAt *time.Time
+	err := row.Scan(
+		&e.IngestID,
+		&e.Score,
+		&e.ScoreEvaluated,
+		&scoreEvaluatedAt,
+		&firstLovedAt,
+		&lastLovedAt,
+		&hallOfFameAt,
+		&lastViewedAt,
+		&e.ViewCount,
+		&e.ViewMilestoneCount,
+		&viewMilestoneArchivedAt,
+	)
+	if err != nil {
+		return e, err
+	}
+
+	e.ScoreEvaluatedAt = mo.PointerToOption(scoreEvaluatedAt)
+	e.FirstLovedAt = mo.PointerToOption(firstLovedAt)
+	e.LastLovedAt = mo.PointerToOption(lastLovedAt)
+	e.HallOfFameAt = mo.PointerToOption(hallOfFameAt)
+	e.LastViewedAt = mo.PointerToOption(lastViewedAt)
+	e.ViewMilestoneArchivedAt = mo.PointerToOption(viewMilestoneArchivedAt)
+	return e, nil
 }
 
 // --- RepositoryProvider ---

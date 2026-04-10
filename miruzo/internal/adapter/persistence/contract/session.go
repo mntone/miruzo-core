@@ -40,6 +40,7 @@ type TransactionOperations interface {
 	Rollback(t testing.TB)
 
 	InsertImage(t testing.TB, e persist.Image) error
+	SelectStats(t testing.TB, id model.IngestIDType) (model.Stats, error)
 }
 
 type RepositoryProvider interface {
@@ -180,4 +181,13 @@ func (s TxSession) MustSetDailyLoveUsed(t *testing.T, dailyLoveUsed model.QuotaI
 		dailyLoveUsed,
 	)
 	assert.Equal(t, "MustSetDailyLoveUsed() row_count", rowCount, 1)
+}
+
+// --- get each row ---
+
+func (s TxSession) MustGetStats(t testing.TB, id model.IngestIDType) model.Stats {
+	t.Helper()
+	stats, err := s.SelectStats(t, id)
+	assert.NilError(t, "MustGetStats() error", err)
+	return stats
 }

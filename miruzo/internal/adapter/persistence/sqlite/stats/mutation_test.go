@@ -6,14 +6,6 @@ import (
 	testutilSQLite "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/sqlite"
 )
 
-func TestStatsRepositoryApplyDecayUpdates(t *testing.T) {
-	testutilSQLite.NewStatsSuite(t).RunTestApplyDecayUpdates(t)
-}
-
-func TestStatsRepositoryApplyDecayReturnsConflictWithoutStats(t *testing.T) {
-	testutilSQLite.NewStatsSuite(t).RunTestApplyDecayReturnsConflictWithoutStats(t)
-}
-
 func TestStatsRepositoryApplyHallOfFameGrantedUpdates(t *testing.T) {
 	testutilSQLite.NewStatsSuite(t).RunTestApplyHallOfFameGrantedUpdates(t)
 }
