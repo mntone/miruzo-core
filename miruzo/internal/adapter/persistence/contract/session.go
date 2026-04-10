@@ -46,6 +46,7 @@ type RepositoryProvider interface {
 	Action() persist.ActionRepository
 	Job() persist.JobRepository
 	Settings() persist.SettingsRepository
+	Stats() persist.StatsRepository
 	User() persist.SessionUserRepository
 	View() persist.ViewRepository
 }

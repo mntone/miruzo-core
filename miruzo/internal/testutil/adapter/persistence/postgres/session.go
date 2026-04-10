@@ -8,6 +8,7 @@ import (
 	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
@@ -116,6 +117,10 @@ func (s postgresTxSession) Job() persist.JobRepository {
 
 func (s postgresTxSession) Settings() persist.SettingsRepository {
 	return database.NewSettingsRepository(s.queries)
+}
+
+func (s postgresTxSession) Stats() persist.StatsRepository {
+	return stats.NewRepository(s.queries)
 }
 
 func (s postgresTxSession) User() persist.SessionUserRepository {

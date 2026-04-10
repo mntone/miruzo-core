@@ -9,6 +9,7 @@ import (
 	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
@@ -142,6 +143,10 @@ func (s sqliteTxSession) Job() persist.JobRepository {
 
 func (s sqliteTxSession) Settings() persist.SettingsRepository {
 	return database.NewSettingsRepository(s.queries)
+}
+
+func (s sqliteTxSession) Stats() persist.StatsRepository {
+	return stats.NewRepository(s.queries)
 }
 
 func (s sqliteTxSession) User() persist.SessionUserRepository {
