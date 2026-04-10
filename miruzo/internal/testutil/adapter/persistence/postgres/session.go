@@ -100,6 +100,10 @@ func (s postgresTxSession) Job() persist.JobRepository {
 	return database.NewJobRepository(s.queries)
 }
 
+func (s postgresTxSession) Settings() persist.SettingsRepository {
+	return database.NewSettingsRepository(s.queries)
+}
+
 func (s postgresTxSession) User() persist.SessionUserRepository {
 	return user.NewRepository(s.queries)
 }

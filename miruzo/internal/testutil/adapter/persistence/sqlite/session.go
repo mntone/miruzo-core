@@ -105,6 +105,10 @@ func (s sqliteTxSession) Job() persist.JobRepository {
 	return database.NewJobRepository(s.queries)
 }
 
+func (s sqliteTxSession) Settings() persist.SettingsRepository {
+	return database.NewSettingsRepository(s.queries)
+}
+
 func (s sqliteTxSession) User() persist.SessionUserRepository {
 	return user.NewRepository(s.queries)
 }

@@ -137,20 +137,6 @@ func (ste *SuiteFactory) NewIngest(
 	}
 }
 
-func (ste *SuiteFactory) NewSettings(
-	t *testing.T,
-	ctx context.Context,
-) testutilPersistence.SettingsSuite {
-	t.Helper()
-
-	queries := gen.New(ste.pool)
-	return testutilPersistence.SettingsSuite{
-		Context:    ctx,
-		Operations: ste.newOperations(ctx, ste.pool, queries),
-		Repository: postgres.NewSettingsRepository(queries),
-	}
-}
-
 func (ste *SuiteFactory) NewStats(
 	t *testing.T,
 	ctx context.Context,

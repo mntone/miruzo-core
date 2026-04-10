@@ -43,6 +43,7 @@ type TransactionOperations interface {
 type RepositoryProvider interface {
 	Action() persist.ActionRepository
 	Job() persist.JobRepository
+	Settings() persist.SettingsRepository
 	User() persist.SessionUserRepository
 }
 
