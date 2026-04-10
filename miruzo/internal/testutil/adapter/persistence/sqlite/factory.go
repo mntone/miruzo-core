@@ -36,20 +36,6 @@ func newOperations(
 	)
 }
 
-func NewActionSuite(t *testing.T) testutilPersistence.ActionSuite {
-	t.Helper()
-
-	ctx := context.Background()
-	db := setupDatabase(t, ctx)
-	queries := gen.New(db)
-	ops := newOperations(ctx, db, queries)
-	return testutilPersistence.ActionSuite{
-		Context:    ctx,
-		Operations: ops,
-		Repository: ops.Action,
-	}
-}
-
 func NewImageListSuite(t *testing.T) testutilPersistence.ImageListSuite {
 	t.Helper()
 

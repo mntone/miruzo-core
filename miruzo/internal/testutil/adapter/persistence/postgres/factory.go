@@ -111,21 +111,6 @@ func (ste *SuiteFactory) newOperations(
 	)
 }
 
-func (ste *SuiteFactory) NewAction(
-	t *testing.T,
-	ctx context.Context,
-) testutilPersistence.ActionSuite {
-	t.Helper()
-
-	queries := gen.New(ste.pool)
-	ops := ste.newOperations(ctx, ste.pool, queries)
-	return testutilPersistence.ActionSuite{
-		Context:    ctx,
-		Operations: ops,
-		Repository: ops.Action,
-	}
-}
-
 func (ste *SuiteFactory) NewImageList(
 	t *testing.T,
 	ctx context.Context,
