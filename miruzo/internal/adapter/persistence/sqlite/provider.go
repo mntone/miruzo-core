@@ -33,9 +33,7 @@ func (prov sqliteProvider) Session(
 	ctx context.Context,
 	callback persist.SessionCallback,
 ) error {
-	tx, err := prov.db.BeginTx(ctx, &sql.TxOptions{
-		Isolation: sql.LevelReadCommitted,
-	})
+	tx, err := prov.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf(
 			"begin sqlite transaction: %w",

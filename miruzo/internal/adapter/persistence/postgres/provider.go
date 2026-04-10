@@ -34,11 +34,7 @@ func (prov postgresProvider) Session(
 	ctx context.Context,
 	callback persist.SessionCallback,
 ) error {
-	tx, err := prov.pool.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel:       pgx.ReadCommitted,
-		AccessMode:     pgx.ReadWrite,
-		DeferrableMode: pgx.Deferrable,
-	})
+	tx, err := prov.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf(
 			"begin postgres transaction: %w",
