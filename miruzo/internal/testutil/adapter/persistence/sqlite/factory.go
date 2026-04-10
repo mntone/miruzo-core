@@ -9,7 +9,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
@@ -71,19 +70,6 @@ func NewJobSuite(t *testing.T) testutilPersistence.JobSuite {
 		Context:    ctx,
 		Operations: newOperations(ctx, db, queries),
 		Repository: sqlite.NewJobRepository(queries),
-	}
-}
-
-func NewUserSuite(t *testing.T) testutilPersistence.UserSuite {
-	t.Helper()
-
-	ctx := context.Background()
-	db := setupDatabase(t, ctx)
-	queries := gen.New(db)
-	return testutilPersistence.UserSuite{
-		Context:    ctx,
-		Operations: newOperations(ctx, db, queries),
-		Repository: user.NewRepository(queries),
 	}
 }
 

@@ -36,11 +36,13 @@ type TransactionOperations interface {
 	Exec(t testing.TB, stmt string, args ...any) error
 	ExecInsertAndGetID(t testing.TB, stmt string, args ...any) (int64, error)
 	ExecReturningInt64(t testing.TB, stmt string, args ...any) (int64, error)
+	ExecAndGetRowCount(t testing.TB, stmt string, args ...any) (int64, error)
 	Rollback(t testing.TB)
 }
 
 type RepositoryProvider interface {
 	Action() persist.ActionRepository
+	User() persist.SessionUserRepository
 }
 
 type TxSession struct {
@@ -75,6 +77,13 @@ func (s TxSession) MustExecReturningInt64(t testing.TB, stmt string, args ...any
 	retID, err := s.ExecReturningInt64(t, stmt, args...)
 	assert.NilError(t, "ExecReturningInt64() error", err)
 	return retID
+}
+
+func (s TxSession) MustExecAndGetRowCount(t testing.TB, stmt string, args ...any) int64 {
+	t.Helper()
+	rowCount, err := s.ExecAndGetRowCount(t, stmt, args...)
+	assert.NilError(t, "ExecAndGetRowCount() error", err)
+	return rowCount
 }
 
 func (s TxSession) AssertExecErrorIs(
@@ -120,4 +129,20 @@ func (s TxSession) MustAddAction(
 	actionID, err := s.Action().Create(t.Context(), ingestID, kind, at)
 	assert.NilError(t, "MustAddAction() error", err)
 	return actionID
+}
+
+func (s TxSession) MustRemoveUser(t *testing.T) {
+	t.Helper()
+	rowCount := s.MustExecAndGetRowCount(t, "DELETE FROM users WHERE id=1")
+	assert.Equal(t, "MustRemoveUser() row_count", rowCount, 1)
+}
+
+func (s TxSession) MustSetDailyLoveUsed(t *testing.T, dailyLoveUsed model.QuotaInt) {
+	t.Helper()
+	rowCount := s.MustExecAndGetRowCount(
+		t,
+		fmt.Sprintf("UPDATE users SET daily_love_used=%s WHERE id=1", s.Param(1)),
+		dailyLoveUsed,
+	)
+	assert.Equal(t, "MustSetDailyLoveUsed() row_count", rowCount, 1)
 }

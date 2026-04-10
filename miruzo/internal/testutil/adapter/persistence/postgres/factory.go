@@ -10,7 +10,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/stats"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
@@ -149,20 +148,6 @@ func (ste *SuiteFactory) NewIngest(
 	return testutilPersistence.IngestSuite{
 		Context:    ctx,
 		Operations: ste.newOperations(ctx, ste.pool, queries),
-	}
-}
-
-func (ste *SuiteFactory) NewUser(
-	t *testing.T,
-	ctx context.Context,
-) testutilPersistence.UserSuite {
-	t.Helper()
-
-	queries := gen.New(ste.pool)
-	return testutilPersistence.UserSuite{
-		Context:    ctx,
-		Operations: ste.newOperations(ctx, ste.pool, queries),
-		Repository: user.NewRepository(queries),
 	}
 }
 

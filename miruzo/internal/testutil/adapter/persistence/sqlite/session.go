@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -76,6 +77,15 @@ func (s sqliteTxSession) ExecReturningInt64(t testing.TB, stmt string, args ...a
 	return ret, err
 }
 
+func (s sqliteTxSession) ExecAndGetRowCount(t testing.TB, stmt string, args ...any) (int64, error) {
+	result, err := s.tx.ExecContext(t.Context(), stmt, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
 func (s sqliteTxSession) Rollback(t testing.TB) {
 	t.Helper()
 	err := s.tx.Rollback()
@@ -88,4 +98,8 @@ func (s sqliteTxSession) Rollback(t testing.TB) {
 
 func (s sqliteTxSession) Action() persist.ActionRepository {
 	return action.NewRepository(s.queries)
+}
+
+func (s sqliteTxSession) User() persist.SessionUserRepository {
+	return user.NewRepository(s.queries)
 }

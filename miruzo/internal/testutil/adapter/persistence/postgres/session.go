@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -71,6 +72,15 @@ func (s postgresTxSession) ExecReturningInt64(t testing.TB, stmt string, args ..
 	return ret, err
 }
 
+func (s postgresTxSession) ExecAndGetRowCount(t testing.TB, stmt string, args ...any) (int64, error) {
+	result, err := s.tx.Exec(t.Context(), stmt, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected(), nil
+}
+
 func (s postgresTxSession) Rollback(t testing.TB) {
 	t.Helper()
 	err := s.tx.Rollback(t.Context())
@@ -83,4 +93,8 @@ func (s postgresTxSession) Rollback(t testing.TB) {
 
 func (s postgresTxSession) Action() persist.ActionRepository {
 	return action.NewRepository(s.queries)
+}
+
+func (s postgresTxSession) User() persist.SessionUserRepository {
+	return user.NewRepository(s.queries)
 }
