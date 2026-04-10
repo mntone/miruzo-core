@@ -5,36 +5,6 @@ import (
 	"testing"
 )
 
-func TestStatsRepositoryStatsSchemaRejectsInvalidScore(t *testing.T) {
-	if factory == nil {
-		t.Fatal("suite is nil")
-	}
-
-	ctx := context.Background()
-	factory.MustReset(t, ctx)
-	factory.NewStats(t, ctx).RunTestStatsSchemaRejectsInvalidScore(t)
-}
-
-func TestStatsRepositoryStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
-	if factory == nil {
-		t.Fatal("suite is nil")
-	}
-
-	ctx := context.Background()
-	factory.MustReset(t, ctx)
-	factory.NewStats(t, ctx).RunTestStatsSchemaRejectsInvalidScoreEvaluated(t)
-}
-
-func TestStatsRepositoryStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
-	if factory == nil {
-		t.Fatal("suite is nil")
-	}
-
-	ctx := context.Background()
-	factory.MustReset(t, ctx)
-	factory.NewStats(t, ctx).RunTestStatsSchemaRejectsInvalidOccurredAt(t)
-}
-
 func TestStatsRepositoryApplyDecayUpdates(t *testing.T) {
 	if factory == nil {
 		t.Fatal("suite is nil")

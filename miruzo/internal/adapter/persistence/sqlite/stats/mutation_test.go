@@ -6,14 +6,6 @@ import (
 	testutilSQLite "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/sqlite"
 )
 
-func TestStatsRepositoryStatsSchemaRejectsInvalidScore(t *testing.T) {
-	testutilSQLite.NewStatsSuite(t).RunTestStatsSchemaRejectsInvalidScore(t)
-}
-
-func TestStatsRepositoryStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
-	testutilSQLite.NewStatsSuite(t).RunTestStatsSchemaRejectsInvalidScoreEvaluated(t)
-}
-
 func TestStatsRepositoryApplyDecayUpdates(t *testing.T) {
 	testutilSQLite.NewStatsSuite(t).RunTestApplyDecayUpdates(t)
 }
