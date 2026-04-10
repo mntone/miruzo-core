@@ -121,3 +121,7 @@ func (s postgresTxSession) Settings() persist.SettingsRepository {
 func (s postgresTxSession) User() persist.SessionUserRepository {
 	return user.NewRepository(s.queries)
 }
+
+func (s postgresTxSession) View() persist.ViewRepository {
+	return database.NewViewRepository(s.queries)
+}

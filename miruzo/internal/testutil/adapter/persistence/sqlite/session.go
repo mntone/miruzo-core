@@ -147,3 +147,7 @@ func (s sqliteTxSession) Settings() persist.SettingsRepository {
 func (s sqliteTxSession) User() persist.SessionUserRepository {
 	return user.NewRepository(s.queries)
 }
+
+func (s sqliteTxSession) View() persist.ViewRepository {
+	return database.NewViewRepository(s.queries)
+}

@@ -47,6 +47,7 @@ type RepositoryProvider interface {
 	Job() persist.JobRepository
 	Settings() persist.SettingsRepository
 	User() persist.SessionUserRepository
+	View() persist.ViewRepository
 }
 
 type TxSession struct {

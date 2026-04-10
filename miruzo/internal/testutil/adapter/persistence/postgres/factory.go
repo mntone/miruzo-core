@@ -151,17 +151,3 @@ func (ste *SuiteFactory) NewStats(
 		ViewRepository: postgres.NewViewRepository(queries),
 	}
 }
-
-func (ste *SuiteFactory) NewView(
-	t *testing.T,
-	ctx context.Context,
-) testutilPersistence.ViewSuite {
-	t.Helper()
-
-	queries := gen.New(ste.pool)
-	return testutilPersistence.ViewSuite{
-		Context:    ctx,
-		Operations: ste.newOperations(ctx, ste.pool, queries),
-		Repository: postgres.NewViewRepository(queries),
-	}
-}
