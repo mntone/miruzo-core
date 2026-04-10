@@ -7,8 +7,6 @@ import (
 	"github.com/samber/mo"
 )
 
-var defaultStatsBaseTime = time.Date(2026, 1, 10, 5, 0, 0, 0, time.UTC)
-
 type statsBuilder struct {
 	BaseTime time.Time
 
@@ -28,7 +26,7 @@ type statsBuilder struct {
 }
 
 func GetDefaultStatsBaseTime() time.Time {
-	return defaultStatsBaseTime
+	return defaultBaseTime
 }
 
 func Stats(id model.IngestIDType) *statsBuilder {
@@ -37,7 +35,7 @@ func Stats(id model.IngestIDType) *statsBuilder {
 	}
 
 	return &statsBuilder{
-		BaseTime: defaultStatsBaseTime,
+		BaseTime: defaultBaseTime,
 
 		ingestID:         id,
 		score:            100,
@@ -70,18 +68,10 @@ func (b *statsBuilder) Loved(at time.Time) *statsBuilder {
 }
 
 func (b *statsBuilder) LovedOffset(v any) *statsBuilder {
-	switch value := v.(type) {
-	case time.Duration:
-		return b.Loved(b.BaseTime.Add(value))
-	case mo.Option[time.Duration]:
-		if duration, present := value.Get(); present {
-			return b.Loved(b.BaseTime.Add(duration))
-		}
-		return b
-	case int:
-		return b.Loved(b.BaseTime.Add(time.Duration(value) * time.Second))
+	if at, present := resolveOffsetTime(v, b.BaseTime).Get(); present {
+		return b.Loved(at)
 	}
-	panic("invalid offset")
+	return b
 }
 
 func (b *statsBuilder) FirstLoved(at time.Time) *statsBuilder {
@@ -90,18 +80,10 @@ func (b *statsBuilder) FirstLoved(at time.Time) *statsBuilder {
 }
 
 func (b *statsBuilder) FirstLovedOffset(v any) *statsBuilder {
-	switch value := v.(type) {
-	case time.Duration:
-		return b.FirstLoved(b.BaseTime.Add(value))
-	case mo.Option[time.Duration]:
-		if duration, present := value.Get(); present {
-			return b.FirstLoved(b.BaseTime.Add(duration))
-		}
-		return b
-	case int:
-		return b.FirstLoved(b.BaseTime.Add(time.Duration(value) * time.Second))
+	if at, present := resolveOffsetTime(v, b.BaseTime).Get(); present {
+		return b.FirstLoved(at)
 	}
-	panic("invalid offset")
+	return b
 }
 
 func (b *statsBuilder) LastLoved(at time.Time) *statsBuilder {
@@ -110,18 +92,10 @@ func (b *statsBuilder) LastLoved(at time.Time) *statsBuilder {
 }
 
 func (b *statsBuilder) LastLovedOffset(v any) *statsBuilder {
-	switch value := v.(type) {
-	case time.Duration:
-		return b.LastLoved(b.BaseTime.Add(value))
-	case mo.Option[time.Duration]:
-		if duration, present := value.Get(); present {
-			return b.LastLoved(b.BaseTime.Add(duration))
-		}
-		return b
-	case int:
-		return b.LastLoved(b.BaseTime.Add(time.Duration(value) * time.Second))
+	if at, present := resolveOffsetTime(v, b.BaseTime).Get(); present {
+		return b.LastLoved(at)
 	}
-	panic("invalid offset")
+	return b
 }
 
 func (b *statsBuilder) HallOfFame(at time.Time) *statsBuilder {
@@ -130,18 +104,10 @@ func (b *statsBuilder) HallOfFame(at time.Time) *statsBuilder {
 }
 
 func (b *statsBuilder) HallOfFameOffset(v any) *statsBuilder {
-	switch value := v.(type) {
-	case time.Duration:
-		return b.HallOfFame(b.BaseTime.Add(value))
-	case mo.Option[time.Duration]:
-		if duration, present := value.Get(); present {
-			return b.HallOfFame(b.BaseTime.Add(duration))
-		}
-		return b
-	case int:
-		return b.HallOfFame(b.BaseTime.Add(time.Duration(value) * time.Second))
+	if at, present := resolveOffsetTime(v, b.BaseTime).Get(); present {
+		return b.HallOfFame(at)
 	}
-	panic("invalid offset")
+	return b
 }
 
 func (b *statsBuilder) Viewed(count int64, at time.Time) *statsBuilder {
@@ -151,18 +117,10 @@ func (b *statsBuilder) Viewed(count int64, at time.Time) *statsBuilder {
 }
 
 func (b *statsBuilder) ViewedOffset(count int64, v any) *statsBuilder {
-	switch value := v.(type) {
-	case time.Duration:
-		return b.Viewed(count, b.BaseTime.Add(value))
-	case mo.Option[time.Duration]:
-		if duration, present := value.Get(); present {
-			return b.Viewed(count, b.BaseTime.Add(duration))
-		}
-		return b
-	case int:
-		return b.Viewed(count, b.BaseTime.Add(time.Duration(value)*time.Second))
+	if at, present := resolveOffsetTime(v, b.BaseTime).Get(); present {
+		return b.Viewed(count, at)
 	}
-	panic("invalid offset")
+	return b
 }
 
 func (b *statsBuilder) Build() model.Stats {
