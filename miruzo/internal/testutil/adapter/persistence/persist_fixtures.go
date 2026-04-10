@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
-	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
 func NewIngestFixtureWithCapturedAt(
 	id model.IngestIDType,
 	ingestedAt time.Time,
 	capturedAt time.Time,
-) persist.Ingest {
-	return persist.Ingest{
+) model.Ingest {
+	return model.Ingest{
 		ID:           id,
 		Process:      model.ProcessStatusProcessing,
 		Visibility:   model.VisibilityStatusPrivate,
@@ -26,7 +25,7 @@ func NewIngestFixtureWithCapturedAt(
 	}
 }
 
-func NewIngestFixture(id model.IngestIDType, ingestedAt time.Time) persist.Ingest {
+func NewIngestFixture(id model.IngestIDType, ingestedAt time.Time) model.Ingest {
 	return NewIngestFixtureWithCapturedAt(
 		id,
 		ingestedAt,
@@ -34,6 +33,6 @@ func NewIngestFixture(id model.IngestIDType, ingestedAt time.Time) persist.Inges
 	)
 }
 
-func DefaultIngestFixture(ingestedAt time.Time) persist.Ingest {
+func DefaultIngestFixture(ingestedAt time.Time) model.Ingest {
 	return NewIngestFixture(0, ingestedAt)
 }

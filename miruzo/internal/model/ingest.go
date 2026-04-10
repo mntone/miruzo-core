@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type IngestIDType = int64
 
 const (
@@ -23,3 +25,15 @@ const (
 	VisibilityStatusPrivate = iota
 	VisibilityStatusPublic
 )
+
+type Ingest struct {
+	ID           IngestIDType
+	Process      ProcessStatus
+	Visibility   VisibilityStatus
+	RelativePath string
+	Fingerprint  string
+	IngestedAt   time.Time
+	CapturedAt   time.Time
+	UpdatedAt    time.Time
+	Executions   []Execution
+}

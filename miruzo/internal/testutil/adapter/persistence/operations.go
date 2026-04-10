@@ -46,7 +46,7 @@ func (ops Operations) MustAddAction(
 	return actionID
 }
 
-func (ops Operations) AddIngest(entry persist.Ingest) error {
+func (ops Operations) AddIngest(entry model.Ingest) error {
 	return ops.test.CreateIngest(
 		ops.ctx,
 		entry.ID,
@@ -57,7 +57,7 @@ func (ops Operations) AddIngest(entry persist.Ingest) error {
 	)
 }
 
-func (ops Operations) MustAddIngest(t testing.TB, entry persist.Ingest) persist.Ingest {
+func (ops Operations) MustAddIngest(t testing.TB, entry model.Ingest) model.Ingest {
 	t.Helper()
 
 	err := ops.AddIngest(entry)
@@ -90,7 +90,7 @@ func createVariant(
 	}
 }
 
-func (ops Operations) AddIngestAndImage(entry persist.Ingest) error {
+func (ops Operations) AddIngestAndImage(entry model.Ingest) error {
 	err := ops.AddIngest(entry)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (ops Operations) AddIngestAndImage(entry persist.Ingest) error {
 	)
 }
 
-func (ops Operations) MustAddIngestAndImage(t testing.TB, entry persist.Ingest) persist.Ingest {
+func (ops Operations) MustAddIngestAndImage(t testing.TB, entry model.Ingest) model.Ingest {
 	t.Helper()
 
 	err := ops.AddIngestAndImage(entry)
