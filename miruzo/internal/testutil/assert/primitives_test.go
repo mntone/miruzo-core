@@ -20,3 +20,21 @@ func TestEqualFn(t *testing.T) {
 		assert.EqualFn(t, "time", now, now)
 	})
 }
+
+func TestGreaterThan(t *testing.T) {
+	requirePass(t, "int", func(t *testing.T) {
+		assert.GreaterThan(t, "value", 11, 10)
+	})
+	requirePass(t, "string", func(t *testing.T) {
+		assert.GreaterThan(t, "value", "b", "a")
+	})
+}
+
+func TestLessThan(t *testing.T) {
+	requirePass(t, "int", func(t *testing.T) {
+		assert.LessThan(t, "value", 9, 10)
+	})
+	requirePass(t, "string", func(t *testing.T) {
+		assert.LessThan(t, "value", "a", "b")
+	})
+}
