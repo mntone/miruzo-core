@@ -7,3 +7,16 @@ const (
 	PostgreSQL Backend = "postgres"
 	SQLite     Backend = "sqlite"
 )
+
+func (b Backend) String() string {
+	switch b {
+	case MySQL:
+		return "MySQL"
+	case PostgreSQL:
+		return "PostgreSQL"
+	case SQLite:
+		return "SQLite"
+	default:
+		return string(b)
+	}
+}

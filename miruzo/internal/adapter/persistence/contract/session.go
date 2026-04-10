@@ -1,0 +1,123 @@
+package contract
+
+import (
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
+	"github.com/mntone/miruzo-core/miruzo/internal/model"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
+)
+
+type BindVarStyle string
+
+const (
+	BindVarStyleDollar   BindVarStyle = "$"
+	BindVarStyleQuestion BindVarStyle = "?"
+)
+
+type DBErrorMapping string
+
+const (
+	DBErrorMappingNone    DBErrorMapping = "none"
+	DBErrorMappingDefault DBErrorMapping = "default"
+	DBErrorMappingDelete  DBErrorMapping = "delete"
+)
+
+type Dialect interface {
+	Backend() backend.Backend
+	MapError(operation string, err error, mapping DBErrorMapping) error
+	BindVarStyle() BindVarStyle
+}
+
+type TransactionOperations interface {
+	Exec(t testing.TB, stmt string, args ...any) error
+	ExecInsertAndGetID(t testing.TB, stmt string, args ...any) (int64, error)
+	ExecReturningInt64(t testing.TB, stmt string, args ...any) (int64, error)
+	Rollback(t testing.TB)
+}
+
+type RepositoryProvider interface {
+	Action() persist.ActionRepository
+}
+
+type TxSession struct {
+	Dialect
+	TransactionOperations
+	RepositoryProvider
+}
+
+// --- backend helpers ---
+
+func (s TxSession) Param(index int32) string {
+	return fmt.Sprintf("%s%d", s.BindVarStyle(), index)
+}
+
+// --- operation helpers ---
+
+func (s TxSession) MustExec(t testing.TB, stmt string, args ...any) {
+	t.Helper()
+	err := s.Exec(t, stmt, args...)
+	assert.NilError(t, "Exec() error", err)
+}
+
+func (s TxSession) MustExecInsertAndGetID(t testing.TB, stmt string, args ...any) int64 {
+	t.Helper()
+	lastInsertID, err := s.ExecInsertAndGetID(t, stmt, args...)
+	assert.NilError(t, "ExecInsertAndGetID() error", err)
+	return lastInsertID
+}
+
+func (s TxSession) MustExecReturningInt64(t testing.TB, stmt string, args ...any) int64 {
+	t.Helper()
+	retID, err := s.ExecReturningInt64(t, stmt, args...)
+	assert.NilError(t, "ExecReturningInt64() error", err)
+	return retID
+}
+
+func (s TxSession) AssertExecErrorIs(
+	t *testing.T,
+	errorMapping DBErrorMapping,
+	wantError error,
+	stmt string,
+	args ...any,
+) {
+	t.Helper()
+	err := s.MapError("Exec()", s.Exec(t, stmt, args...), errorMapping)
+	assert.ErrorIs(t, "Exec() error", err, wantError)
+}
+
+// --- add fixture ---
+
+func (s TxSession) MustAddIngest(t testing.TB, e model.Ingest) model.Ingest {
+	t.Helper()
+
+	stmt := fmt.Sprintf(
+		"INSERT INTO ingests(id, process, visibility, relative_path, fingerprint, ingested_at, captured_at, updated_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)",
+		s.Param(1), s.Param(2), s.Param(3), s.Param(4),
+		s.Param(5), s.Param(6), s.Param(7), s.Param(8),
+	)
+	s.MustExec(
+		t, stmt,
+		e.ID,
+		e.Process, e.Visibility,
+		e.RelativePath, e.Fingerprint,
+		e.IngestedAt, e.CapturedAt, e.UpdatedAt,
+	)
+	return e
+}
+
+func (s TxSession) MustAddAction(
+	t testing.TB,
+	ingestID model.IngestIDType,
+	kind model.ActionType,
+	at time.Time,
+) model.ActionIDType {
+	t.Helper()
+
+	actionID, err := s.Action().Create(t.Context(), ingestID, kind, at)
+	assert.NilError(t, "MustAddAction() error", err)
+	return actionID
+}

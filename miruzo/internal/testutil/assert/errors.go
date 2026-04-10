@@ -12,7 +12,7 @@ func Error(t *testing.T, name string, err error) {
 	}
 }
 
-func NilError(t *testing.T, name string, err error) {
+func NilError(t testing.TB, name string, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatalf("%s = \"%v\", want nil", name, err)
