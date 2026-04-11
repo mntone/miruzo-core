@@ -12,7 +12,7 @@ import (
 	"github.com/samber/mo"
 )
 
-const scoreThreshold = model.ScoreType(180)
+const hallOfFameScoreThreshold = model.ScoreType(180)
 
 // --- ApplyHallOfFameGranted ---
 
@@ -20,7 +20,7 @@ func TestStatsRepositoryApplyHallOfFameGrantedUpdates(t *testing.T) {
 	ingest := mb.Ingest().Build()
 	stats := mb.
 		Stats(ingest.ID).
-		Score(scoreThreshold).
+		Score(hallOfFameScoreThreshold).
 		Build()
 	hallOfFameAt := mb.GetDefaultBaseTime().Add(20 * time.Minute)
 
@@ -33,7 +33,7 @@ func TestStatsRepositoryApplyHallOfFameGrantedUpdates(t *testing.T) {
 				t.Context(),
 				ingest.ID,
 				hallOfFameAt,
-				scoreThreshold,
+				hallOfFameScoreThreshold,
 			)
 			assert.NilError(t, "ApplyHallOfFameGranted() error", err)
 
@@ -55,11 +55,11 @@ func TestStatsRepositoryApplyHallOfFameGrantedReturnsConflict(t *testing.T) {
 	}{
 		{
 			name:  "ScoreBelowThreshold",
-			score: scoreThreshold - 10,
+			score: hallOfFameScoreThreshold - 10,
 		},
 		{
 			name:            "AlreadyGranted",
-			score:           scoreThreshold,
+			score:           hallOfFameScoreThreshold,
 			grantedAtOffset: mo.Some(2 * time.Hour),
 		},
 	}
@@ -79,7 +79,7 @@ func TestStatsRepositoryApplyHallOfFameGrantedReturnsConflict(t *testing.T) {
 						t.Context(),
 						ingest.ID,
 						hallOfFameAt,
-						scoreThreshold,
+						hallOfFameScoreThreshold,
 					)
 					assert.ErrorIs(t, "ApplyHallOfFameGranted() error", err, persist.ErrConflict)
 				})
@@ -100,7 +100,7 @@ func TestStatsRepositoryApplyHallOfFameGrantedReturnsConflictWithoutStats(t *tes
 				t.Context(),
 				ingest.ID,
 				hallOfFameAt,
-				scoreThreshold,
+				hallOfFameScoreThreshold,
 			)
 			assert.ErrorIs(t, "ApplyHallOfFameGranted() error", err, persist.ErrConflict)
 		})
@@ -113,7 +113,7 @@ func TestStatsRepositoryApplyHallOfFameRevokedUpdates(t *testing.T) {
 	ingest := mb.Ingest().Build()
 	stats := mb.
 		Stats(ingest.ID).
-		Score(scoreThreshold - 10).
+		Score(hallOfFameScoreThreshold - 10).
 		HallOfFameOffset(20 * time.Minute).
 		Build()
 
@@ -135,7 +135,7 @@ func TestStatsRepositoryApplyHallOfFameRevokedReturnsConflict(t *testing.T) {
 	ingest := mb.Ingest().Build()
 	stats := mb.
 		Stats(ingest.ID).
-		Score(scoreThreshold - 10).
+		Score(hallOfFameScoreThreshold - 10).
 		Build()
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {

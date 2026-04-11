@@ -9,7 +9,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/imagelist"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
@@ -121,20 +120,5 @@ func (ste *SuiteFactory) NewImageList(
 		Context:    ctx,
 		Operations: ste.newOperations(ctx, ste.pool, queries),
 		Repository: imagelist.NewRepository(queries),
-	}
-}
-
-func (ste *SuiteFactory) NewStats(
-	t *testing.T,
-	ctx context.Context,
-) testutilPersistence.StatsSuite {
-	t.Helper()
-
-	queries := gen.New(ste.pool)
-	return testutilPersistence.StatsSuite{
-		Context:        ctx,
-		Operations:     ste.newOperations(ctx, ste.pool, queries),
-		Repository:     stats.NewRepository(queries),
-		ViewRepository: postgres.NewViewRepository(queries),
 	}
 }
