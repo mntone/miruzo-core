@@ -10,7 +10,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
+	database "github.com/mntone/miruzo-core/miruzo/internal/database/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil"
+	"github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/shared"
 )
 
 const (
@@ -23,6 +25,15 @@ var (
 	initErr error
 )
 
+func openPoolFromDSN(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
+	cfg := database.ConnectConfig{
+		DSN:              dsn,
+		ConnectionTuning: shared.NewTestConnectionTuning(),
+	}
+
+	return database.Open(ctx, cfg)
+}
+
 // GetPostgresTestPool returns a shared pgx pool for this package test process.
 // Priority:
 // 1) TEST_POSTGRES_URL (externally managed DB)
@@ -34,7 +45,7 @@ func GetPostgresTestPool(t testing.TB, reg *testutil.CleanupRegistry) *pgxpool.P
 		ctx := context.Background()
 		dsn := os.Getenv(TEST_DSN_ENVNAME)
 		if dsn == "" {
-			container, err := startPostgreContainer(ctx)
+			container, err := startPostgresContainer(ctx)
 			if err != nil {
 				initErr = err
 				return
@@ -45,25 +56,33 @@ func GetPostgresTestPool(t testing.TB, reg *testutil.CleanupRegistry) *pgxpool.P
 				return container.Terminate(closeContext)
 			})
 
-			dsn, initErr = container.ConnectionString(ctx)
-			if initErr != nil {
+			dsn, err = container.ConnectionString(ctx)
+			if err != nil {
+				initErr = fmt.Errorf("postgres get dsn: %w", err)
 				return
 			}
 		}
 
-		pool, initErr = openTestPoolFromDSN(ctx, dsn)
-		if initErr != nil {
+		localPool, err := openPoolFromDSN(ctx, dsn)
+		if err != nil {
+			initErr = fmt.Errorf("postgres open: %w", err)
 			return
 		}
 		reg.Register(func() error {
-			pool.Close()
+			localPool.Close()
 			return nil
 		})
 
-		initErr = postgres.NewMigrationRunnerFromPool(pool).Up(ctx)
+		err = postgres.NewMigrationRunnerFromPool(localPool).Up(ctx)
+		if err != nil {
+			initErr = fmt.Errorf("postgres migrate: %w", err)
+			return
+		}
+
+		pool = localPool
 	})
 	if initErr != nil {
-		t.Fatalf("postgres init failed: %v", initErr)
+		t.Fatal(initErr)
 	}
 
 	return pool

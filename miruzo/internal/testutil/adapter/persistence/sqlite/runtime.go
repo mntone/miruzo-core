@@ -19,26 +19,37 @@ var (
 	initErr error
 )
 
+func openMemoryDB(ctx context.Context, name string) (*sql.DB, error) {
+	cfg := database.ConnectConfig{
+		DSN:              fmt.Sprintf("file:%s?mode=memory&cache=shared", name),
+		ConnectionTuning: shared.NewTestConnectionTuning(),
+	}
+
+	return database.Open(ctx, cfg)
+}
+
 func GetSQLiteTestDB(t testing.TB, reg *testutil.CleanupRegistry) *sql.DB {
 	t.Helper()
 
 	once.Do(func() {
-		cfg := database.ConnectConfig{
-			DSN:              fmt.Sprintf("file:%s?mode=memory&cache=shared", t.Name()),
-			ConnectionTuning: shared.NewTestConnectionTuning(),
-		}
-
 		ctx := context.Background()
-		db, initErr = database.Open(ctx, cfg)
-		if initErr != nil {
+		localDB, err := openMemoryDB(ctx, t.Name())
+		if err != nil {
+			initErr = fmt.Errorf("sqlite open: %w", err)
 			return
 		}
-		reg.Register(db.Close)
+		reg.Register(localDB.Close)
 
-		initErr = sqlite.NewMigrationRunnerFromDB(db).Up(ctx)
+		err = sqlite.NewMigrationRunnerFromDB(localDB).Up(ctx)
+		if err != nil {
+			initErr = fmt.Errorf("sqlite migrate: %w", err)
+			return
+		}
+
+		db = localDB
 	})
 	if initErr != nil {
-		t.Fatalf("sqlite init failed: %v", initErr)
+		t.Fatal(initErr)
 	}
 
 	return db

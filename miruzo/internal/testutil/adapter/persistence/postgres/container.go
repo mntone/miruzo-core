@@ -18,7 +18,7 @@ const (
 	postgresArgs      = "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
 )
 
-func startPostgreContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
+func startPostgresContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 	container, err := postgres.Run(
 		ctx,
 		postgresImageName,
