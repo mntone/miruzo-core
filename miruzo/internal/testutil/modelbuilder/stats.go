@@ -54,9 +54,23 @@ func (b *statsBuilder) Score(value model.ScoreType) *statsBuilder {
 	return b
 }
 
+func (b *statsBuilder) ScoreOption(value mo.Option[model.ScoreType]) *statsBuilder {
+	if score, present := value.Get(); present {
+		return b.Score(score)
+	}
+	return b
+}
+
 func (b *statsBuilder) EvaluateScore(at time.Time) *statsBuilder {
 	b.scoreEvaluated = b.score
 	b.scoreEvaluatedAt = mo.Some(at)
+	return b
+}
+
+func (b *statsBuilder) EvaluateScoreOffset(v any) *statsBuilder {
+	if at, present := resolveOffsetTime(v, b.BaseTime).Get(); present {
+		return b.EvaluateScore(at)
+	}
 	return b
 }
 

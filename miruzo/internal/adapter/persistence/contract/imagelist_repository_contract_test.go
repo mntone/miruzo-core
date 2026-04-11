@@ -1,6 +1,7 @@
 package contract_test
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -12,21 +13,22 @@ import (
 	"github.com/samber/mo"
 )
 
-var imageListBaseTimeUTC = time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
-
 func assertRowsIngestIDs[S model.ImageListCursorScalar](
 	t *testing.T,
 	rows []persist.ImageWithCursorKey[S],
 	rowsName string,
-	want ...model.IngestIDType,
+	wantIDs ...model.IngestIDType,
 ) {
 	t.Helper()
 
-	assert.LenIs(t, rowsName, rows, len(want))
+	assert.LenIs(t, rowsName, rows, len(wantIDs))
+
+	gotIDs := make([]model.IngestIDType, len(rows))
 	for i, row := range rows {
-		if got, wantID := row.Image.IngestID, want[i]; got != wantID {
-			t.Fatalf("%s[%d].Image.IngestID = %d, want %d", rowsName, i, got, wantID)
-		}
+		gotIDs[i] = row.Image.IngestID
+	}
+	if !slices.Equal(gotIDs, wantIDs) {
+		t.Fatalf("%s = %v, want %v", rowsName, gotIDs, wantIDs)
 	}
 }
 
@@ -70,32 +72,84 @@ func assertLastRowScoreCursorEquals(
 	return gotCursor
 }
 
-func mustAddIngestAndImage(
-	t testing.TB,
-	ops c.TxSession,
-	ingestedAt time.Time,
-	capturedAt time.Time,
-) model.Ingest {
+type imageListSeed struct {
+	Ingested       time.Duration
+	Score          mo.Option[model.ScoreType]
+	ScoreEvaluated mo.Option[time.Duration]
+	Captured       mo.Option[time.Duration]
+	HallOfFame     mo.Option[time.Duration]
+	Loved          mo.Option[time.Duration]
+	Viewed         mo.Option[time.Duration]
+	ViewCount      int64
+}
+
+type imageListFixture struct {
+	model.Ingest
+	Image persist.Image
+	Stats model.Stats
+}
+
+func buildImageListFixtures(t testing.TB, seeds []imageListSeed) []imageListFixture {
 	t.Helper()
-	ingest := ops.MustAddIngest(
-		t,
-		mb.
+
+	fixtures := make([]imageListFixture, len(seeds))
+	for i, seed := range seeds {
+		ingest := mb.
 			Ingest().
-			Ingested(ingestedAt).
-			Captured(capturedAt).
-			Build(),
-	)
-	ops.MustAddImage(t, mb.Image(ingest.ID).Ingested(ingestedAt).Build())
-	return ingest
+			IngestedOffset(seed.Ingested).
+			CapturedOffset(seed.Captured).
+			Build()
+		fixtures[i].Ingest = ingest
+		fixtures[i].Image = mb.
+			Image(ingest.ID).
+			Ingested(ingest.IngestedAt).
+			Build()
+		fixtures[i].Stats = mb.
+			Stats(ingest.ID).
+			ScoreOption(seed.Score).
+			EvaluateScoreOffset(seed.ScoreEvaluated).
+			HallOfFameOffset(seed.HallOfFame).
+			LovedOffset(seed.Loved).
+			ViewedOffset(seed.ViewCount, seed.Viewed).
+			Build()
+	}
+	return fixtures
+}
+
+func mustInsertImageListFixtures(t testing.TB, ops c.TxSession, fixtures []imageListFixture) {
+	t.Helper()
+
+	for _, fixture := range fixtures {
+		ops.MustAddIngest(t, fixture.Ingest)
+		ops.MustAddImage(t, fixture.Image)
+		ops.MustAddStats(t, fixture.Stats)
+	}
 }
 
 func TestImageListRepositoryListLatest(t *testing.T) {
+	fixtures := buildImageListFixtures(t, []imageListSeed{
+		{
+			Ingested: -2 * time.Hour,
+		},
+		{
+			Ingested: -2 * time.Hour,
+		},
+		{
+			Ingested: -1 * time.Hour,
+		},
+		{
+			Ingested: 0,
+		},
+	})
+
+	oldest := fixtures[0]    // ID: k
+	oldestTie := fixtures[1] // ID: k + 1
+	middle := fixtures[2]    // ID: k + 2
+	latest := fixtures[3]    // ID: k + 3
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			oldest := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC.Add(-48*time.Hour), imageListBaseTimeUTC.Add(-48*time.Hour))
-			oldestTie := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC.Add(-48*time.Hour), imageListBaseTimeUTC.Add(-48*time.Hour))
-			middle := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC.Add(-24*time.Hour), imageListBaseTimeUTC.Add(-24*time.Hour))
-			latest := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC, imageListBaseTimeUTC)
+			mustInsertImageListFixtures(t, ops, fixtures)
 
 			rows, err := ops.ImageList().ListLatest(t.Context(), persist.ImageListSpec[time.Time]{
 				MaxCount: 2,
@@ -118,12 +172,33 @@ func TestImageListRepositoryListLatest(t *testing.T) {
 }
 
 func TestImageListRepositoryListChronological(t *testing.T) {
+	fixtures := buildImageListFixtures(t, []imageListSeed{
+		{
+			Ingested: 1 * time.Hour,
+			Captured: mo.Some(-2 * time.Hour),
+		},
+		{
+			Ingested: 2 * time.Hour,
+			Captured: mo.Some(-1 * time.Hour),
+		},
+		{
+			Ingested: 3 * time.Hour,
+			Captured: mo.Some(0 * time.Hour),
+		},
+		{
+			Ingested: 4 * time.Hour,
+			Captured: mo.Some(-1 * time.Hour),
+		},
+	})
+
+	oldest := fixtures[0]    // ID: k
+	middleTie := fixtures[1] // ID: k + 1
+	latest := fixtures[2]    // ID: k + 2
+	middle := fixtures[3]    // ID: k + 3
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			oldest := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC.Add(-2*time.Hour), imageListBaseTimeUTC.Add(-2*time.Hour))
-			middleTie := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC, imageListBaseTimeUTC.Add(-1*time.Hour))
-			middle := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC.Add(4*time.Hour), imageListBaseTimeUTC.Add(-1*time.Hour))
-			latest := mustAddIngestAndImage(t, ops, imageListBaseTimeUTC.Add(2*24*time.Hour), imageListBaseTimeUTC.Add(2*24*time.Hour))
+			mustInsertImageListFixtures(t, ops, fixtures)
 
 			rows, err := ops.ImageList().ListChronological(t.Context(), persist.ImageListSpec[time.Time]{
 				MaxCount: 2,
@@ -146,30 +221,50 @@ func TestImageListRepositoryListChronological(t *testing.T) {
 }
 
 func TestImageListRepositoryListRecently(t *testing.T) {
-	baseTime := mb.GetDefaultBaseTime()
+	fixtures := buildImageListFixtures(t, []imageListSeed{
+		{
+			Ingested:  1 * time.Hour,
+			Viewed:    mo.Some(4 * time.Hour),
+			ViewCount: 15,
+		},
+		{
+			Ingested:  2 * time.Hour,
+			Viewed:    mo.Some(5 * time.Hour),
+			ViewCount: 3,
+		},
+		{
+			Ingested:  3 * time.Hour,
+			Viewed:    mo.Some(6 * time.Hour),
+			ViewCount: 32,
+		},
+		{
+			Ingested:  4 * time.Hour,
+			Viewed:    mo.Some(5 * time.Hour),
+			ViewCount: 42,
+		},
+		{
+			Ingested: 5 * time.Hour,
+		},
+	})
+
+	oldest := fixtures[0]              // ID: k
+	middle := fixtures[1]              // ID: k + 1
+	latest := fixtures[2]              // ID: k + 2
+	middleTie := fixtures[3]           // ID: k + 3
+	withoutLastViewedAt := fixtures[4] // ID: k + 4
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			oldest := mustAddIngestAndImage(t, ops, baseTime.Add(-2*24*time.Hour), baseTime.Add(-2*24*time.Hour))
-			middleTie := mustAddIngestAndImage(t, ops, baseTime, baseTime)
-			latest := mustAddIngestAndImage(t, ops, baseTime.Add(2*24*time.Hour), baseTime.Add(2*24*time.Hour))
-			middle := mustAddIngestAndImage(t, ops, baseTime.Add(4*24*time.Hour), baseTime.Add(4*24*time.Hour))
-			withoutLastViewedAt := mustAddIngestAndImage(t, ops, baseTime.Add(5*24*time.Hour), baseTime.Add(5*24*time.Hour))
-
-			ops.MustAddStats(t, mb.Stats(oldest.ID).ViewedOffset(1, -2*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(middleTie.ID).ViewedOffset(1, -1*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(latest.ID).ViewedOffset(1, 0).Build())
-			middleStats := ops.MustAddStats(t, mb.Stats(middle.ID).ViewedOffset(1, -1*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(withoutLastViewedAt.ID).Build())
+			mustInsertImageListFixtures(t, ops, fixtures)
 
 			rows, err := ops.ImageList().ListRecently(t.Context(), persist.ImageListSpec[time.Time]{
 				MaxCount: 2,
 			})
 			assert.NilError(t, "ListRecently() error", err)
-			assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+			assertRowsIngestIDs(t, rows, "rows", latest.ID, middleTie.ID)
 			assertRowsExcludeIngestID(t, rows, withoutLastViewedAt.ID)
 
-			nextCursorAt := assertLastRowTimeCursorEquals(t, rows, middleStats.LastViewedAt.MustGet())
+			nextCursorAt := assertLastRowTimeCursorEquals(t, rows, middleTie.Stats.LastViewedAt.MustGet())
 			nextRows, err := ops.ImageList().ListRecently(t.Context(), persist.ImageListSpec[time.Time]{
 				CursorKey: mo.Some(model.ImageListCursorKey[time.Time]{
 					Primary:   nextCursorAt,
@@ -178,37 +273,53 @@ func TestImageListRepositoryListRecently(t *testing.T) {
 				MaxCount: 2,
 			})
 			assert.NilError(t, "ListRecently() error", err)
-			assertRowsIngestIDs(t, nextRows, "nextRows", middleTie.ID, oldest.ID)
+			assertRowsIngestIDs(t, nextRows, "nextRows", middle.ID, oldest.ID)
 			assertRowsExcludeIngestID(t, nextRows, withoutLastViewedAt.ID)
 		})
 	})
 }
 
 func TestImageListRepositoryListFirstLove(t *testing.T) {
-	baseTime := mb.GetDefaultBaseTime()
+	fixtures := buildImageListFixtures(t, []imageListSeed{
+		{
+			Ingested: 1 * time.Hour,
+			Loved:    mo.Some(4 * time.Hour),
+		},
+		{
+			Ingested: 2 * time.Hour,
+			Loved:    mo.Some(5 * time.Hour),
+		},
+		{
+			Ingested: 3 * time.Hour,
+			Loved:    mo.Some(6 * time.Hour),
+		},
+		{
+			Ingested: 4 * time.Hour,
+			Loved:    mo.Some(5 * time.Hour),
+		},
+		{
+			Ingested: 5 * time.Hour,
+		},
+	})
+
+	oldest := fixtures[0]              // ID: k
+	middle := fixtures[1]              // ID: k + 1
+	latest := fixtures[2]              // ID: k + 2
+	middleTie := fixtures[3]           // ID: k + 3
+	withoutFirstLovedAt := fixtures[4] // ID: k + 4
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			oldest := mustAddIngestAndImage(t, ops, baseTime.Add(-2*24*time.Hour), baseTime.Add(-2*24*time.Hour))
-			middleTie := mustAddIngestAndImage(t, ops, baseTime, baseTime)
-			latest := mustAddIngestAndImage(t, ops, baseTime.Add(2*24*time.Hour), baseTime.Add(2*24*time.Hour))
-			middle := mustAddIngestAndImage(t, ops, baseTime.Add(4*24*time.Hour), baseTime.Add(4*24*time.Hour))
-			withoutFirstLovedAt := mustAddIngestAndImage(t, ops, baseTime.Add(5*24*time.Hour), baseTime.Add(5*24*time.Hour))
-
-			ops.MustAddStats(t, mb.Stats(oldest.ID).LovedOffset(-2*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(middleTie.ID).LovedOffset(-1*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(latest.ID).LovedOffset(0).Build())
-			middleStats := ops.MustAddStats(t, mb.Stats(middle.ID).LovedOffset(-1*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(withoutFirstLovedAt.ID).Build())
+			mustInsertImageListFixtures(t, ops, fixtures)
 
 			rows, err := ops.ImageList().ListFirstLove(t.Context(), persist.ImageListSpec[time.Time]{
 				MaxCount: 2,
 			})
 			assert.NilError(t, "ListFirstLove() error", err)
-			assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+			assertRowsIngestIDs(t, rows, "rows", latest.ID, middleTie.ID)
 			assertRowsExcludeIngestID(t, rows, withoutFirstLovedAt.ID)
 
-			nextCursorAt := assertLastRowTimeCursorEquals(t, rows, middleStats.FirstLovedAt.MustGet())
+			nextCursorAt := assertLastRowTimeCursorEquals(t, rows, middleTie.Stats.FirstLovedAt.MustGet())
 			nextRows, err := ops.ImageList().ListFirstLove(t.Context(), persist.ImageListSpec[time.Time]{
 				CursorKey: mo.Some(model.ImageListCursorKey[time.Time]{
 					Primary:   nextCursorAt,
@@ -217,37 +328,53 @@ func TestImageListRepositoryListFirstLove(t *testing.T) {
 				MaxCount: 2,
 			})
 			assert.NilError(t, "ListFirstLove() error", err)
-			assertRowsIngestIDs(t, nextRows, "nextRows", middleTie.ID, oldest.ID)
+			assertRowsIngestIDs(t, nextRows, "nextRows", middle.ID, oldest.ID)
 			assertRowsExcludeIngestID(t, nextRows, withoutFirstLovedAt.ID)
 		})
 	})
 }
 
 func TestImageListRepositoryListHallOfFame(t *testing.T) {
-	baseTime := mb.GetDefaultBaseTime()
+	fixtures := buildImageListFixtures(t, []imageListSeed{
+		{
+			Ingested:   1 * time.Hour,
+			HallOfFame: mo.Some(4 * time.Hour),
+		},
+		{
+			Ingested:   2 * time.Hour,
+			HallOfFame: mo.Some(5 * time.Hour),
+		},
+		{
+			Ingested:   3 * time.Hour,
+			HallOfFame: mo.Some(6 * time.Hour),
+		},
+		{
+			Ingested:   4 * time.Hour,
+			HallOfFame: mo.Some(5 * time.Hour),
+		},
+		{
+			Ingested: 5 * time.Hour,
+		},
+	})
+
+	oldest := fixtures[0]              // ID: k
+	middle := fixtures[1]              // ID: k + 1
+	latest := fixtures[2]              // ID: k + 2
+	middleTie := fixtures[3]           // ID: k + 3
+	withoutHallOfFameAt := fixtures[4] // ID: k + 4
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			oldest := mustAddIngestAndImage(t, ops, baseTime.Add(-2*24*time.Hour), baseTime.Add(-2*24*time.Hour))
-			middleTie := mustAddIngestAndImage(t, ops, baseTime, baseTime)
-			latest := mustAddIngestAndImage(t, ops, baseTime.Add(2*24*time.Hour), baseTime.Add(2*24*time.Hour))
-			middle := mustAddIngestAndImage(t, ops, baseTime.Add(4*24*time.Hour), baseTime.Add(4*24*time.Hour))
-			withoutHallOfFameAt := mustAddIngestAndImage(t, ops, baseTime.Add(5*24*time.Hour), baseTime.Add(5*24*time.Hour))
-
-			ops.MustAddStats(t, mb.Stats(oldest.ID).HallOfFameOffset(-2*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(middleTie.ID).HallOfFameOffset(-1*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(latest.ID).HallOfFameOffset(0).Build())
-			middleStats := ops.MustAddStats(t, mb.Stats(middle.ID).HallOfFameOffset(-1*time.Hour).Build())
-			ops.MustAddStats(t, mb.Stats(withoutHallOfFameAt.ID).Build())
+			mustInsertImageListFixtures(t, ops, fixtures)
 
 			rows, err := ops.ImageList().ListHallOfFame(t.Context(), persist.ImageListSpec[time.Time]{
 				MaxCount: 2,
 			})
 			assert.NilError(t, "ListHallOfFame() error", err)
-			assertRowsIngestIDs(t, rows, "rows", latest.ID, middle.ID)
+			assertRowsIngestIDs(t, rows, "rows", latest.ID, middleTie.ID)
 			assertRowsExcludeIngestID(t, rows, withoutHallOfFameAt.ID)
 
-			nextCursorAt := assertLastRowTimeCursorEquals(t, rows, middleStats.HallOfFameAt.MustGet())
+			nextCursorAt := assertLastRowTimeCursorEquals(t, rows, middleTie.Stats.HallOfFameAt.MustGet())
 			nextRows, err := ops.ImageList().ListHallOfFame(t.Context(), persist.ImageListSpec[time.Time]{
 				CursorKey: mo.Some(model.ImageListCursorKey[time.Time]{
 					Primary:   nextCursorAt,
@@ -256,35 +383,58 @@ func TestImageListRepositoryListHallOfFame(t *testing.T) {
 				MaxCount: 2,
 			})
 			assert.NilError(t, "ListHallOfFame() error", err)
-			assertRowsIngestIDs(t, nextRows, "nextRows", middleTie.ID, oldest.ID)
+			assertRowsIngestIDs(t, nextRows, "nextRows", middle.ID, oldest.ID)
 			assertRowsExcludeIngestID(t, nextRows, withoutHallOfFameAt.ID)
 		})
 	})
 }
 
 func TestImageListRepositoryListEngaged(t *testing.T) {
-	baseTime := mb.GetDefaultBaseTime()
-	evaluatedAt := baseTime.Add(2 * time.Hour)
+	evaluatedOffset := mo.Some(12 * time.Hour)
+	fixtures := buildImageListFixtures(t, []imageListSeed{
+		{
+			Ingested:       1 * time.Hour,
+			Score:          mo.Some(model.ScoreType(180)),
+			ScoreEvaluated: evaluatedOffset,
+		},
+		{
+			Ingested:       2 * time.Hour,
+			Score:          mo.Some(model.ScoreType(165)),
+			ScoreEvaluated: evaluatedOffset,
+		},
+		{
+			Ingested:       3 * time.Hour,
+			Score:          mo.Some(model.ScoreType(150)), // below threshold
+			ScoreEvaluated: evaluatedOffset,
+		},
+		{
+			Ingested:       4 * time.Hour,
+			Score:          mo.Some(model.ScoreType(190)),
+			HallOfFame:     mo.Some(7 * time.Hour), // excluded by hall_of_fame_at
+			ScoreEvaluated: evaluatedOffset,
+		},
+		{
+			Ingested:       5 * time.Hour,
+			Score:          mo.Some(model.ScoreType(165)),
+			ScoreEvaluated: evaluatedOffset,
+		},
+		{
+			Ingested:       6 * time.Hour,
+			Score:          mo.Some(model.ScoreType(160)),
+			ScoreEvaluated: evaluatedOffset,
+		},
+	})
+
+	high := fixtures[0]          // ID: k
+	middle := fixtures[1]        // ID: k + 1
+	hiddenLowest := fixtures[2]  // ID: k + 2
+	hiddenHighest := fixtures[3] // ID: k + 3
+	middleTie := fixtures[4]     // ID: k + 4
+	low := fixtures[5]           // ID: k + 5
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			high := mustAddIngestAndImage(t, ops, baseTime.Add(-5*24*time.Hour), baseTime.Add(-5*24*time.Hour))
-			middleTie := mustAddIngestAndImage(t, ops, baseTime.Add(-4*24*time.Hour), baseTime.Add(-4*24*time.Hour))
-			lowest := mustAddIngestAndImage(t, ops, baseTime.Add(-3*24*time.Hour), baseTime.Add(-3*24*time.Hour))
-			hiddenHighest := mustAddIngestAndImage(t, ops, baseTime.Add(-2*24*time.Hour), baseTime.Add(-2*24*time.Hour))
-			middle := mustAddIngestAndImage(t, ops, baseTime.Add(-1*24*time.Hour), baseTime.Add(-1*24*time.Hour))
-			low := mustAddIngestAndImage(t, ops, baseTime.Add(0*24*time.Hour), baseTime.Add(0*24*time.Hour))
-
-			ops.MustAddStats(t, mb.Stats(high.ID).Score(180).EvaluateScore(evaluatedAt).Build())
-			ops.MustAddStats(t, mb.Stats(middleTie.ID).Score(165).EvaluateScore(evaluatedAt).Build())
-			ops.MustAddStats(t, mb.Stats(lowest.ID).Score(150).EvaluateScore(evaluatedAt).Build())
-			ops.MustAddStats(t, mb.Stats(hiddenHighest.ID).
-				Score(190).
-				EvaluateScore(evaluatedAt).
-				HallOfFameOffset(0).
-				Build())
-			middleStats := ops.MustAddStats(t, mb.Stats(middle.ID).Score(165).EvaluateScore(evaluatedAt).Build())
-			ops.MustAddStats(t, mb.Stats(low.ID).Score(160).EvaluateScore(evaluatedAt).Build())
+			mustInsertImageListFixtures(t, ops, fixtures)
 
 			rows, err := ops.ImageList().ListEngaged(t.Context(), persist.EngagedImageListSpec{
 				ImageListSpec: persist.ImageListSpec[model.ScoreType]{
@@ -293,10 +443,11 @@ func TestImageListRepositoryListEngaged(t *testing.T) {
 				ScoreThreshold: 160,
 			})
 			assert.NilError(t, "ListEngaged() error", err)
-			assertRowsIngestIDs(t, rows, "rows", high.ID, middle.ID)
+			assertRowsIngestIDs(t, rows, "rows", high.ID, middleTie.ID)
 			assertRowsExcludeIngestID(t, rows, hiddenHighest.ID)
+			assertRowsExcludeIngestID(t, rows, hiddenLowest.ID)
 
-			nextCursor := assertLastRowScoreCursorEquals(t, rows, middleStats.Score)
+			nextCursor := assertLastRowScoreCursorEquals(t, rows, middleTie.Stats.Score)
 			nextRows, err := ops.ImageList().ListEngaged(t.Context(), persist.EngagedImageListSpec{
 				ImageListSpec: persist.ImageListSpec[model.ScoreType]{
 					CursorKey: mo.Some(model.ImageListCursorKey[model.ScoreType]{
@@ -308,8 +459,9 @@ func TestImageListRepositoryListEngaged(t *testing.T) {
 				ScoreThreshold: 160,
 			})
 			assert.NilError(t, "ListEngaged() error", err)
-			assertRowsIngestIDs(t, nextRows, "nextRows", middleTie.ID, low.ID)
+			assertRowsIngestIDs(t, nextRows, "nextRows", middle.ID, low.ID)
 			assertRowsExcludeIngestID(t, nextRows, hiddenHighest.ID)
+			assertRowsExcludeIngestID(t, nextRows, hiddenLowest.ID)
 		})
 	})
 }
