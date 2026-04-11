@@ -49,4 +49,13 @@ FROM (
 WHERE stats.ingest_id=$1
   AND stats.last_loved_at IS NOT NULL
   AND stats.last_loved_at >= sqlc.arg(period_start_at)
+  AND stats.last_loved_at < sqlc.arg(love_cancel_at)
+  -- Defensive guard: fail safely when stats/action rows are inconsistent.
+  AND EXISTS (
+    SELECT 1
+    FROM actions c
+    WHERE c.ingest_id=stats.ingest_id
+      AND c.kind=13/*love*/
+      AND c.occurred_at=stats.last_loved_at
+  )
 RETURNING stats.score, stats.first_loved_at, stats.last_loved_at;

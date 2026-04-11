@@ -51,6 +51,7 @@ type StatsRepository interface {
 		ctx context.Context,
 		ingestID model.IngestIDType,
 		scoreDelta model.ScoreType,
+		loveCancelAt time.Time,
 		periodStartAt time.Time,
 		dayStartOffset time.Duration,
 	) (model.LoveStats, error)

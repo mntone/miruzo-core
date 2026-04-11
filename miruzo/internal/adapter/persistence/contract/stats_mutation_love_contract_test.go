@@ -188,11 +188,12 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 		name    string
 		actions []testLoveAction
 		// periodDayOffset sets periodStart as a day offset from baseTime.
-		periodDayOffset int32
-		firstOffset     time.Duration
-		lastOffset      time.Duration
-		wantFirst       mo.Option[time.Duration]
-		wantLast        mo.Option[time.Duration]
+		periodDayOffset  int32
+		loveCancelOffset time.Duration
+		firstOffset      time.Duration
+		lastOffset       time.Duration
+		wantFirst        mo.Option[time.Duration]
+		wantLast         mo.Option[time.Duration]
 	}{
 		{
 			name: "SingleLove",
@@ -203,11 +204,28 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 					offset: 20 * time.Minute,
 				},
 			},
-			periodDayOffset: 0,
-			firstOffset:     20 * time.Minute,
-			lastOffset:      20 * time.Minute,
-			wantFirst:       mo.None[time.Duration](),
-			wantLast:        mo.None[time.Duration](),
+			periodDayOffset:  0,
+			loveCancelOffset: 40 * time.Minute,
+			firstOffset:      20 * time.Minute,
+			lastOffset:       20 * time.Minute,
+			wantFirst:        mo.None[time.Duration](),
+			wantLast:         mo.None[time.Duration](),
+		},
+		{
+			name: "SingleLoveJustBeforeCancelBoundary",
+			actions: []testLoveAction{
+				// -- Day 1 (current period)
+				{
+					kind:   model.ActionTypeLove,
+					offset: 20 * time.Minute,
+				},
+			},
+			periodDayOffset:  0,
+			loveCancelOffset: 20*time.Minute + time.Microsecond,
+			firstOffset:      20 * time.Minute,
+			lastOffset:       20 * time.Minute,
+			wantFirst:        mo.None[time.Duration](),
+			wantLast:         mo.None[time.Duration](),
 		},
 		{
 			name: "EachPeriodKeepsFirst",
@@ -223,11 +241,12 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 					offset: 24*time.Hour + 35*time.Minute,
 				},
 			},
-			periodDayOffset: 1,
-			firstOffset:     40 * time.Minute,
-			lastOffset:      24*time.Hour + 35*time.Minute,
-			wantFirst:       mo.Some(40 * time.Minute),
-			wantLast:        mo.Some(40 * time.Minute),
+			periodDayOffset:  1,
+			loveCancelOffset: 24*time.Hour + 55*time.Minute,
+			firstOffset:      40 * time.Minute,
+			lastOffset:       24*time.Hour + 35*time.Minute,
+			wantFirst:        mo.Some(40 * time.Minute),
+			wantLast:         mo.Some(40 * time.Minute),
 		},
 		{
 			name: "IncludesCancelAction",
@@ -247,11 +266,12 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 					offset: 24*time.Hour + 75*time.Minute,
 				},
 			},
-			periodDayOffset: 1,
-			firstOffset:     24*time.Hour + 75*time.Minute,
-			lastOffset:      24*time.Hour + 75*time.Minute,
-			wantFirst:       mo.None[time.Duration](),
-			wantLast:        mo.None[time.Duration](),
+			periodDayOffset:  1,
+			loveCancelOffset: 24*time.Hour + 95*time.Minute,
+			firstOffset:      24*time.Hour + 75*time.Minute,
+			lastOffset:       24*time.Hour + 75*time.Minute,
+			wantFirst:        mo.None[time.Duration](),
+			wantLast:         mo.None[time.Duration](),
 		},
 		{
 			name: "CrossPeriodWithCancel",
@@ -276,11 +296,38 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 					offset: 2*24*time.Hour + 35*time.Minute,
 				},
 			},
-			periodDayOffset: 2,
-			firstOffset:     15 * time.Minute,
-			lastOffset:      2*24*time.Hour + 35*time.Minute,
-			wantFirst:       mo.Some(15 * time.Minute),
-			wantLast:        mo.Some(15 * time.Minute),
+			periodDayOffset:  2,
+			loveCancelOffset: 2*24*time.Hour + 50*time.Minute,
+			firstOffset:      15 * time.Minute,
+			lastOffset:       2*24*time.Hour + 35*time.Minute,
+			wantFirst:        mo.Some(15 * time.Minute),
+			wantLast:         mo.Some(15 * time.Minute),
+		},
+		{
+			name: "DayBoundaryCancelAtBoundaryKeepsPreviousLove",
+			actions: []testLoveAction{
+				// -- Day 1 (previous period candidate)
+				{
+					kind:   model.ActionTypeLove,
+					offset: 24*time.Hour - time.Microsecond,
+				},
+				// Day boundary cancel: should not cancel the previous-period candidate.
+				{
+					kind:   model.ActionTypeLoveCanceled,
+					offset: 24 * time.Hour,
+				},
+				// -- Day 2 (current period)
+				{
+					kind:   model.ActionTypeLove,
+					offset: 24*time.Hour + 20*time.Minute,
+				},
+			},
+			periodDayOffset:  1,
+			loveCancelOffset: 24*time.Hour + 30*time.Minute,
+			firstOffset:      24*time.Hour - time.Microsecond,
+			lastOffset:       24*time.Hour + 20*time.Minute,
+			wantFirst:        mo.Some(24*time.Hour - time.Microsecond),
+			wantLast:         mo.Some(24*time.Hour - time.Microsecond),
 		},
 		{
 			name: "CrossPeriodKeepsMiddleLast",
@@ -301,11 +348,12 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 					offset: 2*24*time.Hour + 18*time.Minute,
 				},
 			},
-			periodDayOffset: 2,
-			firstOffset:     72 * time.Minute,
-			lastOffset:      2*24*time.Hour + 18*time.Minute,
-			wantFirst:       mo.Some(72 * time.Minute),
-			wantLast:        mo.Some(24*time.Hour + 36*time.Minute),
+			periodDayOffset:  2,
+			loveCancelOffset: 2*24*time.Hour + 36*time.Minute,
+			firstOffset:      72 * time.Minute,
+			lastOffset:       2*24*time.Hour + 18*time.Minute,
+			wantFirst:        mo.Some(72 * time.Minute),
+			wantLast:         mo.Some(24*time.Hour + 36*time.Minute),
 		},
 	}
 
@@ -338,6 +386,7 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 						t.Context(),
 						ingest.ID,
 						scoreDelta,
+						baseTime.Add(tt.loveCancelOffset),
 						baseTime.Add(time.Duration(tt.periodDayOffset)*24*time.Hour),
 						loveDayStartOffset,
 					)
@@ -366,14 +415,24 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 		name    string
 		actions []testLoveAction
 		// periodDayOffset sets periodStart as a day offset from baseTime.
-		periodDayOffset int32
-		firstOffset     mo.Option[time.Duration]
-		lastOffset      mo.Option[time.Duration]
+		periodDayOffset  int32
+		loveCancelOffset time.Duration
+		firstOffset      mo.Option[time.Duration]
+		lastOffset       mo.Option[time.Duration]
 	}{
 		{
 			name:            "NoActions",
 			actions:         []testLoveAction{},
 			periodDayOffset: 1,
+		},
+		{
+			name:             "StatsHasLastLoveButNoActionRow",
+			actions:          []testLoveAction{},
+			periodDayOffset:  0,
+			loveCancelOffset: 20 * time.Minute,
+			// Defensive case: stats/action inconsistency should fail safely.
+			firstOffset: mo.Some(10 * time.Minute),
+			lastOffset:  mo.Some(10 * time.Minute),
 		},
 		{
 			name: "AlreadyCanceled",
@@ -387,7 +446,8 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 					offset: 60 * time.Minute,
 				},
 			},
-			periodDayOffset: 1,
+			periodDayOffset:  1,
+			loveCancelOffset: 90 * time.Minute,
 		},
 		{
 			name: "DayBoundaryCancelBeforeBoundary",
@@ -397,9 +457,32 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 					offset: 24*time.Hour - time.Microsecond,
 				},
 			},
-			periodDayOffset: 1,
-			firstOffset:     mo.Some(24*time.Hour - time.Microsecond),
-			lastOffset:      mo.Some(24*time.Hour - time.Microsecond),
+			periodDayOffset:  1,
+			loveCancelOffset: 24 * time.Hour,
+			firstOffset:      mo.Some(24*time.Hour - time.Microsecond),
+			lastOffset:       mo.Some(24*time.Hour - time.Microsecond),
+		},
+		{
+			name:             "EqualTimestampReturnsConflict",
+			actions:          []testLoveAction{},
+			periodDayOffset:  0,
+			loveCancelOffset: 20 * time.Minute,
+			firstOffset:      mo.Some(20 * time.Minute),
+			lastOffset:       mo.Some(20 * time.Minute),
+		},
+		{
+			name: "InvalidWindowPeriodStartAfterCancel",
+			actions: []testLoveAction{
+				{
+					kind:   model.ActionTypeLove,
+					offset: 10 * time.Minute,
+				},
+			},
+			// period_start_at (base + 24h) is after love_cancel_at (base + 20m).
+			periodDayOffset:  1,
+			loveCancelOffset: 20 * time.Minute,
+			firstOffset:      mo.Some(10 * time.Minute),
+			lastOffset:       mo.Some(10 * time.Minute),
 		},
 		{
 			name: "IgnorePreviousPeriod",
@@ -409,21 +492,10 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 					offset: 30 * time.Minute,
 				},
 			},
-			periodDayOffset: 2,
-			firstOffset:     mo.Some(30 * time.Minute),
-			lastOffset:      mo.Some(30 * time.Minute),
-		},
-		{
-			name: "DayBoundaryBeforeDayStart",
-			actions: []testLoveAction{
-				{
-					kind:   model.ActionTypeLove,
-					offset: 23*time.Hour + 30*time.Minute,
-				},
-			},
-			periodDayOffset: 2,
-			firstOffset:     mo.Some(23*time.Hour + 30*time.Minute),
-			lastOffset:      mo.Some(23*time.Hour + 30*time.Minute),
+			periodDayOffset:  2,
+			loveCancelOffset: 24*time.Hour + 10*time.Minute,
+			firstOffset:      mo.Some(30 * time.Minute),
+			lastOffset:       mo.Some(30 * time.Minute),
 		},
 		{
 			name: "IgnoresPreviousPeriodCandidates",
@@ -448,9 +520,10 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 				},
 				// -- Day 3 (current period)
 			},
-			periodDayOffset: 3,
-			firstOffset:     mo.Some(6 * time.Minute),
-			lastOffset:      mo.Some(24*time.Hour + 48*time.Minute),
+			periodDayOffset:  3,
+			loveCancelOffset: 2*24*time.Hour + 6*time.Minute,
+			firstOffset:      mo.Some(6 * time.Minute),
+			lastOffset:       mo.Some(24*time.Hour + 48*time.Minute),
 		},
 	}
 
@@ -482,6 +555,7 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 						t.Context(),
 						ingest.ID,
 						scoreDelta,
+						baseTime.Add(tt.loveCancelOffset),
 						baseTime.Add(time.Duration(tt.periodDayOffset)*24*time.Hour),
 						loveDayStartOffset,
 					)
@@ -495,7 +569,10 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 func TestStatsRepositoryApplyLoveCanceledReturnsConflictWithoutStats(t *testing.T) {
 	ingest := mb.Ingest().Build()
 	scoreDelta := model.ScoreType(-18)
-	periodStart := mb.GetDefaultBaseTime().Add(-24 * time.Hour)
+
+	baseTime := mb.GetDefaultBaseTime()
+	periodStart := baseTime.Add(-24 * time.Hour)
+	loveCancelAt := baseTime.Add(20 * time.Minute)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
@@ -504,6 +581,7 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflictWithoutStats(t *testing.
 				t.Context(),
 				ingest.ID,
 				scoreDelta,
+				loveCancelAt,
 				periodStart,
 				loveDayStartOffset,
 			)

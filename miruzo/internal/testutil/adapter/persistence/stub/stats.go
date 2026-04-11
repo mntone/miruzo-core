@@ -34,6 +34,7 @@ type statsRepositoryApplyLoveArgs struct {
 type statsRepositoryApplyLoveCanceledArgs struct {
 	IngestID       model.IngestIDType
 	ScoreDelta     model.ScoreType
+	LoveCancelAt   time.Time
 	PeriodStartAt  time.Time
 	DayStartOffset time.Duration
 }
@@ -230,12 +231,14 @@ func (repo *statsRepository) ApplyLoveCanceled(
 	_ context.Context,
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
+	loveCancelAt time.Time,
 	periodStartAt time.Time,
 	dayStartOffset time.Duration,
 ) (model.LoveStats, error) {
 	repo.ApplyLoveCanceledArgs = append(repo.ApplyLoveCanceledArgs, statsRepositoryApplyLoveCanceledArgs{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
+		LoveCancelAt:   loveCancelAt,
 		PeriodStartAt:  periodStartAt,
 		DayStartOffset: dayStartOffset,
 	})
@@ -250,7 +253,7 @@ func (repo *statsRepository) ApplyLoveCanceled(
 	}
 
 	lastLovedAt, present := stats.LastLovedAt.Get()
-	if !present || lastLovedAt.Compare(periodStartAt) < 0 {
+	if !present || lastLovedAt.Compare(periodStartAt) < 0 || lastLovedAt.Compare(loveCancelAt) >= 0 {
 		return model.LoveStats{}, persist.ErrConflict
 	}
 	stats.Score += scoreDelta

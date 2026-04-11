@@ -20,20 +20,21 @@ import (
 func TestLoveCancelRestoresPreviousLove(t *testing.T) {
 	ingestID := model.IngestIDType(1)
 	previous := mo.Some(time.Date(2026, 1, 1, 20, 0, 0, 0, time.UTC))
-	current := time.Date(2026, 1, 2, 23, 0, 0, 0, time.UTC)
+	lovedAt := time.Date(2026, 1, 2, 23, 0, 0, 0, time.UTC)
+	canceledAt := lovedAt.Add(time.Second)
 	offset := 5 * time.Hour
 	provider := stub.NewStubPersistenceProvider(1, model.Stats{
 		IngestID:     ingestID,
 		Score:        120,
 		FirstLovedAt: previous,
-		LastLovedAt:  mo.Some(current),
+		LastLovedAt:  mo.Some(lovedAt),
 	})
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
 	service, err := reaction.New(
 		provider,
-		clock.NewFixedProvider(current),
+		clock.NewFixedProvider(canceledAt),
 		resolver,
 		scoreCalc,
 		3,
@@ -46,7 +47,7 @@ func TestLoveCancelRestoresPreviousLove(t *testing.T) {
 	assert.Equal(t, "daily_love_used", provider.UserStub.DailyLoveUsed, 0)
 
 	assert.Equal(t, "LoveCancel().Quota.Period", response.Quota.Period, model.PeriodTypeDaily)
-	assert.EqualFn(t, "LoveCancel().Quota.ResetAt", response.Quota.ResetAt, resolver.PeriodEnd(current))
+	assert.EqualFn(t, "LoveCancel().Quota.ResetAt", response.Quota.ResetAt, resolver.PeriodEnd(canceledAt))
 	assert.Equal(t, "LoveCancel().Quota.Limit", response.Quota.Limit, 3)
 	assert.Equal(t, "LoveCancel().Quota.Remaining", response.Quota.Remaining, 3)
 
@@ -57,20 +58,21 @@ func TestLoveCancelRestoresPreviousLove(t *testing.T) {
 
 func TestLoveCancelRestoresNullWhenNoPreviousLove(t *testing.T) {
 	ingestID := model.IngestIDType(1)
-	current := mo.Some(time.Date(2026, 1, 3, 19, 0, 0, 0, time.UTC))
+	lovedAt := mo.Some(time.Date(2026, 1, 3, 19, 0, 0, 0, time.UTC))
+	canceledAt := lovedAt.MustGet().Add(time.Second)
 	offset := 5 * time.Hour
 	provider := stub.NewStubPersistenceProvider(2, model.Stats{
 		IngestID:     ingestID,
 		Score:        120,
-		FirstLovedAt: current,
-		LastLovedAt:  current,
+		FirstLovedAt: lovedAt,
+		LastLovedAt:  lovedAt,
 	})
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
 	service, err := reaction.New(
 		provider,
-		clock.NewFixedProvider(current.MustGet()),
+		clock.NewFixedProvider(canceledAt),
 		resolver,
 		scoreCalc,
 		3,
@@ -83,7 +85,7 @@ func TestLoveCancelRestoresNullWhenNoPreviousLove(t *testing.T) {
 	assert.Equal(t, "daily_love_used", provider.UserStub.DailyLoveUsed, 1)
 
 	assert.Equal(t, "LoveCancel().Quota.Period", response.Quota.Period, model.PeriodTypeDaily)
-	assert.EqualFn(t, "LoveCancel().Quota.ResetAt", response.Quota.ResetAt, resolver.PeriodEnd(current.MustGet()))
+	assert.EqualFn(t, "LoveCancel().Quota.ResetAt", response.Quota.ResetAt, resolver.PeriodEnd(canceledAt))
 	assert.Equal(t, "LoveCancel().Quota.Limit", response.Quota.Limit, 3)
 	assert.Equal(t, "LoveCancel().Quota.Remaining", response.Quota.Remaining, 2)
 
@@ -121,13 +123,14 @@ func TestLoveCancelReturnsConflictWhenNoLoveInPeriod(t *testing.T) {
 
 func TestLoveCancelRollsBackWhenActionCreateFails(t *testing.T) {
 	ingestID := model.IngestIDType(1)
-	current := mo.Some(time.Date(2026, 1, 17, 14, 0, 0, 0, time.UTC))
+	lovedAt := mo.Some(time.Date(2026, 1, 17, 14, 0, 0, 0, time.UTC))
+	canceledAt := lovedAt.MustGet().Add(time.Second)
 	offset := 5 * time.Hour
 	provider := stub.NewStubPersistenceProvider(2, model.Stats{
 		IngestID:     ingestID,
 		Score:        100,
-		FirstLovedAt: current,
-		LastLovedAt:  current,
+		FirstLovedAt: lovedAt,
+		LastLovedAt:  lovedAt,
 	})
 	provider.ActionStub.CreateError = persist.ErrUnavailable
 	resolver := period.NewDailyResolver(offset)
@@ -135,7 +138,7 @@ func TestLoveCancelRollsBackWhenActionCreateFails(t *testing.T) {
 
 	service, err := reaction.New(
 		provider,
-		clock.NewFixedProvider(current.MustGet()),
+		clock.NewFixedProvider(canceledAt),
 		resolver,
 		scoreCalc,
 		3,
@@ -149,7 +152,7 @@ func TestLoveCancelRollsBackWhenActionCreateFails(t *testing.T) {
 
 	stats := provider.StatsStub.Store[ingestID]
 	assert.Equal(t, "stats.Score", stats.Score, 100)
-	assert.Equal(t, "stats.FirstLovedAt", stats.FirstLovedAt, current)
-	assert.Equal(t, "stats.LastLovedAt", stats.LastLovedAt, current)
+	assert.Equal(t, "stats.FirstLovedAt", stats.FirstLovedAt, lovedAt)
+	assert.Equal(t, "stats.LastLovedAt", stats.LastLovedAt, lovedAt)
 	assert.Empty(t, "action count", provider.ActionStub.Store)
 }

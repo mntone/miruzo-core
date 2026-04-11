@@ -29,7 +29,7 @@ func (srv *Service) LoveCancel(
 		},
 	}
 	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
-		stats, err := repos.Stats().ApplyLoveCanceled(ctx, ingestID, scoreDelta, periodStartAt, dayStartOffset)
+		stats, err := repos.Stats().ApplyLoveCanceled(ctx, ingestID, scoreDelta, canceledAt, periodStartAt, dayStartOffset)
 		if err != nil {
 			return err
 		}
