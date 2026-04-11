@@ -12,11 +12,10 @@ import (
 )
 
 func TestStatsListRepositoryIterateStatsPaginatesWithoutDuplicates(t *testing.T) {
-	baseTime := mb.GetDefaultBaseTime()
 	statsEntries := []model.Stats{
 		mb.Stats(1).Score(100).Build(),
-		mb.Stats(2).Score(120).Viewed(2, baseTime.Add(2*time.Hour)).Build(),
-		mb.Stats(4).Score(88).Viewed(4, baseTime.Add(4*time.Hour)).Build(),
+		mb.Stats(2).Score(120).ViewedOffset(2, 2*time.Hour).Build(),
+		mb.Stats(4).Score(88).ViewedOffset(4, 4*time.Hour).Build(),
 		mb.Stats(5).Build(),
 	}
 
@@ -25,15 +24,7 @@ func TestStatsListRepositoryIterateStatsPaginatesWithoutDuplicates(t *testing.T)
 			ingestIDs := make([]model.IngestIDType, len(statsEntries))
 			for i, stats := range statsEntries {
 				ingestIDs[i] = stats.IngestID
-				ops.MustAddIngest(
-					t,
-					mb.Ingest().
-						IngestID(stats.IngestID).
-						Ingested(baseTime).
-						Captured(baseTime).
-						Updated(baseTime).
-						Build(),
-				)
+				ops.MustAddIngest(t, mb.Ingest().IngestID(stats.IngestID).Build())
 				ops.MustAddStats(t, stats)
 			}
 

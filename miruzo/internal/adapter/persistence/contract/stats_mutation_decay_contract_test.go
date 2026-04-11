@@ -11,12 +11,14 @@ import (
 )
 
 func TestStatsRepositoryApplyDecayUpdates(t *testing.T) {
+	ingest := mb.Ingest().Build()
+	stats := mb.Stats(ingest.ID).Build()
 	evaluatedAt := mb.GetDefaultBaseTime().Add(24 * time.Hour)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-			stats := ops.MustAddStats(t, mb.Stats(ingest.ID).Build())
+			ops.MustAddIngest(t, ingest)
+			ops.MustAddStats(t, stats)
 
 			err := ops.Stats().ApplyDecay(t.Context(), ingest.ID, stats.Score-2, evaluatedAt)
 			assert.NilError(t, "ApplyDecay() error", err)
@@ -31,11 +33,12 @@ func TestStatsRepositoryApplyDecayUpdates(t *testing.T) {
 }
 
 func TestStatsRepositoryApplyDecayReturnsConflictWithoutStats(t *testing.T) {
+	ingest := mb.Ingest().Build()
 	evaluatedAt := mb.GetDefaultBaseTime().Add(24 * time.Hour)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+			ops.MustAddIngest(t, ingest)
 			err := ops.Stats().ApplyDecay(t.Context(), ingest.ID, 98, evaluatedAt)
 			assert.ErrorIs(t, "ApplyDecay() error", err, persist.ErrConflict)
 		})

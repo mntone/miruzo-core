@@ -18,6 +18,8 @@ import (
 func TestActionRepositorySchemaRejectsInvalidKind(t *testing.T) {
 	tests := []int32{-1, 2, 10, 17, 999}
 
+	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at) VALUES(%s, %s, %s)"
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
 			ops := h.BeginTx(t)
@@ -27,10 +29,7 @@ func TestActionRepositorySchemaRejectsInvalidKind(t *testing.T) {
 					t,
 					c.DBErrorMappingDefault,
 					persist.ErrCheckViolation,
-					fmt.Sprintf(
-						"INSERT INTO actions(ingest_id, kind, occurred_at) VALUES(%s, %s, %s)",
-						ops.Param(1), ops.Param(2), ops.Param(3),
-					),
+					fmt.Sprintf(stmt, ops.ParamRange(1, 3)...),
 					ingest.ID,
 					tt,
 					mb.GetDefaultBaseTime(),
@@ -59,6 +58,8 @@ func TestActionRepositorySchemaRejectsInvalidOccurredAt(t *testing.T) {
 		},
 	}
 
+	stmt := "INSERT INTO actions(ingest_id, occurred_at) VALUES(%s, %s)"
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RequireCapability(t, c.SupportsInfinityTimestamp)
 
@@ -66,15 +67,11 @@ func TestActionRepositorySchemaRejectsInvalidOccurredAt(t *testing.T) {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 				t.Run(tt.name, func(t *testing.T) {
-					stmt := fmt.Sprintf(
-						"INSERT INTO actions(ingest_id, occurred_at) VALUES(%s, %s)",
-						ops.Param(1), ops.Param(2),
-					)
 					ops.AssertExecErrorIs(
 						t,
 						c.DBErrorMappingDefault,
 						tt.wantErr,
-						stmt,
+						fmt.Sprintf(stmt, ops.ParamRange(1, 2)...),
 						ingest.ID,
 						tt.occurredAt,
 					)

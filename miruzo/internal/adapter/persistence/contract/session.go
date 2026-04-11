@@ -59,10 +59,25 @@ type TxSession struct {
 	RepositoryProvider
 }
 
-// --- backend helpers ---
+// --- dialect helpers ---
 
+// Param returns placeholder for index.
 func (s TxSession) Param(index int32) string {
 	return fmt.Sprintf("%s%d", s.BindVarStyle(), index)
+}
+
+// ParamRange returns placeholders for [start, end] (inclusive).
+func (s TxSession) ParamRange(start, end int32) []any {
+	if start > end {
+		panic("invalid param range: start > end")
+	}
+
+	length := end - start + 1
+	params := make([]any, length)
+	for i := int32(0); i < length; i += 1 {
+		params[i] = s.Param(start + i)
+	}
+	return params
 }
 
 // --- operation helpers ---
@@ -113,8 +128,7 @@ func (s TxSession) MustAddIngest(t testing.TB, e model.Ingest) model.Ingest {
 
 	stmt := fmt.Sprintf(
 		"INSERT INTO ingests(id, process, visibility, relative_path, fingerprint, ingested_at, captured_at, updated_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)",
-		s.Param(1), s.Param(2), s.Param(3), s.Param(4),
-		s.Param(5), s.Param(6), s.Param(7), s.Param(8),
+		s.ParamRange(1, 8)...,
 	)
 	s.MustExec(
 		t, stmt,
@@ -139,8 +153,7 @@ func (s TxSession) MustAddStats(t testing.TB, e model.Stats) model.Stats {
 
 	stmt := fmt.Sprintf(
 		"INSERT INTO stats(ingest_id, score, score_evaluated, first_loved_at, last_loved_at, hall_of_fame_at, last_viewed_at, view_count) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)",
-		s.Param(1), s.Param(2), s.Param(3), s.Param(4),
-		s.Param(5), s.Param(6), s.Param(7), s.Param(8),
+		s.ParamRange(1, 8)...,
 	)
 	s.MustExec(
 		t, stmt,

@@ -25,12 +25,13 @@ func TestStatsSchemaRejectsInvalidScore(t *testing.T) {
 		},
 	}
 
+	ingest := mb.Ingest().Build()
 	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated) VALUES(%s, %d, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+				ops.MustAddIngest(t, ingest)
 				t.Run(tt.name, func(t *testing.T) {
 					ops.AssertExecErrorIs(
 						t,
@@ -64,12 +65,13 @@ func TestStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
 		},
 	}
 
+	ingest := mb.Ingest().Build()
 	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated, score_evaluated_at) VALUES(%s, %s, %d, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+				ops.MustAddIngest(t, ingest)
 				t.Run(tt.name, func(t *testing.T) {
 					ops.AssertExecErrorIs(
 						t,
@@ -113,12 +115,14 @@ func TestStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
 		},
 	}
 
+	ingest := mb.Ingest().Build()
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RequireCapability(t, c.SupportsInfinityTimestamp)
 
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+				ops.MustAddIngest(t, ingest)
 				t.Run(tt.name, func(t *testing.T) {
 					args := []any{ingest.ID, 100, 100}
 					switch tt.name {
@@ -134,15 +138,11 @@ func TestStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
 						args = append(args, "infinity", 1)
 					}
 
-					params := make([]any, len(args))
-					for i := range args {
-						params[i] = ops.Param(int32(i + 1))
-					}
 					ops.AssertExecErrorIs(
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(tt.stmt, params...),
+						fmt.Sprintf(tt.stmt, ops.ParamRange(1, int32(len(args)))...),
 						args...,
 					)
 				})

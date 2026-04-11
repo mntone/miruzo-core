@@ -14,6 +14,8 @@ import (
 func TestUserRepositorySchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 	tests := []int32{-1, 101}
 
+	stmt := "UPDATE users SET daily_love_used=%s WHERE id=1"
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
 			ops := h.BeginTx(t)
@@ -22,10 +24,7 @@ func TestUserRepositorySchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 					t,
 					c.DBErrorMappingDefault,
 					persist.ErrCheckViolation,
-					fmt.Sprintf(
-						"UPDATE users SET daily_love_used=%s WHERE id=1",
-						ops.Param(1),
-					),
+					fmt.Sprintf(stmt, ops.Param(1)),
 					tt,
 				)
 			})
