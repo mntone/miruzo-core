@@ -45,6 +45,7 @@ type TransactionOperations interface {
 
 type RepositoryProvider interface {
 	Action() persist.ActionRepository
+	ImageList() persist.ImageListRepository
 	Job() persist.JobRepository
 	Settings() persist.SettingsRepository
 	Stats() persist.StatsRepository

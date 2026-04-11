@@ -8,6 +8,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/imagelist"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
@@ -142,6 +143,10 @@ func (s postgresTxSession) SelectStats(t testing.TB, id model.IngestIDType) (mod
 
 func (s postgresTxSession) Action() persist.ActionRepository {
 	return action.NewRepository(s.queries)
+}
+
+func (s postgresTxSession) ImageList() persist.ImageListRepository {
+	return imagelist.NewRepository(s.queries)
 }
 
 func (s postgresTxSession) Job() persist.JobRepository {

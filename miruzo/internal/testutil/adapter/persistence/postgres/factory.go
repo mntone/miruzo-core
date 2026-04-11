@@ -7,11 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
-	testutilPersistence "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence"
 )
 
 type SuiteFactory struct {
@@ -94,31 +90,5 @@ func (ste *SuiteFactory) MustReset(
 
 	if err := ste.Reset(ctx); err != nil {
 		t.Fatalf("reset postgres test suite: %v", err)
-	}
-}
-
-func (ste *SuiteFactory) newOperations(
-	ctx context.Context,
-	pool *pgxpool.Pool,
-	queries *gen.Queries,
-) testutilPersistence.Operations {
-	return testutilPersistence.NewOperations(
-		ctx,
-		action.NewRepository(queries),
-		newRepository(pool, queries),
-	)
-}
-
-func (ste *SuiteFactory) NewImageList(
-	t *testing.T,
-	ctx context.Context,
-) testutilPersistence.ImageListSuite {
-	t.Helper()
-
-	queries := gen.New(ste.pool)
-	return testutilPersistence.ImageListSuite{
-		Context:    ctx,
-		Operations: ste.newOperations(ctx, ste.pool, queries),
-		Repository: imagelist.NewRepository(queries),
 	}
 }
