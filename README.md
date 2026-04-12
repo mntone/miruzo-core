@@ -1,121 +1,151 @@
 # miruzo-core
 
 [![License under GPLv3](https://forthebadge.com/api/badges/generate?panels=2&primaryLabel=LICENSE&secondaryLabel=GPL%203%2B&primaryBGColor=%23555555&primaryTextColor=%23FFFFFF&secondaryBGColor=%23007ec6&secondaryTextColor=%23FFFFFF&primaryFontSize=12&primaryFontWeight=300&primaryLetterSpacing=2&primaryFontFamily=Montserrat&primaryTextTransform=uppercase&secondaryFontSize=12&secondaryFontWeight=900&secondaryLetterSpacing=2&secondaryFontFamily=Montserrat&secondaryTextTransform=uppercase&secondaryIconColor=%23FFFFFF&secondaryIconSize=24&secondaryIconPosition=right)](./LICENSE)
-[![Made with FastAPI](https://forthebadge.com/api/badges/generate?panels=2&primaryLabel=MADE+WITH&secondaryLabel=Fast+API&primaryBGColor=%23ef4041&primaryTextColor=%23FFFFFF&secondaryBGColor=%23c1282d&secondaryTextColor=%23FFFFFF&primaryFontSize=12&primaryFontWeight=300&primaryLetterSpacing=2&primaryFontFamily=Montserrat&primaryTextTransform=uppercase&secondaryFontSize=12&secondaryFontWeight=900&secondaryLetterSpacing=2&secondaryFontFamily=Montserrat&secondaryTextTransform=uppercase&secondaryIcon=fastapi&secondaryIconColor=%23FFFFFF&secondaryIconSize=24&secondaryIconPosition=right)](https://fastapi.tiangolo.com/)
+[![Written by Go](https://forthebadge.com/api/badges/generate?panels=2&primaryLabel=WRITTEN+BY&secondaryLabel=Go&primaryBGColor=%238fc965&primaryTextColor=%23FFFFFF&secondaryBGColor=%23419b5a&secondaryTextColor=%23FFFFFF&primaryFontSize=12&primaryFontWeight=300&primaryLetterSpacing=2&primaryFontFamily=Montserrat&primaryTextTransform=uppercase&secondaryFontSize=12&secondaryFontWeight=900&secondaryLetterSpacing=2&secondaryFontFamily=Montserrat&secondaryTextTransform=uppercase&secondaryIcon=go&secondaryIconColor=%23FFFFFF&secondaryIconSize=24&secondaryIconPosition=right)](https://go.dev/)
 [![Written by Python](https://forthebadge.com/api/badges/generate?panels=2&primaryLabel=WRITTEN+BY&secondaryLabel=Python&primaryBGColor=%238fc965&primaryTextColor=%23FFFFFF&secondaryBGColor=%23419b5a&secondaryTextColor=%23FFFFFF&primaryFontSize=12&primaryFontWeight=300&primaryLetterSpacing=2&primaryFontFamily=Montserrat&primaryTextTransform=uppercase&secondaryFontSize=12&secondaryFontWeight=900&secondaryLetterSpacing=2&secondaryFontFamily=Montserrat&secondaryTextTransform=uppercase&secondaryIcon=python&secondaryIconColor=%23FFFFFF&secondaryIconSize=24&secondaryIconPosition=right)](https://www.python.org/)
 
-miruzo-core is the FastAPI/SQLModel backend that powers the miruzo photo
-archive. It serves REST APIs for image browsing, scoring, and love actions, and
-ships an importer pipeline that ingests gataku assets into SQLite or PostgreSQL.
-The Python implementation lives under [`miruzo-py/`](./miruzo-py/).
+miruzo-core is the backend and ingest core for the miruzo photo archive.
+The API serves image listing/context/love endpoints, and the ingest tooling
+imports gataku assets into supported database backends.
 
 
 ## ✨ Features
 
-- REST API for listing images, fetching contexts, and posting love actions
-- Importer tooling to populate the database and generate thumbnails/variants
-- SQLite (default) and PostgreSQL repositories with shared business logic
-- Pure helper modules for variant normalization and query parsing
-- OpenAPI metadata automatically generated via Pydantic models
+- Go API for image browsing and reaction workflows
+- Python ingest pipeline for importing and processing source assets
+- Shared support for SQLite and PostgreSQL
+- Optional MySQL support in Python ingest
+- Generated SQL access via sqlc for Go repositories
 
 
 ## 📏 Why Manbytes?
 
-Human-friendly size units are not universal — they are shaped by culture and
+Human-friendly size units are not universal and are shaped by culture and
 convention.
 
 miruzo defines **manbytes**, a size unit based on a 10<sup>4</sup>-byte scale
-(the Japanese “man” unit), and uses it in its API to represent image file sizes.
+(the Japanese “man” unit), and uses it in API responses for image file
+sizes.
 
-While inspired by the Japanese numeric system, manbytes is designed for
-practical use: it provides a stable, human-scaled representation that works well
-for image-heavy UIs and delivery strategies.
-
-For a detailed explanation of the rationale, design trade-offs, and exact
-definitions, see [`docs/unit.md`](./docs/unit.md).
+For details, see [`docs/unit.md`](./docs/unit.md).
 
 
-## 🚀 Setup
+## 🧩 Repository Layout
 
-Run miruzo-core locally by following these steps.
+- [`miruzo`](./miruzo): Go API application, SQL/migrations, Makefile
+- [`miruzo-py`](./miruzo-py): Python ingest services, DB adapters, tests
 
-### Requirements
-- Python 3.13 (respect [`.python-version`](./.python-version); keep code 3.10+
-  compatible)
+
+## 🚀 Requirements
+
 - Git
-- SQLite 3.37.0+ when using the SQLite backend (`RETURNING` and `STRICT` support)
-  - verify Python-linked SQLite:
-    `python -c "import sqlite3; print(sqlite3.sqlite_version)"`
-- Docker (only if you need to run the PostgreSQL repository tests)
+- Go 1.26.x (see [`miruzo/go.mod`](./miruzo/go.mod))
+- Python 3.10+ (3.13 recommended for local development)
 
-### Steps
-1. Clone the repository  
-   `git clone https://github.com/mntone/miruzo-core.git && cd miruzo-core/miruzo-py`
-2. Install dependencies  
-   `pip install -r requirements.txt`
-3. Copy the sample environment file  
-   `cp .env.development .env` and adjust paths/DSNs (see [AGENTS.md](./AGENTS.md)).
-4. Start the API  
-   `python -m scripts.api --dev`
-5. (Optional) Run importer help to confirm configuration  
-   `python -m scripts.gataku_import --help`
+Backend/runtime matrix:
 
-### Common commands
-- `cd miruzo-py && pytest`: Run the default test suite (SQLite, service,
-  variants, etc.)
-- `cd miruzo-py && pytest tests/services/images/repository/test_postgre.py`:
-  Run Docker-backed PostgreSQL repository tests (pulls `postgres:18-alpine`)
-- `cd miruzo-py && ruff check app tests`: Lint the codebase
+| Backend    | Version                         | Go driver                       | Go API    | Python driver             |
+| ---------- | ------------------------------- | ------------------------------- | --------- | ------------------------- |
+| MySQL      | 8.0.16+ (`CHECK`)               | `go-sql-driver/mysql` (planned) | not yet   | `mysqlclient` (`MySQLdb`) |
+| PostgreSQL | 14+                             | `jackc/pgx/v5`                  | supported | `psycopg3` (`psycopg`)    |
+| SQLite     | 3.37.0+ (`RETURNING`, `STRICT`) | `mattn/go-sqlite3`              | supported | `sqlite3` (stdlib)        |
 
 
-## 🖱️ Usage
+## 🛠️ Setup
 
-1. Start the API (`cd miruzo-py && python -m scripts.api --dev`).
-2. Point miruzo-web or other clients to the running host (default
-   `http://127.0.0.1:1024/api`).
-3. Use importer commands to populate the database:
+For source development setup, follow
+[`CONTRIBUTING.md`](./CONTRIBUTING.md#prerequisites):
 
-   ```bash
-   cd miruzo-py && python -m scripts.gataku_import --jsonl path/to/data.jsonl
-   ```
+- prerequisites and backend version requirements
+- Linux/macOS setup for Go tools and Python DB drivers
+- runtime configuration and test environment variables
 
-4. Hit `/api/i/latest` or `/api/i/{ingest_id}` to verify data is available.
+Prebuilt binary releases are planned. Until then, use source setup.
 
 
 ## ⚙️ Configuration
 
-All runtime configuration flows through `miruzo-py/.env` using
-`pydantic-settings`. A sample file is available at
-[`miruzo-py/.env.development`](./miruzo-py/.env.development). Key variables
-include:
+### Go API (`miruzo/config.yaml`)
 
-- `DATABASE_BACKEND`: `sqlite` (default) or `postgres`
-- `DATABASE_URL`: SQLAlchemy DSN (e.g., `sqlite:///var/miruzo.sqlite`,
-  `postgresql://user:pass@host/db`)
-- `GATAKU_ROOT` / `GATAKU_ASSETS_ROOT` / `MEDIA_ROOT`: filesystem roots for
-  importer + media files
-- `VARIANT_LAYERS`: loaded from `app/config/variant.py`
+- Base file: `miruzo/internal/app/config.sample.yaml`
+- Local default file: [`miruzo/config.yaml`](./miruzo/config.yaml)
+- Current Go API backends: `sqlite`, `postgres`
+- `database.backend=mysql` is not supported yet
+
+### Python ingest (`miruzo-py/.env`)
+
+- Copy [`miruzo-py/.env.development`](./miruzo-py/.env.development) to
+  `miruzo-py/.env`
+- Set these variables explicitly:
+  - `ENVIRONMENT` (`development` or `production`)
+  - `DATABASE_BACKEND` (`sqlite`, `postgres`, or `mysql`)
+  - `DATABASE_URL`
+    - SQLite: `sqlite:///...`
+    - PostgreSQL: `postgresql+psycopg://...`
+    - MySQL: `mysql+mysqldb://...`
+- Path-related variables (`MEDIA_ROOT`, `PUBLIC_MEDIA_ROOT`, `GATAKU_ROOT`,
+  `GATAKU_ASSETS_ROOT`, `GATAKU_SYMLINK_DIRNAME`) can be left as defaults on
+  first setup, then customized only when needed.
 
 
-## 📦 Database support
+## 🖱️ Run Locally
 
-- **SQLite**: default development backend; requires SQLite 3.35.0+ for
-  `RETURNING`; in-memory mode used for most tests
-- **PostgreSQL**: optional backend for production; Docker test suite available
+Start API:
+
+```bash
+cd miruzo
+make dev
+# or
+cd miruzo && go run ./cmd/miruzo-api
+```
+
+Default API address: `http://127.0.0.1:1360/api`
+
+Run importer help:
+
+```bash
+cd miruzo-py
+python -m scripts.gataku_import --help
+```
+
+
+## 🧪 Testing
+
+Default suites:
+
+```bash
+cd miruzo && go test ./...
+cd miruzo-py && pytest
+```
+
+Focused suites:
+
+```bash
+cd miruzo && go test ./internal/service/...
+cd miruzo && go test ./internal/adapter/persistence/contract/...
+cd miruzo-py && pytest tests/importers
+cd miruzo-py && pytest tests/persist
+```
+
+Optional test database DSN environment variables:
+
+- Go tests: `MIRUZO_TEST_POSTGRES_URL`
+- Python tests:
+  - `MIRUZO_PY_TEST_MYSQL_URL`
+  - `MIRUZO_PY_TEST_POSTGRES_URL`
 
 
 ## 📜 License
 
-This project is licensed under the terms of the GNU General Public License v3.0
-(GPLv3). See the [`LICENSE`](./LICENSE) file for full details. You are free to
-use, modify, and distribute this software under the terms of the GPL, provided
-that any derivative work is also distributed under the same license.
+This project is licensed under GNU GPLv3. See [`LICENSE`](./LICENSE).
 
 
 ## 🤝 Contributing
 
-Interested in contributing? See [`CONTRIBUTING.md`](./CONTRIBUTING.md) and
-[`AGENTS.md`](./AGENTS.md).
+See:
+
+- [`AGENTS.md`](./AGENTS.md)
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 
 
 ## 🔗 Related Projects

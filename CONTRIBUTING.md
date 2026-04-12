@@ -4,97 +4,192 @@
 
 ## 🧭 Overview
 
-miruzo-core is the FastAPI/SQLModel backend that exposes the miruzo photo
-archive over a REST API and drives the importer pipeline. This document explains
-how to set up a local environment, which conventions to follow, and how to
-propose changes. For day-to-day commands (install, dev server, tests) refer to
-[README.md](./README.md), and for coding standards see [AGENTS.md](./AGENTS.md).
+miruzo-core is composed of the Go API backend (`miruzo/`) and the Python ingest
+tooling (`miruzo-py/`). This document describes contribution workflow,
+environment setup, and review expectations.
+
+For canonical coding rules and non-negotiable conventions, always follow
+[AGENTS.md](./AGENTS.md).
+
+<a id="prerequisites"></a>
 
 ## 🛠️ Prerequisites
 
-- Python 3.13 (respect [`.python-version`](./.python-version) if present).
-  Install dependencies via `cd miruzo-py && pip install -r requirements.txt`.
-  All contributions must remain compatible with Python 3.10+, so avoid using
-  language/library features newer than 3.10 (e.g., prefer `class Foo(int, Enum)`
-  / `class Bar(str, Enum)` instead of newer helpers such as `IntEnum` /
-  `StrEnum`).
-- Copy [`miruzo-py/.env.development`](./miruzo-py/.env.development) to
-  `miruzo-py/.env` and configure paths/DSNs so API and importer flows can run
-  locally.
-- Docker is only required for PostgreSQL repository tests
-  (`tests/services/images/repository/test_postgre.py`). All other development
-  can be done without Docker.
-- macOS, Linux, and WSL are supported environments. API server runs via
-  `cd miruzo-py && python -m scripts.api --dev` and that SQLite 3.37.0+ is
-  available (for importer + tests; `RETURNING` and `STRICT` support is required).
-  Verify Python-linked SQLite with
-  `python -c "import sqlite3; print(sqlite3.sqlite_version)"`.
-- To exercise importer pipelines, prepare the directories referenced by
-  `settings.gataku_root` / `settings.assets_root` (see [README.md](./README.md)).
+- Go 1.26.x (see [`miruzo/go.mod`](./miruzo/go.mod))
+- Python 3.10+ (3.13 recommended for local development)
+- Database minimum versions:
+  - MySQL 8.0.16+ (`CHECK` support required)
+  - PostgreSQL 14+
+  - SQLite 3.37.0+ (`RETURNING` and `STRICT` support required)
+- Python ingest drivers:
+  - MySQL: `mysqlclient` (`MySQLdb`, DSN `mysql+mysqldb://...`)
+  - PostgreSQL: `psycopg3` (`psycopg`, DSN `postgresql+psycopg://...`)
+  - SQLite: stdlib `sqlite3` (DSN `sqlite:///...`)
+
+Install dependencies:
+
+```bash
+cd miruzo && go mod download
+cd ../miruzo-py && pip install -r requirements.txt
+```
+
+OS-specific setup (required for DB drivers / Go tools):
+
+- Linux (Debian/Ubuntu):
+  - Go tools:
+    ```bash
+    cd miruzo && make tools
+    ```
+  - PostgreSQL Python driver dependencies:
+    ```bash
+    sudo apt install -y libpq-dev
+    pip install psycopg[c,pool]
+    ```
+  - MySQL Python driver dependencies:
+    ```bash
+    sudo apt install -y build-essential default-libmysqlclient-dev pkg-config
+    pip install mysqlclient
+    ```
+- macOS:
+  - Go tools (recommended):
+    ```bash
+    brew install gopls delve go-air sqlc goreleaser
+    ```
+  - Go tools (alternative):
+    ```bash
+    cd miruzo && make tools
+    ```
+  - PostgreSQL Python driver dependencies:
+    ```bash
+    brew install libpq
+    pip install psycopg[c,pool]
+    ```
+  - MySQL Python driver dependencies:
+    ```bash
+    brew install mysql pkg-config
+    pip install mysqlclient
+    ```
+
+Configure runtime files:
+
+- API: use `miruzo/config.yaml` (base: `miruzo/internal/app/config.sample.yaml`)
+- Ingest: copy `miruzo-py/.env.development` to `miruzo-py/.env` and set:
+  - `ENVIRONMENT` (`development` or `production`)
+  - `DATABASE_BACKEND` (`sqlite`, `postgres`, or `mysql`)
+  - `DATABASE_URL` (`sqlite:///...`, `postgresql+psycopg://...`,
+    `mysql+mysqldb://...`)
+  - Path-related variables (`MEDIA_ROOT`, `PUBLIC_MEDIA_ROOT`, `GATAKU_ROOT`,
+    `GATAKU_ASSETS_ROOT`, `GATAKU_SYMLINK_DIRNAME`) are optional for initial
+    setup and can stay on defaults.
+- Optional test database DSN environment variables:
+  - Go tests: `MIRUZO_TEST_POSTGRES_URL`
+  - Python tests:
+    - `MIRUZO_PY_TEST_MYSQL_URL`
+    - `MIRUZO_PY_TEST_POSTGRES_URL`
+
+Current Go API database backends are `sqlite` and `postgres`.
+`database.backend=mysql` is not supported yet.
 
 ## 🔁 Workflow
 
-- Follow Conventional Commits (English prefixes such as `feat:`, `fix:`, etc.)
-  and keep each commit focused on a single logical change.
-- Large or potentially breaking backend work should start as a GitHub issue or
-  discussion so scope and migrations can be agreed upon.
-- Use the provided GitHub issue/PR templates; fill out the checklists so
-  reviewers know what was verified.
-- Before requesting review run `cd miruzo-py && pytest` (plus any
-  Docker-dependent suites as needed) and
-  `cd miruzo-py && ruff check app tests`. Include OpenAPI/schema changes in
-  your PR summary.
+- Follow Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.)
+- Keep each commit focused on one logical change
+- Start larger or risky changes from a GitHub issue/discussion
+- Use issue/PR templates under `.github/`
+- Before requesting review, run relevant tests and linters
+- When backend support/version/driver documentation changes, update
+  `README.md`, `CONTRIBUTING.md`, and `AGENTS.md` together.
 
-## 🎨 Code style
+If you modify DB schema/query sources (`miruzo/internal/database/*/queries`,
+migrations), run:
 
-- `AGENTS.md` is the canonical source of formatting and architectural rules.
-  Highlights: tabs for indentation, type-hint all exported surfaces, add OpenAPI
-  `title`/`description` metadata for new models, and keep routers thin by
-  delegating to services.
-- Do not ignore lint errors—fix them or adjust configuration via PR if a rule is
-  truly incompatible.
-- For shared utilities (variant helpers, repository base classes, importer
-  workflows), extend the existing modules in `miruzo-py/app/services/images/`
-  or `miruzo-py/scripts/importers/common/` instead of adding ad-hoc versions.
+```bash
+cd miruzo && make generate
+```
 
-## 🕒 Datetime naming
+Commit generated artifacts together with source SQL/migration changes:
 
-- Use language-appropriate datetime suffixes for new fields and parameters:
-  - Golang: `...At` (example: `occurredAt`, `loveCanceledAt`)
-  - Python: `..._at` (example: `occurred_at`, `love_canceled_at`)
-  - SQL: `..._at` (example: `occurred_at`, `love_canceled_at`)
-- Do not mix `...At` and `..._at` within a single layer.
-- Convert styles only at layer boundaries (for example SQL query parameters and
-  generated structs).
-- For period boundary timestamps, use noun+boundary naming (`periodStartAt`,
-  `periodEndAt` / `period_start_at`, `period_end_at`) rather than event-style
-  names such as `periodStartedAt` / `period_started_at`.
+- `miruzo/internal/database/*/gen`
+- `miruzo/internal/database/*/migrations_min`
+
+Do not commit local build/cache outputs such as:
+`miruzo/bin/`, `miruzo/dist/`, `**/__pycache__/`, `.pytest_cache/`.
+
+## 🧰 Operations
+
+Run API and CLI commands from `miruzo/`.
+
+Start API locally:
+
+```bash
+cd miruzo && air
+# or
+cd miruzo && go run ./cmd/miruzo-api
+```
+
+Run importer help:
+
+```bash
+cd miruzo-py && python -m scripts.gataku_import --help
+```
+
+Common CLI operations:
+
+```bash
+cd miruzo && go run ./cmd/miruzo-cli migrate up
+cd miruzo && go run ./cmd/miruzo-cli migrate down [N]
+cd miruzo && go run ./cmd/miruzo-cli migrate goto V
+cd miruzo && go run ./cmd/miruzo-cli migrate version
+cd miruzo && go run ./cmd/miruzo-cli migrate force V
+cd miruzo && go run ./cmd/miruzo-cli job daily-decay
+```
+
+`migrate force V` is for recovery workflows only. Before destructive operations
+(`migrate down`, `migrate force`, importer `--force`), confirm backup/snapshot
+availability and impact scope.
+
+## 🎨 Code Style
+
+`AGENTS.md` is the source of truth. Important highlights:
+
+- Use tabs for indentation
+- Keep interfaces and module boundaries strongly typed
+- Keep SQL explicit:
+  - Go: SQL files + sqlc under `miruzo/internal/database/*`
+  - Python: SQLAlchemy Core expressions (no ORM model magic)
+- Keep HTTP handlers thin and delegate to services/repositories
+- Keep markdown wrapped at 80 columns
 
 ## 🧪 Testing
 
-- We use pytest. Run `pytest` for a full pass or target suites such as
-  `cd miruzo-py && pytest tests/services/images/test_service.py` or
-  `cd miruzo-py && pytest tests/services/images/repository/test_sqlite.py`
-  while iterating.
-- PostgreSQL repository tests (`tests/services/images/repository/test_postgre.py`)
-  require Docker and pull `postgres:18-alpine`. Run them only when changing
-  Postgres-specific code paths.
-- Pure helpers (variant parsing, query models, repository filters) must have
-  unit tests unless doing so would add unreasonable complexity. Split impure
-  logic into testable helpers when practical.
-- Reuse shared fixtures/mocks under `tests/` before writing local ad hoc ones.
+Default suites:
 
-## 🐛 Reporting issues
+```bash
+cd miruzo && go test ./...
+cd miruzo-py && pytest
+```
 
-- File bug reports and feature requests through GitHub Issues using the provided
-  templates. Include reproduction steps, expected vs. actual behavior, API
-  endpoints, and relevant logs.
-- Sensitive bugs can be disclosed privately to *mntone* via the contact links in
-  `README.md`.
+Focused suites:
 
-## 📜 License notice
+- `cd miruzo && go test ./internal/service/...`
+- `cd miruzo && go test ./internal/adapter/persistence/contract/...`
+- `cd miruzo-py && pytest tests/importers`
+- `cd miruzo-py && pytest tests/persist`
 
-By contributing to miruzo-core you agree to license your work under GPLv3 (same
-as the project). Submit only code and assets that you are allowed to relicense
-under GPLv3. Verify the compatibility of any third-party dependency before
-introducing it.
+Notes:
+
+- Reuse committed fixtures/helpers; do not hand-roll container lifecycle scripts
+- Keep unit tests backend-light unless backend-specific behavior is under test
+- Avoid external network dependencies in tests
+
+## 🐛 Reporting Issues
+
+- File bugs/feature requests through GitHub Issues using provided templates
+- Include reproduction steps, expected/actual behavior, and relevant logs
+- For sensitive issues, contact *mntone* via links in [README.md](./README.md)
+
+## 📜 License Notice
+
+By contributing, you agree to license your contributions under GPLv3 (same as
+the project). Submit only code/assets you are allowed to relicense under GPLv3,
+and verify compatibility of third-party dependencies before introducing them.
