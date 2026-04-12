@@ -5,7 +5,8 @@ before:
     - go mod verify
 
 builds:
-  - main: ./cmd/miruzo-api
+  - &go_build_common
+    main: ./cmd/miruzo-api
     id: miruzo-api
     binary: miruzo-api
     gcflags:
@@ -60,6 +61,11 @@ builds:
         env:
           - CC=x86_64-w64-mingw32-gcc
           - CXX=x86_64-w64-mingw32-g++
+
+  - <<: *go_build_common
+    main: ./cmd/miruzo-cli
+    id: miruzo-cli
+    binary: miruzo-cli
 
 archives:
   - formats: [tar.gz]
