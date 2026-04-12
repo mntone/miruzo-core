@@ -36,10 +36,11 @@ func newDailyDecayServiceFixture(
 }
 
 func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T) {
-	baseTime := mb.GetDefaultStatsBaseTime()
+	baseTime := mb.GetDefaultBaseTime()
+	evaluatedAt := baseTime.Add(1 * time.Second)
 	service, prov := newDailyDecayServiceFixture(
 		3,
-		baseTime.Add(1*time.Second),
+		evaluatedAt,
 
 		// No Viewed
 		mb.Stats(1).Score(80).Build(),
@@ -63,8 +64,7 @@ func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T)
 			EvaluateScore(baseTime).
 			Build(),
 	)
-	evaluatedAt := baseTime.Add(1 * time.Second)
-	_, _ = prov.ActionStub.Create(context.Background(), 4, model.ActionTypeDecay, baseTime)
+	_, _ = prov.ActionStub.Create(context.Background(), 4, model.ActionTypeDecay, evaluatedAt)
 
 	err := service.ApplyDailyDecay(context.Background())
 	assert.NilError(t, "ApplyDailyDecay() error", err)
@@ -87,7 +87,7 @@ func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T)
 }
 
 func TestDailyDecayServiceApplyReturnsIterateError(t *testing.T) {
-	baseTime := mb.GetDefaultStatsBaseTime()
+	baseTime := mb.GetDefaultBaseTime()
 	service, mgr := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
@@ -102,7 +102,7 @@ func TestDailyDecayServiceApplyReturnsIterateError(t *testing.T) {
 }
 
 func TestDailyDecayServiceApplyReturnsExistsSinceError(t *testing.T) {
-	baseTime := mb.GetDefaultStatsBaseTime()
+	baseTime := mb.GetDefaultBaseTime()
 	service, mgr := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
@@ -117,7 +117,7 @@ func TestDailyDecayServiceApplyReturnsExistsSinceError(t *testing.T) {
 }
 
 func TestDailyDecayServiceApplyReturnsCreateError(t *testing.T) {
-	baseTime := mb.GetDefaultStatsBaseTime()
+	baseTime := mb.GetDefaultBaseTime()
 	service, mgr := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
@@ -132,7 +132,7 @@ func TestDailyDecayServiceApplyReturnsCreateError(t *testing.T) {
 }
 
 func TestDailyDecayServiceApplyReturnsApplyDecayError(t *testing.T) {
-	baseTime := mb.GetDefaultStatsBaseTime()
+	baseTime := mb.GetDefaultBaseTime()
 	service, mgr := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
@@ -148,7 +148,7 @@ func TestDailyDecayServiceApplyReturnsApplyDecayError(t *testing.T) {
 }
 
 func TestDailyDecayServiceApplyReturnsResetDailyLoveUsedError(t *testing.T) {
-	baseTime := mb.GetDefaultStatsBaseTime()
+	baseTime := mb.GetDefaultBaseTime()
 	service, mgr := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),

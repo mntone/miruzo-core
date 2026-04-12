@@ -25,10 +25,6 @@ type statsBuilder struct {
 	viewMilestoneArchivedAt mo.Option[time.Time]
 }
 
-func GetDefaultStatsBaseTime() time.Time {
-	return defaultBaseTime
-}
-
 func Stats(id model.IngestIDType) *statsBuilder {
 	if id <= 0 {
 		panic("invalid ingest id")
