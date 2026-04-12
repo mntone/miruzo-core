@@ -6,8 +6,63 @@ from types import ModuleType
 from typing import Any
 
 import pytest
+from sqlalchemy import URL
+from sqlalchemy.engine import make_url
 
 import app.databases.database as database_module
+
+
+@pytest.mark.parametrize(
+	('dsn', 'expected_host', 'expected_user'),
+	[
+		('mysql://user:pass@localhost:3306/app', '127.0.0.1', 'user'),
+		('mysql://localhost:pass@db.example:3306/app', 'db.example', 'localhost'),
+	],
+)
+def test_create_mysql_engine_rewrites_localhost_host_only(
+	monkeypatch: pytest.MonkeyPatch,
+	dsn: str,
+	expected_host: str,
+	expected_user: str,
+) -> None:
+	create_engine_calls: list[str | URL] = []
+
+	class _DummyScalar:
+		def scalar_one(self) -> str:
+			return '8.0.16'
+
+	class _DummyConn:
+		def exec_driver_sql(self, _: str) -> _DummyScalar:
+			return _DummyScalar()
+
+	class _DummyConnCtx:
+		def __enter__(self) -> _DummyConn:
+			return _DummyConn()
+
+		def __exit__(self, *_: object) -> None:
+			return None
+
+	class _DummyEngine:
+		def connect(self) -> _DummyConnCtx:
+			return _DummyConnCtx()
+
+	def _fake_create_engine(url: str | URL, **_: Any) -> _DummyEngine:
+		create_engine_calls.append(url)
+		return _DummyEngine()
+
+	mysql_module = ModuleType('MySQLdb')
+	mysql_module.Connection = object
+	monkeypatch.setitem(sys.modules, 'MySQLdb', mysql_module)
+	monkeypatch.setattr(database_module, 'create_engine', _fake_create_engine)
+	monkeypatch.setattr(database_module.event, 'listens_for', lambda *_: lambda fn: fn)
+
+	database_module._create_mysql_engine(dsn, pool_size=1, max_overflow=2)
+
+	assert len(create_engine_calls) == 1
+	normalized = make_url(create_engine_calls[0])
+	assert normalized.drivername == 'mysql+mysqldb'
+	assert normalized.host == expected_host
+	assert normalized.username == expected_user
 
 
 @pytest.mark.parametrize(
@@ -139,3 +194,20 @@ def test_create_postgres_engine_raises_runtime_error_when_psycopg_missing(
 
 	with pytest.raises(RuntimeError, match='requires psycopg3'):
 		database_module._create_postgres_engine('postgresql://user:pass@localhost:5432/app')
+
+
+@pytest.mark.parametrize(
+	'dsn',
+	[
+		'sqlite:///:memory:',
+		'sqlite+pysqlite:///:memory:',
+	],
+)
+def test_create_sqlite_engine_accepts_supported_dsn(dsn: str) -> None:
+	engine = database_module._create_sqlite3_engine(dsn, pool_size=1)
+	assert engine is not None
+
+
+def test_create_sqlite_engine_rejects_unsupported_dsn() -> None:
+	with pytest.raises(RuntimeError, match='Unsupported SQLite DSN'):
+		database_module._create_sqlite3_engine('sqlite+aiosqlite:///:memory:')

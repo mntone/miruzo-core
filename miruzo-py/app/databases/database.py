@@ -1,6 +1,8 @@
 from typing import Any
 
 from sqlalchemy import Engine, NullPool, create_engine, event
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
 from app.config.environments import DatabaseBackend, env
@@ -17,10 +19,22 @@ def _create_mysql_engine(
 	pool_size: int = 4,
 	max_overflow: int = 8,
 ) -> Engine:
-	from MySQLdb import Connection
+	try:
+		parsed_dsn = make_url(dsn)
+	except ArgumentError as exc:
+		raise RuntimeError('Unsupported MySQL DSN') from exc
+
+	if not parsed_dsn.drivername.startswith('mysql'):
+		raise RuntimeError('Unsupported MySQL DSN')
+
+	if parsed_dsn.drivername == 'mysql':
+		parsed_dsn = parsed_dsn.set(drivername='mysql+mysqldb')
+
+	if parsed_dsn.drivername == 'mysql+mysqldb' and parsed_dsn.host == 'localhost':
+		parsed_dsn = parsed_dsn.set(host='127.0.0.1')
 
 	engine = create_engine(
-		dsn,
+		parsed_dsn,
 		connect_args={
 			'init_command': "SET sql_mode='TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY',time_zone='+00:00'",
 		},
@@ -31,7 +45,7 @@ def _create_mysql_engine(
 	)
 
 	@event.listens_for(engine, 'connect')
-	def _set_mysql_charset_and_collation(dbapi_connection: Connection, _: object) -> None:
+	def _set_mysql_charset_and_collation(dbapi_connection: Any, _: object) -> None:
 		with dbapi_connection.cursor() as cursor:
 			cursor.execute(f'SET NAMES {MYSQL_CHARSET} COLLATE {MYSQL_COLLATION}')
 
@@ -118,6 +132,9 @@ def _create_postgres_engine(
 
 
 def _create_sqlite3_engine(dsn: str) -> Engine:
+	if not dsn.startswith(('sqlite://', 'sqlite+pysqlite://')):
+		raise RuntimeError('Unsupported SQLite DSN')
+
 	from sqlite3 import Connection
 
 	engine = create_engine(
