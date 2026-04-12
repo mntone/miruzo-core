@@ -16,8 +16,8 @@ MYSQL_COLLATION = 'utf8mb4_0900_bin'
 def _create_mysql_engine(
 	dsn: str,
 	*,
-	pool_size: int = 4,
-	max_overflow: int = 8,
+	pool_size: int = 1,
+	max_overflow: int = 2,
 ) -> Engine:
 	try:
 		parsed_dsn = make_url(dsn)
@@ -61,8 +61,8 @@ def _create_mysql_engine(
 def _create_postgres_engine(
 	dsn: str,
 	*,
-	pool_size: int = 4,
-	max_overflow: int = 8,
+	pool_size: int = 1,
+	max_overflow: int = 2,
 ) -> Engine:
 	if not dsn.startswith('postgresql'):
 		raise RuntimeError('Unsupported PostgreSQL DSN')
@@ -131,7 +131,11 @@ def _create_postgres_engine(
 	return engine
 
 
-def _create_sqlite3_engine(dsn: str) -> Engine:
+def _create_sqlite3_engine(
+	dsn: str,
+	*,
+	pool_size: int = 1,
+) -> Engine:
 	if not dsn.startswith(('sqlite://', 'sqlite+pysqlite://')):
 		raise RuntimeError('Unsupported SQLite DSN')
 
@@ -142,6 +146,7 @@ def _create_sqlite3_engine(dsn: str) -> Engine:
 		connect_args={'check_same_thread': False},
 		echo=False,
 		future=True,
+		pool_size=pool_size,
 	)
 
 	@event.listens_for(engine, 'connect')
