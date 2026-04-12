@@ -12,7 +12,7 @@ class PostgreSQLUniqueViolationMixin:
 			return True
 
 		try:
-			from psycopg2.errors import UniqueViolation
+			from psycopg.errors import UniqueViolation
 		except ImportError:
 			return False
 

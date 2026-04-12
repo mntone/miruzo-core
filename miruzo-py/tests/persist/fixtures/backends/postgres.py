@@ -26,7 +26,7 @@ def postgres_container() -> Iterator[PostgresContainer]:
 		username=POSTGRES_USER,
 		password=POSTGRES_PASSWORD,
 		dbname=POSTGRES_DB,
-		driver='psycopg2',
+		driver='psycopg',
 	).with_env(
 		'POSTGRES_INITDB_ARGS',
 		POSTGRES_ARGS,

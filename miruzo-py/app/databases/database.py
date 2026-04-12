@@ -1,4 +1,6 @@
-from sqlalchemy import Engine, create_engine, event
+from typing import Any
+
+from sqlalchemy import Engine, NullPool, create_engine, event
 from sqlalchemy.orm import Session
 
 from app.config.environments import DatabaseBackend, env
@@ -48,9 +50,65 @@ def _create_postgres_engine(
 	pool_size: int = 4,
 	max_overflow: int = 8,
 ) -> Engine:
+	if not dsn.startswith('postgresql'):
+		raise RuntimeError('Unsupported PostgreSQL DSN')
+
+	if dsn.startswith('postgresql+psycopg://'):
+		dsn = dsn.replace('postgresql+psycopg://', 'postgresql://', 1)
+
+	if dsn.startswith('postgresql://'):
+
+		def _require_psycopg_conninfo() -> Any:
+			try:
+				import psycopg.conninfo as psycopg_conninfo
+			except ModuleNotFoundError as exc:
+				raise RuntimeError('PostgreSQL backend requires psycopg3.') from exc
+			return psycopg_conninfo
+
+		def _require_psycopg_pool() -> Any:
+			try:
+				import psycopg_pool
+			except ModuleNotFoundError as exc:
+				raise RuntimeError('PostgreSQL backend requires psycopg3 pool.') from exc
+			return psycopg_pool
+
+		def _ensure_utc_timezone(conninfo: str) -> str:
+			psycopg_conninfo = _require_psycopg_conninfo()
+			parameters = psycopg_conninfo.conninfo_to_dict(conninfo)
+
+			options = parameters.get('options', '')
+			if 'TimeZone=' not in options:
+				if options:
+					options = f'{options} -c TimeZone=UTC'
+				else:
+					options = '-c TimeZone=UTC'
+				parameters['options'] = options
+
+			return psycopg_conninfo.make_conninfo(**parameters)
+
+		psycopg_pool = _require_psycopg_pool()
+		conninfo = _ensure_utc_timezone(dsn)
+		pool = psycopg_pool.ConnectionPool(
+			conninfo=conninfo,
+			close_returns=True,  # Return "closed" active connections to the pool
+			min_size=pool_size,
+			max_size=pool_size + max_overflow,
+		)
+		engine = create_engine(
+			'postgresql+psycopg://',
+			creator=pool.getconn,
+			poolclass=NullPool,
+		)
+
+		@event.listens_for(engine, 'engine_disposed')
+		def _close_psycopg_pool(_: Engine) -> None:
+			pool.close()
+
+		return engine
+
 	engine = create_engine(
 		dsn,
-		connect_args={'options': '-c timezone=utc'},
+		connect_args={'options': '-c TimeZone=utc'},
 		echo=False,
 		future=True,
 		max_overflow=max_overflow,
