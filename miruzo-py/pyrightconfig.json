@@ -1,10 +1,14 @@
 {
 	"pythonVersion": "3.10",
 	"typeCheckingMode": "strict",
+	"deprecateTypingAliases": true,
 	"executionEnvironments": [
 		{
-			"root": ".",
-			"reportPrivateUsage": "none"
+			"root": "tests/",
+			"reportPrivateUsage": false
+		},
+		{
+			"root": "."
 		}
 	]
 }
