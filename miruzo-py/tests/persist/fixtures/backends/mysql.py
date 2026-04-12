@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator
 from typing import Any
 
@@ -9,8 +10,10 @@ from tests.persist.fixtures.backends.runtime import _ensure_runtime_api_availabl
 from app.databases.database import MYSQL_CHARSET, MYSQL_COLLATION, _create_mysql_engine
 from app.databases.metadata import metadata
 
+MYSQL_DSN_ENV_VAR = 'MIRUZO_PY_TEST_MYSQL_URL'
+
 MYSQL_IMAGE = 'mysql:9-oracle'
-MYSQL_DB = 'miruzo'
+MYSQL_DB = 'miruzo_py_test'
 MYSQL_USER = 'm'
 MYSQL_PASSWORD = 'miruzo1234'
 MYSQL_COMMAND = f'--character-set-server={MYSQL_CHARSET} --collation-server={MYSQL_COLLATION}'
@@ -39,8 +42,12 @@ def mysql_container() -> Iterator[Any]:
 
 @pytest.fixture(scope='session')
 def mysql_dsn(request: pytest.FixtureRequest) -> Iterator[str]:
-	container = request.getfixturevalue('mysql_container')
-	yield container.get_connection_url().replace('localhost', '127.0.0.1')
+	dsn = os.environ.get(MYSQL_DSN_ENV_VAR)
+	if dsn is not None:
+		yield dsn
+	else:
+		container = request.getfixturevalue('mysql_container')
+		yield container.get_connection_url()
 
 
 @pytest.fixture()

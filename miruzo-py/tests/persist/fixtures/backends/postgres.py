@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator
 from typing import cast
 
@@ -10,8 +11,10 @@ from tests.persist.fixtures.backends.runtime import _ensure_runtime_api_availabl
 from app.databases.database import _create_postgres_engine
 from app.databases.metadata import metadata
 
+POSTGRES_DSN_ENV_VAR = 'MIRUZO_PY_TEST_POSTGRES_URL'
+
 POSTGRES_IMAGE = 'postgres:18-alpine'
-POSTGRES_DB = 'miruzo'
+POSTGRES_DB = 'miruzo_py_test'
 POSTGRES_USER = 'm'
 POSTGRES_PASSWORD = 'miruzo1234'
 POSTGRES_ARGS = '--encoding=UTF8 --lc-collate=C --lc-ctype=C'
@@ -36,8 +39,12 @@ def postgres_container() -> Iterator[PostgresContainer]:
 
 @pytest.fixture(scope='session')
 def postgres_dsn(request: pytest.FixtureRequest) -> Iterator[str]:
-	container = cast(PostgresContainer, request.getfixturevalue('postgres_container'))
-	yield container.get_connection_url()
+	dsn = os.environ.get(POSTGRES_DSN_ENV_VAR)
+	if dsn is not None:
+		yield dsn
+	else:
+		container = cast(PostgresContainer, request.getfixturevalue('postgres_container'))
+		yield container.get_connection_url()
 
 
 @pytest.fixture()
