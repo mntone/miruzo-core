@@ -57,6 +57,19 @@ propose changes. For day-to-day commands (install, dev server, tests) refer to
   workflows), extend the existing modules in `miruzo-py/app/services/images/`
   or `miruzo-py/scripts/importers/common/` instead of adding ad-hoc versions.
 
+## 🕒 Datetime naming
+
+- Use language-appropriate datetime suffixes for new fields and parameters:
+  - Golang: `...At` (example: `occurredAt`, `loveCanceledAt`)
+  - Python: `..._at` (example: `occurred_at`, `love_canceled_at`)
+  - SQL: `..._at` (example: `occurred_at`, `love_canceled_at`)
+- Do not mix `...At` and `..._at` within a single layer.
+- Convert styles only at layer boundaries (for example SQL query parameters and
+  generated structs).
+- For period boundary timestamps, use noun+boundary naming (`periodStartAt`,
+  `periodEndAt` / `period_start_at`, `period_end_at`) rather than event-style
+  names such as `periodStartedAt` / `period_started_at`.
+
 ## 🧪 Testing
 
 - We use pytest. Run `pytest` for a full pass or target suites such as

@@ -106,7 +106,7 @@ func (repo repository) ApplyLoveCanceled(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	scoreDelta model.ScoreType,
-	loveCancelAt time.Time,
+	loveCanceledAt time.Time,
 	periodStartAt time.Time,
 	dayStartOffset time.Duration,
 ) (model.LoveStats, error) {
@@ -114,7 +114,7 @@ func (repo repository) ApplyLoveCanceled(
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
 		PeriodStartAt:  shared.NullTimeFromTime(periodStartAt),
-		LoveCancelAt:   shared.NullTimeFromTime(loveCancelAt),
+		LoveCanceledAt: shared.NullTimeFromTime(loveCanceledAt),
 		DayStartOffset: int64(dayStartOffset.Seconds()),
 	})
 	if err != nil {

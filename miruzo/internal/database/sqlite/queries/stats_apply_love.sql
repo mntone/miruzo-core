@@ -53,7 +53,7 @@ RETURNING score, first_loved_at, last_loved_at;
 -- WHERE stats.ingest_id=?1
 --   AND stats.last_loved_at IS NOT NULL
 --   AND stats.last_loved_at >= sqlc.arg(period_start_at)
---   AND stats.last_loved_at < sqlc.arg(love_cancel_at)
+--   AND stats.last_loved_at < sqlc.arg(love_canceled_at)
 --   -- Defensive guard: fail safely when stats/action rows are inconsistent.
 --   AND EXISTS (
 --     SELECT 1

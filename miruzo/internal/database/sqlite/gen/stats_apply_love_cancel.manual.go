@@ -11,7 +11,7 @@ type ApplyLoveCanceledToStatsParams struct {
 	IngestID       int64
 	ScoreDelta     int16
 	PeriodStartAt  sql.NullTime
-	LoveCancelAt   sql.NullTime
+	LoveCanceledAt sql.NullTime
 	DayStartOffset int64
 }
 
@@ -22,7 +22,7 @@ type ApplyLoveCanceledToStatsRow struct {
 }
 
 func (q *Queries) ApplyLoveCanceledToStats(ctx context.Context, arg ApplyLoveCanceledToStatsParams) (ApplyLoveCanceledToStatsRow, error) {
-	row := q.db.QueryRowContext(ctx, applyLoveCanceledToStats, arg.IngestID, arg.ScoreDelta, arg.PeriodStartAt, arg.LoveCancelAt, arg.DayStartOffset)
+	row := q.db.QueryRowContext(ctx, applyLoveCanceledToStats, arg.IngestID, arg.ScoreDelta, arg.PeriodStartAt, arg.LoveCanceledAt, arg.DayStartOffset)
 	var i ApplyLoveCanceledToStatsRow
 	err := row.Scan(&i.Score, &i.FirstLovedAt, &i.LastLovedAt)
 	return i, err

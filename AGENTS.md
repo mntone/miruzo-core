@@ -46,6 +46,20 @@ who is executing them.
   performance or readability, raise it so we can evaluate bumping the minimum
   Python version together
 
+## Datetime Naming Conventions
+
+- Keep datetime suffixes consistent across languages:
+  - Golang: `...At` (example: `occurredAt`, `loveCanceledAt`)
+  - Python: `..._at` (example: `occurred_at`, `love_canceled_at`)
+  - SQL: `..._at` (example: `occurred_at`, `love_canceled_at`)
+- When introducing new names, follow the mapping above instead of mixing styles
+  within a single layer.
+- Convert naming styles only at clear boundaries (for example SQL query params
+  and generated structs), and keep names internally consistent in each layer.
+- For period boundary timestamps, use noun+boundary naming (`periodStartAt`,
+  `periodEndAt` / `period_start_at`, `period_end_at`) instead of event-style
+  names such as `periodStartedAt` / `period_started_at`.
+
 ## API & Services Conventions
 
 - HTTP handlers live under `miruzo-py/app/routers/*` and should delegate to
