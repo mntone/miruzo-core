@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, final
 
 from PIL import Image as PILImage
 
@@ -10,6 +10,7 @@ from app.services.images.variants.utils import ImageInfo, parse_variant_slot
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class FileInfo:
 	absolute_path: Path
 	relative_path: VariantRelativePath
@@ -34,18 +35,21 @@ class FileInfo:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class OriginalImage:
 	image: PILImage.Image
 	info: ImageInfo
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class OriginalFile:
 	file_info: FileInfo
 	image_info: ImageInfo
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantFile:
 	file_info: FileInfo
 	image_info: ImageInfo
@@ -63,12 +67,14 @@ class VariantFile:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantComparison:
 	expected_spec: VariantSpec
 	actual_file: VariantFile
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantDiff:
 	matched: list[VariantComparison]
 	mismatched: list[VariantComparison]
@@ -77,18 +83,21 @@ class VariantDiff:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantPlanFile:
 	path: VariantRelativePath
 	spec: VariantSpec
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantRegeneratePlan:
 	actual_file: VariantFile
 	planning_file: VariantPlanFile
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantPlan:
 	matched: list[VariantComparison]
 	mismatched: list[VariantRegeneratePlan]
@@ -97,6 +106,7 @@ class VariantPlan:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantPolicy:
 	durable_write: bool
 	regenerate_mismatched: bool
@@ -113,6 +123,7 @@ DEFAULT_VARIANT_POLICY = VariantPolicy(
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantReport:
 	spec: VariantSpec
 	file: VariantFile
@@ -129,6 +140,7 @@ _VariantCommitFailureReason: TypeAlias = Literal[
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantCommitResult:
 	action: _VariantCommitAction
 	result: Literal['success', 'failure']

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import final
 
 
-@final
 @dataclass(frozen=True, slots=True)
+@final
 class ScoreConfig:
 	"""
 	Configuration for score calculation.

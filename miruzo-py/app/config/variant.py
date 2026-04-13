@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, final
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantFormat:
 	"""Image encoding details used when emitting a variant."""
 
@@ -13,6 +14,7 @@ class VariantFormat:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantSlot:
 	layer_id: int
 	width: int
@@ -23,6 +25,7 @@ class VariantSlot:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantSpec:
 	"""Concrete thumbnail definition (size + format + output directory)."""
 
@@ -35,6 +38,7 @@ class VariantSpec:
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class VariantLayerSpec:
 	"""Logical layer (e.g. primary, fallback) composed of several specs."""
 

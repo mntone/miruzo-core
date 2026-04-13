@@ -1,21 +1,26 @@
 from enum import Enum
+from typing import final
 
 
+@final
 class IngestMode(int, Enum):
 	COPY = 0
 	SYMLINK = 1
 
 
+@final
 class ProcessStatus(int, Enum):
 	PROCESSING = 0
 	FINISHED = 1
 
 
+@final
 class VisibilityStatus(int, Enum):
 	PRIVATE = 0
 	PUBLIC = 1
 
 
+@final
 class ExecutionStatus(int, Enum):
 	SUCCESS = 0
 	UNKNOWN_ERROR = 1
@@ -24,6 +29,7 @@ class ExecutionStatus(int, Enum):
 	IMAGE_ERROR = 4
 
 
+@final
 class ImageKind(int, Enum):
 	UNSPECIFIED = 0
 	PHOTO = 1

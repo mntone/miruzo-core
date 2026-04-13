@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from typing import final
 
 from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,12 +10,14 @@ from app.config.variant import DEFAULT_VARIANT_LAYERS, VariantLayerSpec
 from app.utils.files.permissions import ensure_directory_access
 
 
+@final
 class DatabaseBackend(str, Enum):
 	MYSQL = 'mysql'
 	POSTGRE_SQL = 'postgres'
 	SQLITE = 'sqlite'
 
 
+@final
 class Environment(str, Enum):
 	DEVELOPMENT = 'development'
 	PRODUCTION = 'production'
@@ -23,6 +26,7 @@ class Environment(str, Enum):
 _ALLOWED_ENVIRONMENTS = {env.value for env in Environment}
 
 
+@final
 class Settings(BaseSettings):
 	model_config = SettingsConfigDict(
 		env_file=('.env', '.env.production'),

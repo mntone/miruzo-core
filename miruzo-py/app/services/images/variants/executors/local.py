@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from pathlib import Path
+from typing import final
 
 from PIL import Image as PILImage
 
@@ -15,6 +16,7 @@ from app.services.images.variants.types import (
 )
 
 
+@final
 class LocalVariantExecutor(VariantExecutor):
 	def execute(
 		self,

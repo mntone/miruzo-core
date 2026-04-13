@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import final
 
 from PIL import ExifTags, TiffImagePlugin
 from PIL import Image as PILImage
@@ -16,6 +17,7 @@ _TIFF_LOSSLESS_COMPRESSIONS = {
 
 
 @dataclass(frozen=True, slots=True)
+@final
 class ImageInfo:
 	container: str
 	codecs: str | None
