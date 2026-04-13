@@ -1,68 +1,68 @@
-package user
+package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type repository struct {
+type userRepository struct {
 	queries *gen.Queries
 }
 
-func NewRepository(queries *gen.Queries) repository {
-	return repository{
+func NewUserRepository(queries *gen.Queries) userRepository {
+	return userRepository{
 		queries: queries,
 	}
 }
 
-func (repo repository) Get(
+func (repo userRepository) Get(
 	ctx context.Context,
 ) (persist.User, error) {
 	user, err := repo.queries.GetUser(ctx)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return persist.User{}, persist.ErrNotFound
 		}
 
-		return persist.User{}, shared.MapPostgreError("Get", err)
+		return persist.User{}, shared.MapSQLiteError("Get", err)
 	}
 
 	return persist.User{
-		ID:            user.ID,
+		ID:            int16(user.ID),
 		DailyLoveUsed: model.QuotaInt(user.DailyLoveUsed),
 	}, nil
 }
 
-func (repo repository) IncrementDailyLoveUsed(
+func (repo userRepository) IncrementDailyLoveUsed(
 	ctx context.Context,
 	dailyLoveLimit model.QuotaInt,
 ) (model.QuotaInt, error) {
 	dailyLoveUsed, err := repo.queries.IncrementDailyLoveUsed(ctx, int32(dailyLoveLimit))
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, persist.ErrQuotaExceeded
 		}
 
-		return 0, shared.MapPostgreError("IncrementDailyLoveUsed", err)
+		return 0, shared.MapSQLiteError("IncrementDailyLoveUsed", err)
 	}
 
 	return model.QuotaInt(dailyLoveUsed), nil
 }
 
-func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (model.QuotaInt, error) {
+func (repo userRepository) DecrementDailyLoveUsed(ctx context.Context) (model.QuotaInt, error) {
 	dailyLoveUsed, err := repo.queries.DecrementDailyLoveUsed(ctx)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, persist.ErrNotFound
 		}
 
-		mapError := shared.MapPostgreError("DecrementDailyLoveUsed", err)
+		mapError := shared.MapSQLiteError("DecrementDailyLoveUsed", err)
 		if errors.Is(mapError, persist.ErrCheckViolation) {
 			return 0, persist.ErrQuotaUnderflow
 		}
@@ -72,10 +72,10 @@ func (repo repository) DecrementDailyLoveUsed(ctx context.Context) (model.QuotaI
 	return model.QuotaInt(dailyLoveUsed), nil
 }
 
-func (repo repository) ResetDailyLoveUsed(ctx context.Context) error {
+func (repo userRepository) ResetDailyLoveUsed(ctx context.Context) error {
 	rowCount, err := repo.queries.ResetDailyLoveUsed(ctx)
 	if err != nil {
-		return shared.MapPostgreError("ResetDailyLoveUsed", err)
+		return shared.MapSQLiteError("ResetDailyLoveUsed", err)
 	}
 
 	if rowCount == 0 {

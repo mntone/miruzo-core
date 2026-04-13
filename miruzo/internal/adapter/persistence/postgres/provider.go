@@ -19,10 +19,8 @@ type postgresProvider struct {
 
 func newProvider(pool *pgxpool.Pool) postgresProvider {
 	return postgresProvider{
-		pool: pool,
-		repos: postgresRepositories{
-			queries: gen.New(pool),
-		},
+		pool:  pool,
+		repos: newRepositories(gen.New(pool)),
 	}
 }
 
@@ -42,11 +40,7 @@ func (prov postgresProvider) Session(
 		)
 	}
 
-	repos := postgresSessionRepositories{
-		postgresRepositories: postgresRepositories{
-			queries: gen.New(tx),
-		},
-	}
+	repos := NewSessionRepositories(gen.New(tx))
 	err = callback(ctx, repos)
 	if err != nil {
 		rollbackErr := tx.Rollback(ctx)

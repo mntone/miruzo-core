@@ -1,16 +1,20 @@
 package sqlite
 
 import (
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
 type sqliteRepositories struct {
 	queries *gen.Queries
+}
+
+func newRepositories(queries *gen.Queries) sqliteRepositories {
+	return sqliteRepositories{
+		queries: queries,
+	}
 }
 
 func (repos sqliteRepositories) ImageList() persist.ImageListRepository {
@@ -26,15 +30,21 @@ func (repos sqliteRepositories) Settings() persist.SettingsRepository {
 }
 
 func (repos sqliteRepositories) User() persist.UserRepository {
-	return user.NewRepository(repos.queries)
+	return NewUserRepository(repos.queries)
 }
 
 type sqliteSessionRepositories struct {
 	sqliteRepositories
 }
 
+func NewSessionRepositories(queries *gen.Queries) sqliteSessionRepositories {
+	return sqliteSessionRepositories{
+		sqliteRepositories: newRepositories(queries),
+	}
+}
+
 func (repos sqliteSessionRepositories) Action() persist.ActionRepository {
-	return action.NewRepository(repos.queries)
+	return NewActionRepository(repos.queries)
 }
 
 func (repos sqliteSessionRepositories) Stats() persist.StatsRepository {
@@ -46,5 +56,5 @@ func (repos sqliteSessionRepositories) View() persist.ViewRepository {
 }
 
 func (repos sqliteSessionRepositories) User() persist.SessionUserRepository {
-	return user.NewRepository(repos.queries)
+	return NewUserRepository(repos.queries)
 }

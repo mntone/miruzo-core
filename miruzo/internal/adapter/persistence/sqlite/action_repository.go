@@ -1,26 +1,26 @@
-package action
+package sqlite
 
 import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
-type repository struct {
+type actionRepository struct {
 	queries *gen.Queries
 }
 
-func NewRepository(queries *gen.Queries) repository {
-	return repository{
+func NewActionRepository(queries *gen.Queries) actionRepository {
+	return actionRepository{
 		queries: queries,
 	}
 }
 
-func (repo repository) Create(
+func (repo actionRepository) Create(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	kind model.ActionType,
@@ -29,18 +29,18 @@ func (repo repository) Create(
 ) (model.ActionIDType, error) {
 	actionID, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
 		IngestID:      ingestID,
-		Kind:          int16(kind),
+		Kind:          int64(kind),
 		OccurredAt:    occurredAt,
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return 0, shared.MapPostgreError("Create", err)
+		return 0, shared.MapSQLiteError("Create", err)
 	}
 
 	return actionID, nil
 }
 
-func (repo repository) CreateDailyDecayIfAbsent(
+func (repo actionRepository) CreateDailyDecayIfAbsent(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	occurredAt time.Time,
@@ -52,7 +52,7 @@ func (repo repository) CreateDailyDecayIfAbsent(
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return shared.MapPostgreError("CreateDailyDecayIfAbsent", err)
+		return shared.MapSQLiteError("CreateDailyDecayIfAbsent", err)
 	}
 
 	if rowCount == 0 {
@@ -62,7 +62,7 @@ func (repo repository) CreateDailyDecayIfAbsent(
 	return nil
 }
 
-func (repo repository) ExistsSince(
+func (repo actionRepository) ExistsSince(
 	ctx context.Context,
 	ingestID model.IngestIDType,
 	kind model.ActionType,
@@ -70,12 +70,12 @@ func (repo repository) ExistsSince(
 ) (bool, error) {
 	exists, err := repo.queries.ExistsActionSince(ctx, gen.ExistsActionSinceParams{
 		IngestID:        ingestID,
-		Kind:            int16(kind),
+		Kind:            int64(kind),
 		SinceOccurredAt: sinceOccurredAt,
 	})
 	if err != nil {
-		return false, shared.MapPostgreError("ExistsSince", err)
+		return false, shared.MapSQLiteError("ExistsSince", err)
 	}
 
-	return exists, nil
+	return exists != 0, nil
 }

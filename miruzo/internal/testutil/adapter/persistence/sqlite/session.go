@@ -6,12 +6,8 @@ import (
 	"testing"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
-	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/action"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -21,16 +17,16 @@ import (
 )
 
 type sqliteTxSession struct {
-	tx      *sql.Tx
-	queries *gen.Queries
-	nextID  model.IngestIDType
+	tx     *sql.Tx
+	nextID model.IngestIDType
+	persist.SessionRepositories
 }
 
 func newTxSession(tx *sql.Tx) *sqliteTxSession {
 	return &sqliteTxSession{
-		tx:      tx,
-		queries: gen.New(tx),
-		nextID:  modelbuilder.GetNextID(),
+		tx:                  tx,
+		nextID:              modelbuilder.GetNextID(),
+		SessionRepositories: sqlite.NewSessionRepositories(gen.New(tx)),
 	}
 }
 
@@ -161,34 +157,4 @@ func (s sqliteTxSession) SelectStats(t testing.TB, id model.IngestIDType) (model
 	e.LastViewedAt = dbshared.OptionTimeFromSql(lastViewedAt)
 	e.ViewMilestoneArchivedAt = dbshared.OptionTimeFromSql(viewMilestoneArchivedAt)
 	return e, nil
-}
-
-// --- RepositoryProvider ---
-
-func (s sqliteTxSession) Action() persist.ActionRepository {
-	return action.NewRepository(s.queries)
-}
-
-func (s sqliteTxSession) ImageList() persist.ImageListRepository {
-	return imagelist.NewRepository(s.queries)
-}
-
-func (s sqliteTxSession) Job() persist.JobRepository {
-	return database.NewJobRepository(s.queries)
-}
-
-func (s sqliteTxSession) Settings() persist.SettingsRepository {
-	return database.NewSettingsRepository(s.queries)
-}
-
-func (s sqliteTxSession) Stats() persist.StatsRepository {
-	return stats.NewRepository(s.queries)
-}
-
-func (s sqliteTxSession) User() persist.SessionUserRepository {
-	return user.NewRepository(s.queries)
-}
-
-func (s sqliteTxSession) View() persist.ViewRepository {
-	return database.NewViewRepository(s.queries)
 }

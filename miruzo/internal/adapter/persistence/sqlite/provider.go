@@ -18,10 +18,8 @@ type sqliteProvider struct {
 
 func newProvider(db *sql.DB) sqliteProvider {
 	return sqliteProvider{
-		db: db,
-		repos: sqliteRepositories{
-			queries: gen.New(db),
-		},
+		db:    db,
+		repos: newRepositories(gen.New(db)),
 	}
 }
 
@@ -41,11 +39,7 @@ func (prov sqliteProvider) Session(
 		)
 	}
 
-	repos := sqliteSessionRepositories{
-		sqliteRepositories: sqliteRepositories{
-			queries: gen.New(tx),
-		},
-	}
+	repos := NewSessionRepositories(gen.New(tx))
 	err = callback(ctx, repos)
 	if err != nil {
 		rollbackErr := tx.Rollback()

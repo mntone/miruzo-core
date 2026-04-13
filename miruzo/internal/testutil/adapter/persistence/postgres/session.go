@@ -6,12 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
-	database "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/action"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/stats"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/user"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -22,16 +18,16 @@ import (
 )
 
 type postgresTxSession struct {
-	tx      pgx.Tx
-	queries *gen.Queries
-	nextID  model.IngestIDType
+	tx     pgx.Tx
+	nextID model.IngestIDType
+	persist.SessionRepositories
 }
 
 func newTxSession(tx pgx.Tx) *postgresTxSession {
 	return &postgresTxSession{
-		tx:      tx,
-		queries: gen.New(tx),
-		nextID:  modelbuilder.GetNextID(),
+		tx:                  tx,
+		nextID:              modelbuilder.GetNextID(),
+		SessionRepositories: postgres.NewSessionRepositories(gen.New(tx)),
 	}
 }
 
@@ -137,34 +133,4 @@ func (s postgresTxSession) SelectStats(t testing.TB, id model.IngestIDType) (mod
 	e.LastViewedAt = mo.PointerToOption(lastViewedAt)
 	e.ViewMilestoneArchivedAt = mo.PointerToOption(viewMilestoneArchivedAt)
 	return e, nil
-}
-
-// --- RepositoryProvider ---
-
-func (s postgresTxSession) Action() persist.ActionRepository {
-	return action.NewRepository(s.queries)
-}
-
-func (s postgresTxSession) ImageList() persist.ImageListRepository {
-	return imagelist.NewRepository(s.queries)
-}
-
-func (s postgresTxSession) Job() persist.JobRepository {
-	return database.NewJobRepository(s.queries)
-}
-
-func (s postgresTxSession) Settings() persist.SettingsRepository {
-	return database.NewSettingsRepository(s.queries)
-}
-
-func (s postgresTxSession) Stats() persist.StatsRepository {
-	return stats.NewRepository(s.queries)
-}
-
-func (s postgresTxSession) User() persist.SessionUserRepository {
-	return user.NewRepository(s.queries)
-}
-
-func (s postgresTxSession) View() persist.ViewRepository {
-	return database.NewViewRepository(s.queries)
 }
