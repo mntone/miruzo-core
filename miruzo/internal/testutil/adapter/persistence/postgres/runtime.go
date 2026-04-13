@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	TEST_DSN_ENVNAME = "TEST_POSTGRES_URL"
+	TEST_DSN_ENVNAME = "MIRUZO_TEST_POSTGRES_URL"
 )
 
 var (
@@ -36,7 +36,7 @@ func openPoolFromDSN(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 
 // GetPostgresTestPool returns a shared pgx pool for this package test process.
 // Priority:
-// 1) TEST_POSTGRES_URL (externally managed DB)
+// 1) MIRUZO_TEST_POSTGRES_URL (externally managed DB)
 // 2) auto-start container (local dev / VSCode)
 func GetPostgresTestPool(t testing.TB, reg *testutil.CleanupRegistry) *pgxpool.Pool {
 	t.Helper()
