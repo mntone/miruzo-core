@@ -14,12 +14,6 @@ type settingsRepository struct {
 	queries *gen.Queries
 }
 
-func NewSettingsRepository(queries *gen.Queries) settingsRepository {
-	return settingsRepository{
-		queries: queries,
-	}
-}
-
 func (repo settingsRepository) GetValue(
 	ctx context.Context,
 	key string,

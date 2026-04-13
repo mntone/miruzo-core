@@ -14,12 +14,6 @@ type actionRepository struct {
 	queries *gen.Queries
 }
 
-func NewActionRepository(queries *gen.Queries) actionRepository {
-	return actionRepository{
-		queries: queries,
-	}
-}
-
 func (repo actionRepository) Create(
 	ctx context.Context,
 	ingestID model.IngestIDType,

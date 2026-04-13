@@ -22,15 +22,21 @@ func (repos postgresRepositories) ImageList() persist.ImageListRepository {
 }
 
 func (repos postgresRepositories) Job() persist.JobRepository {
-	return NewJobRepository(repos.queries)
+	return jobRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos postgresRepositories) Settings() persist.SettingsRepository {
-	return NewSettingsRepository(repos.queries)
+	return settingsRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos postgresRepositories) User() persist.UserRepository {
-	return NewUserRepository(repos.queries)
+	return userRepository{
+		queries: repos.queries,
+	}
 }
 
 type postgresSessionRepositories struct {
@@ -44,7 +50,9 @@ func NewSessionRepositories(queries *gen.Queries) postgresSessionRepositories {
 }
 
 func (repos postgresSessionRepositories) Action() persist.ActionRepository {
-	return NewActionRepository(repos.queries)
+	return actionRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos postgresSessionRepositories) Stats() persist.StatsRepository {
@@ -52,9 +60,13 @@ func (repos postgresSessionRepositories) Stats() persist.StatsRepository {
 }
 
 func (repos postgresSessionRepositories) User() persist.SessionUserRepository {
-	return NewUserRepository(repos.queries)
+	return userRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos postgresSessionRepositories) View() persist.ViewRepository {
-	return NewViewRepository(repos.queries)
+	return viewRepository{
+		queries: repos.queries,
+	}
 }

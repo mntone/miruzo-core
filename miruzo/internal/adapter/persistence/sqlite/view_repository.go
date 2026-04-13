@@ -15,12 +15,6 @@ type viewRepository struct {
 	queries *gen.Queries
 }
 
-func NewViewRepository(queries *gen.Queries) viewRepository {
-	return viewRepository{
-		queries: queries,
-	}
-}
-
 func (repo viewRepository) GetImageWithStatsForUpdate(
 	ctx context.Context,
 	ingestID model.IngestIDType,

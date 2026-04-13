@@ -22,15 +22,21 @@ func (repos sqliteRepositories) ImageList() persist.ImageListRepository {
 }
 
 func (repos sqliteRepositories) Job() persist.JobRepository {
-	return NewJobRepository(repos.queries)
+	return jobRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos sqliteRepositories) Settings() persist.SettingsRepository {
-	return NewSettingsRepository(repos.queries)
+	return settingsRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos sqliteRepositories) User() persist.UserRepository {
-	return NewUserRepository(repos.queries)
+	return userRepository{
+		queries: repos.queries,
+	}
 }
 
 type sqliteSessionRepositories struct {
@@ -44,7 +50,9 @@ func NewSessionRepositories(queries *gen.Queries) sqliteSessionRepositories {
 }
 
 func (repos sqliteSessionRepositories) Action() persist.ActionRepository {
-	return NewActionRepository(repos.queries)
+	return actionRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos sqliteSessionRepositories) Stats() persist.StatsRepository {
@@ -52,9 +60,13 @@ func (repos sqliteSessionRepositories) Stats() persist.StatsRepository {
 }
 
 func (repos sqliteSessionRepositories) View() persist.ViewRepository {
-	return NewViewRepository(repos.queries)
+	return viewRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos sqliteSessionRepositories) User() persist.SessionUserRepository {
-	return NewUserRepository(repos.queries)
+	return userRepository{
+		queries: repos.queries,
+	}
 }

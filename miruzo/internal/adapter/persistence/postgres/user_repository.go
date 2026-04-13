@@ -15,12 +15,6 @@ type userRepository struct {
 	queries *gen.Queries
 }
 
-func NewUserRepository(queries *gen.Queries) userRepository {
-	return userRepository{
-		queries: queries,
-	}
-}
-
 func (repo userRepository) Get(
 	ctx context.Context,
 ) (persist.User, error) {

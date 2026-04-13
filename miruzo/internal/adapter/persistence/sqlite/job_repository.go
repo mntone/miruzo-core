@@ -13,12 +13,6 @@ type jobRepository struct {
 	queries *gen.Queries
 }
 
-func NewJobRepository(queries *gen.Queries) jobRepository {
-	return jobRepository{
-		queries: queries,
-	}
-}
-
 func (repo jobRepository) MarkStarted(
 	ctx context.Context,
 	name string,
