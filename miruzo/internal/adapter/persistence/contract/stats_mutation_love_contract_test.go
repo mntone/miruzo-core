@@ -5,6 +5,7 @@ import (
 	"time"
 
 	c "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
@@ -16,6 +17,8 @@ const (
 	loveScoreThreshold = model.ScoreType(180)
 	loveDayStartOffset = 5 * time.Hour
 )
+
+var loveResolver = period.NewDailyResolver(loveDayStartOffset)
 
 type testLoveAction struct {
 	kind   model.ActionType
@@ -374,11 +377,13 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 						Build())
 
 					for _, action := range tt.actions {
+						at := baseTime.Add(action.offset)
 						ops.MustAddAction(
 							t,
 							ingest.ID,
 							action.kind,
-							baseTime.Add(action.offset),
+							at,
+							loveResolver.PeriodStart(at),
 						)
 					}
 
@@ -543,11 +548,13 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 						Build())
 
 					for _, action := range tt.actions {
+						at := baseTime.Add(action.offset)
 						ops.MustAddAction(
 							t,
 							ingest.ID,
 							action.kind,
-							baseTime.Add(action.offset),
+							at,
+							loveResolver.PeriodStart(at),
 						)
 					}
 

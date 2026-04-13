@@ -23,9 +23,9 @@ func newDailyDecayServiceFixture(
 	dailyLoveUsed int32,
 	evaluatedAt time.Time,
 	statsEntries ...model.Stats,
-) (service *job.DailyDecayService, prov *stub.PersistenceProvider) {
+) (service *job.DailyDecayService, prov *stub.PersistenceProvider, resolver period.DailyResolver) {
 	prov = stub.NewStubPersistenceProvider(dailyLoveUsed, statsEntries...)
-	resolver := period.NewDailyResolver(5 * time.Hour)
+	resolver = period.NewDailyResolver(5 * time.Hour)
 	service = job.NewDailyDecay(
 		prov,
 		clock.NewFixedProvider(evaluatedAt),
@@ -38,7 +38,7 @@ func newDailyDecayServiceFixture(
 func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
 	evaluatedAt := baseTime.Add(1 * time.Second)
-	service, prov := newDailyDecayServiceFixture(
+	service, prov, resolv := newDailyDecayServiceFixture(
 		3,
 		evaluatedAt,
 
@@ -64,7 +64,7 @@ func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T)
 			EvaluateScore(baseTime).
 			Build(),
 	)
-	_, _ = prov.ActionStub.Create(context.Background(), 4, model.ActionTypeDecay, evaluatedAt)
+	_, _ = prov.ActionStub.Create(context.Background(), 4, model.ActionTypeDecay, evaluatedAt, resolv.PeriodStart(baseTime))
 
 	err := service.ApplyDailyDecay(context.Background())
 	assert.NilError(t, "ApplyDailyDecay() error", err)
@@ -88,7 +88,7 @@ func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T)
 
 func TestDailyDecayServiceApplyReturnsIterateError(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
-	service, mgr := newDailyDecayServiceFixture(
+	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
@@ -103,7 +103,7 @@ func TestDailyDecayServiceApplyReturnsIterateError(t *testing.T) {
 
 func TestDailyDecayServiceApplyReturnsExistsSinceError(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
-	service, mgr := newDailyDecayServiceFixture(
+	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
@@ -118,7 +118,7 @@ func TestDailyDecayServiceApplyReturnsExistsSinceError(t *testing.T) {
 
 func TestDailyDecayServiceApplyReturnsCreateError(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
-	service, mgr := newDailyDecayServiceFixture(
+	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
@@ -133,7 +133,7 @@ func TestDailyDecayServiceApplyReturnsCreateError(t *testing.T) {
 
 func TestDailyDecayServiceApplyReturnsApplyDecayError(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
-	service, mgr := newDailyDecayServiceFixture(
+	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
@@ -149,7 +149,7 @@ func TestDailyDecayServiceApplyReturnsApplyDecayError(t *testing.T) {
 
 func TestDailyDecayServiceApplyReturnsResetDailyLoveUsedError(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
-	service, mgr := newDailyDecayServiceFixture(
+	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),

@@ -173,10 +173,11 @@ func (s TxSession) MustAddAction(
 	ingestID model.IngestIDType,
 	kind model.ActionType,
 	at time.Time,
+	periodStartAt time.Time,
 ) model.ActionIDType {
 	t.Helper()
 
-	actionID, err := s.Action().Create(t.Context(), ingestID, kind, at)
+	actionID, err := s.Action().Create(t.Context(), ingestID, kind, at, periodStartAt)
 	assert.NilError(t, "MustAddAction() error", err)
 	return actionID
 }

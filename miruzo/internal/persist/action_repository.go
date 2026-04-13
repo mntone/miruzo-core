@@ -13,6 +13,7 @@ type ActionRepository interface {
 		ingestID model.IngestIDType,
 		kind model.ActionType,
 		occurredAt time.Time,
+		periodStartAt time.Time,
 	) (model.ActionIDType, error)
 
 	ExistsSince(

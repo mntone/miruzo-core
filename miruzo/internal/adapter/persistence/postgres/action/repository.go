@@ -24,11 +24,13 @@ func (repo repository) Create(
 	ingestID model.IngestIDType,
 	kind model.ActionType,
 	occurredAt time.Time,
+	periodStartAt time.Time,
 ) (model.ActionIDType, error) {
 	actionID, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
-		IngestID:   ingestID,
-		Kind:       int16(kind),
-		OccurredAt: occurredAt,
+		IngestID:      ingestID,
+		Kind:          int16(kind),
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
 		return 0, shared.MapPostgreError("Create", err)

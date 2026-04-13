@@ -87,6 +87,7 @@ func mountAPI(
 		provider,
 		readBackoff,
 		clockProvider,
+		dailyResolver,
 		scoreCalculator,
 		variantLayersBuilder,
 		cfg.View.Milestones,

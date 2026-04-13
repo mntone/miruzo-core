@@ -6,6 +6,7 @@ import (
 	"time"
 
 	c "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
@@ -13,12 +14,17 @@ import (
 	"github.com/samber/mo"
 )
 
+const actionDayStartOffset = 5 * time.Hour
+
+var actionResolver = period.NewDailyResolver(actionDayStartOffset)
+
 // --- Schema ---
 
-func TestActionRepositorySchemaRejectsInvalidKind(t *testing.T) {
+func TestActionSchemaRejectsInvalidKind(t *testing.T) {
 	tests := []int32{-1, 2, 10, 17, 999}
 
-	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at) VALUES(%s, %s, %s)"
+	baseTime := mb.GetDefaultBaseTime()
+	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at, period_start_at) VALUES(%s, %s, %s, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
@@ -29,10 +35,11 @@ func TestActionRepositorySchemaRejectsInvalidKind(t *testing.T) {
 					t,
 					c.DBErrorMappingDefault,
 					persist.ErrCheckViolation,
-					fmt.Sprintf(stmt, ops.ParamRange(1, 3)...),
+					fmt.Sprintf(stmt, ops.ParamRange(1, 4)...),
 					ingest.ID,
 					tt,
-					mb.GetDefaultBaseTime(),
+					baseTime,
+					baseTime,
 				)
 			})
 			ops.Rollback(t)
@@ -40,7 +47,7 @@ func TestActionRepositorySchemaRejectsInvalidKind(t *testing.T) {
 	})
 }
 
-func TestActionRepositorySchemaRejectsInvalidOccurredAt(t *testing.T) {
+func TestActionSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	tests := []struct {
 		name       string
 		occurredAt string
@@ -58,7 +65,8 @@ func TestActionRepositorySchemaRejectsInvalidOccurredAt(t *testing.T) {
 		},
 	}
 
-	stmt := "INSERT INTO actions(ingest_id, occurred_at) VALUES(%s, %s)"
+	baseTime := mb.GetDefaultBaseTime()
+	stmt := "INSERT INTO actions(ingest_id, occurred_at, period_start_at) VALUES(%s, %s, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RequireCapability(t, c.SupportsInfinityTimestamp)
@@ -71,9 +79,53 @@ func TestActionRepositorySchemaRejectsInvalidOccurredAt(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						tt.wantErr,
-						fmt.Sprintf(stmt, ops.ParamRange(1, 2)...),
+						fmt.Sprintf(stmt, ops.ParamRange(1, 3)...),
 						ingest.ID,
 						tt.occurredAt,
+						baseTime,
+					)
+				})
+			})
+		}
+	})
+}
+
+func TestActionSchemaRejectsInvalidPeriodStartAt(t *testing.T) {
+	tests := []struct {
+		name          string
+		periodStartAt string
+		wantErr       error
+	}{
+		{
+			name:          "period_start_at=infinity",
+			periodStartAt: "infinity",
+			wantErr:       persist.ErrCheckViolation,
+		},
+		{
+			name:          "period_start_at=-infinity",
+			periodStartAt: "-infinity",
+			wantErr:       persist.ErrCheckViolation,
+		},
+	}
+
+	baseTime := mb.GetDefaultBaseTime()
+	stmt := "INSERT INTO actions(ingest_id, occurred_at, period_start_at) VALUES(%s, %s, %s)"
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RequireCapability(t, c.SupportsInfinityTimestamp)
+
+		for _, tt := range tests {
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+				t.Run(tt.name, func(t *testing.T) {
+					ops.AssertExecErrorIs(
+						t,
+						c.DBErrorMappingDefault,
+						tt.wantErr,
+						fmt.Sprintf(stmt, ops.ParamRange(1, 3)...),
+						ingest.ID,
+						baseTime,
+						tt.periodStartAt,
 					)
 				})
 			})
@@ -84,6 +136,8 @@ func TestActionRepositorySchemaRejectsInvalidOccurredAt(t *testing.T) {
 // --- Create ---
 
 func TestActionRepositoryCreates(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
@@ -91,7 +145,8 @@ func TestActionRepositoryCreates(t *testing.T) {
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,
-				mb.GetDefaultBaseTime(),
+				baseTime,
+				baseTime,
 			)
 			assert.NilError(t, "Create() error", err)
 			assert.GreaterThan(t, "actionID", actionID, 0)
@@ -145,6 +200,8 @@ func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {
 		},
 	}
 
+	baseTime := mb.GetDefaultBaseTime()
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
@@ -158,10 +215,12 @@ func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {
 						} else {
 							ingestID = ingest.ID
 						}
+						at := baseTime.Add(24*time.Hour + action.offset)
 						ops.MustAddAction(
 							t, ingestID,
 							action.overrideType.OrElse(model.ActionTypeDecay),
-							mb.GetDefaultBaseTime().Add(24*time.Hour+action.offset),
+							at,
+							actionResolver.PeriodStart(at),
 						)
 					}
 
@@ -169,7 +228,7 @@ func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {
 						t.Context(),
 						ingest.ID,
 						model.ActionTypeDecay,
-						mb.GetDefaultBaseTime().Add(24*time.Hour),
+						baseTime.Add(24*time.Hour),
 					)
 					assert.NilError(t, "ExistsSince() error", err)
 					assert.Equal(t, "exists", exists, false)
@@ -206,17 +265,21 @@ func TestActionRepositoryExistsSinceReturnsTrue(t *testing.T) {
 		},
 	}
 
+	baseTime := mb.GetDefaultBaseTime()
+
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 				t.Run(tt.name, func(t *testing.T) {
 					for _, offset := range tt.offsets {
+						at := baseTime.Add(24*time.Hour + offset)
 						ops.MustAddAction(
 							t,
 							ingest.ID,
 							model.ActionTypeDecay,
-							mb.GetDefaultBaseTime().Add(24*time.Hour+offset),
+							at,
+							actionResolver.PeriodStart(at),
 						)
 					}
 
@@ -224,7 +287,7 @@ func TestActionRepositoryExistsSinceReturnsTrue(t *testing.T) {
 						t.Context(),
 						ingest.ID,
 						model.ActionTypeDecay,
-						mb.GetDefaultBaseTime().Add(24*time.Hour),
+						baseTime.Add(24*time.Hour),
 					)
 					assert.NilError(t, "ExistsSince() error", err)
 					assert.Equal(t, "exists", exists, true)

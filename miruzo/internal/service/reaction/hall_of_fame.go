@@ -14,6 +14,7 @@ func (srv *Service) GrantHallOfFame(
 	ingestID model.IngestIDType,
 ) (HallOfFameResult, error) {
 	hallOfFameAt := srv.clk.Now()
+	periodStartAt := srv.dailyPeriodResolver.PeriodStart(hallOfFameAt)
 
 	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
 		err := repos.Stats().ApplyHallOfFameGranted(
@@ -31,6 +32,7 @@ func (srv *Service) GrantHallOfFame(
 			ingestID,
 			model.ActionTypeHallOfFameGranted,
 			hallOfFameAt,
+			periodStartAt,
 		)
 		return err
 	})
@@ -50,6 +52,7 @@ func (srv *Service) RevokeHallOfFame(
 	ingestID model.IngestIDType,
 ) (HallOfFameResult, error) {
 	hallOfFameAt := srv.clk.Now()
+	periodStartAt := srv.dailyPeriodResolver.PeriodStart(hallOfFameAt)
 
 	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
 		err := repos.Stats().ApplyHallOfFameRevoked(ctx, ingestID)
@@ -62,6 +65,7 @@ func (srv *Service) RevokeHallOfFame(
 			ingestID,
 			model.ActionTypeHallOfFameRevoked,
 			hallOfFameAt,
+			periodStartAt,
 		)
 		return err
 	})

@@ -39,6 +39,7 @@ func (srv *Service) LoveCancel(
 			ingestID,
 			model.ActionTypeLoveCanceled,
 			canceledAt,
+			periodStartAt,
 		)
 		if err != nil {
 			return err

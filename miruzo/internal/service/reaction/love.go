@@ -50,6 +50,7 @@ func (srv *Service) Love(
 			ingestID,
 			model.ActionTypeLove,
 			lovedAt,
+			periodStartAt,
 		)
 		if err != nil {
 			return err

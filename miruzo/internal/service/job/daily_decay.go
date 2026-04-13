@@ -77,6 +77,7 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 				row.IngestID,
 				model.ActionTypeDecay,
 				occurredAt,
+				periodStartAt,
 			)
 			if err != nil {
 				reporter.AddFailed(err)

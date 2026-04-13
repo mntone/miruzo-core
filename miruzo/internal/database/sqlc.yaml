@@ -65,6 +65,8 @@ sql:
           go_type: int16
         - column: "actions.occurred_at"
           go_type: time.Time
+        - column: "actions.period_start_at"
+          go_type: time.Time
         - column: "jobs.started_at"
           go_type: time.Time
         - column: "jobs.finished_at"

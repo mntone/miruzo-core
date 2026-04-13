@@ -131,7 +131,8 @@ CREATE TABLE actions(
 			NOT NULL
 			CHECK (kind IN (0, 1, 11, 12, 13, 14, 15, 16))
 			DEFAULT 0,
-	occurred_at FINITE_TIMESTAMP NOT NULL
+	occurred_at FINITE_TIMESTAMP NOT NULL,
+	period_start_at FINITE_TIMESTAMP NOT NULL
 );
 
 -- Create jobs table

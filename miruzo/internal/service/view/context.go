@@ -32,6 +32,7 @@ func (srv *Service) shouldTriggerViewMilestone(stats model.Stats) bool {
 
 func (srv *Service) GetContext(requestContext context.Context, args ContextArgs) (model.ImageWithStats, error) {
 	viewedAt := srv.clk.Now()
+	periodStartAt := srv.dailyPeriodResolver.PeriodStart(viewedAt)
 
 	var result persist.ImageWithStats
 	err := srv.prov.Session(
@@ -93,6 +94,7 @@ func (srv *Service) GetContext(requestContext context.Context, args ContextArgs)
 				args.IngestID,
 				model.ActionTypeView,
 				viewedAt,
+				periodStartAt,
 			)
 			if err != nil {
 				return err

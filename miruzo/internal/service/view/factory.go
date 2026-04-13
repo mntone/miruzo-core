@@ -5,6 +5,7 @@ import (
 
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/clock"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/media"
+	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/score"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/retry/backoff"
@@ -14,6 +15,7 @@ type Service struct {
 	prov                 persist.PersistenceProvider
 	backoff              backoff.Policy
 	clk                  clock.Provider
+	dailyPeriodResolver  period.DailyResolver
 	scoreCalculator      score.Calculator
 	variantLayersBuilder *media.VariantLayersBuilder
 	viewMilestones       []int64
@@ -23,6 +25,7 @@ func New(
 	persistenceProvider persist.PersistenceProvider,
 	backoff backoff.Policy,
 	clockProvider clock.Provider,
+	dailyPeriodResolver period.DailyResolver,
 	scoreCalculator score.Calculator,
 	variantLayersBuilder *media.VariantLayersBuilder,
 	viewMilestones []int64,
@@ -35,6 +38,7 @@ func New(
 		prov:                 persistenceProvider,
 		backoff:              backoff,
 		clk:                  clockProvider,
+		dailyPeriodResolver:  dailyPeriodResolver,
 		scoreCalculator:      scoreCalculator,
 		variantLayersBuilder: variantLayersBuilder,
 		viewMilestones:       viewMilestones,

@@ -8,9 +8,10 @@ import (
 )
 
 type actionRepositoryCreateArgs struct {
-	IngestID   model.IngestIDType
-	Type       model.ActionType
-	OccurredAt time.Time
+	IngestID      model.IngestIDType
+	Type          model.ActionType
+	OccurredAt    time.Time
+	PeriodStartAt time.Time
 }
 
 type actionRepositoryExistsSinceArgs struct {
@@ -66,11 +67,13 @@ func (repo *actionRepository) Create(
 	ingestID model.IngestIDType,
 	kind model.ActionType,
 	occurredAt time.Time,
+	periodStartAt time.Time,
 ) (model.ActionIDType, error) {
 	repo.CreateArgs = append(repo.CreateArgs, actionRepositoryCreateArgs{
-		IngestID:   ingestID,
-		Type:       kind,
-		OccurredAt: occurredAt,
+		IngestID:      ingestID,
+		Type:          kind,
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
 	})
 
 	if repo.CreateError != nil {

@@ -133,7 +133,8 @@ CREATE TABLE actions(
 			NOT NULL
 			CHECK (kind IN (0, 1, 11, 12, 13, 14, 15, 16))
 			DEFAULT 0,
-	occurred_at TEXT NOT NULL
+	occurred_at TEXT NOT NULL,
+	period_start_at TEXT NOT NULL
 ) STRICT;
 
 -- Create jobs table
