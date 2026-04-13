@@ -136,6 +136,9 @@ CREATE TABLE actions(
 	occurred_at TEXT NOT NULL,
 	period_start_at TEXT NOT NULL
 ) STRICT;
+CREATE UNIQUE INDEX uq_actions_decay_once_per_period
+ON actions(ingest_id, period_start_at)
+WHERE kind=1/*decay*/;
 
 -- Create jobs table
 CREATE TABLE jobs(

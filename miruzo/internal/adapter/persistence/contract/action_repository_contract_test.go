@@ -133,6 +133,37 @@ func TestActionSchemaRejectsInvalidPeriodStartAt(t *testing.T) {
 	})
 }
 
+func TestActionSchemaRejectsDuplicateDecayPerPeriod(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at, period_start_at) VALUES(%s, %s, %s, %s)"
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+			dialectStmt := fmt.Sprintf(stmt, ops.ParamRange(1, 4)...)
+			ops.MustExec(
+				t,
+				dialectStmt,
+				ingest.ID,
+				model.ActionTypeDecay,
+				baseTime,
+				periodStartAt,
+			)
+			ops.AssertExecErrorIs(
+				t,
+				c.DBErrorMappingDefault,
+				persist.ErrUniqueViolation,
+				dialectStmt,
+				ingest.ID,
+				model.ActionTypeDecay,
+				baseTime.Add(time.Second),
+				periodStartAt,
+			)
+		})
+	})
+}
+
 // --- Create ---
 
 func TestActionRepositoryCreates(t *testing.T) {
@@ -150,6 +181,64 @@ func TestActionRepositoryCreates(t *testing.T) {
 			)
 			assert.NilError(t, "Create() error", err)
 			assert.GreaterThan(t, "actionID", actionID, 0)
+		})
+	})
+}
+
+func TestActionRepositoryCreateReturnsConflictOnDuplicateDecayPerPeriod(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			_, err := ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeDecay,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "Create() first error", err)
+
+			_, err = ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeDecay,
+				baseTime.Add(time.Second),
+				periodStartAt,
+			)
+			assert.ErrorIs(t, "Create() second error", err, persist.ErrUniqueViolation)
+		})
+	})
+}
+
+func TestActionRepositoryCreateAllowsDuplicatePeriodForNonDecay(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			_, err := ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeView,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "Create() first error", err)
+
+			_, err = ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeView,
+				baseTime.Add(time.Second),
+				periodStartAt,
+			)
+			assert.NilError(t, "Create() second error", err)
 		})
 	})
 }
@@ -250,17 +339,10 @@ func TestActionRepositoryExistsSinceReturnsTrue(t *testing.T) {
 			},
 		},
 		{
-			name: "Multiple",
+			name: "MultiplePeriods",
 			offsets: []time.Duration{
 				0,
-				time.Hour,
-			},
-		},
-		{
-			name: "MultipleOnTie",
-			offsets: []time.Duration{
-				0,
-				0,
+				24 * time.Hour,
 			},
 		},
 	}
