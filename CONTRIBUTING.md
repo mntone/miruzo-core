@@ -16,7 +16,9 @@ For canonical coding rules and non-negotiable conventions, always follow
 ## 🛠️ Prerequisites
 
 - Go 1.26.x (see [`miruzo/go.mod`](./miruzo/go.mod))
-- Python 3.10+ (3.13 recommended for local development)
+- Python 3.10+ (3.14.x recommended for local development; see
+  [`miruzo-py/.python-version`](./miruzo-py/.python-version))
+- `uv` (Python package/dependency manager)
 - Database minimum versions:
   - MySQL 8.0.16+ (`CHECK` support required)
   - PostgreSQL 14+
@@ -30,7 +32,7 @@ Install dependencies:
 
 ```bash
 cd miruzo && go mod download
-cd ../miruzo-py && pip install -r requirements.txt
+cd ../miruzo-py && uv sync --extra dev
 ```
 
 OS-specific setup (required for DB drivers / Go tools):
@@ -43,12 +45,12 @@ OS-specific setup (required for DB drivers / Go tools):
   - PostgreSQL Python driver dependencies:
     ```bash
     sudo apt install -y libpq-dev
-    pip install psycopg[c,pool]
+    uv sync --extra dev --extra postgres
     ```
   - MySQL Python driver dependencies:
     ```bash
     sudo apt install -y build-essential default-libmysqlclient-dev pkg-config
-    pip install mysqlclient
+    uv sync --extra dev --extra mysql
     ```
 - macOS:
   - Go tools (recommended):
@@ -62,12 +64,12 @@ OS-specific setup (required for DB drivers / Go tools):
   - PostgreSQL Python driver dependencies:
     ```bash
     brew install libpq
-    pip install psycopg[c,pool]
+    uv sync --extra dev --extra postgres
     ```
   - MySQL Python driver dependencies:
     ```bash
     brew install mysql pkg-config
-    pip install mysqlclient
+    uv sync --extra dev --extra mysql
     ```
 
 Configure runtime files:
@@ -130,7 +132,7 @@ cd miruzo && go run ./cmd/miruzo-api
 Run importer help:
 
 ```bash
-cd miruzo-py && python -m scripts.gataku_import --help
+cd miruzo-py && uv run python -m scripts.gataku_import --help
 ```
 
 Common CLI operations:
@@ -166,15 +168,15 @@ Default suites:
 
 ```bash
 cd miruzo && go test ./...
-cd miruzo-py && pytest
+cd miruzo-py && uv run pytest
 ```
 
 Focused suites:
 
 - `cd miruzo && go test ./internal/service/...`
 - `cd miruzo && go test ./internal/adapter/persistence/contract/...`
-- `cd miruzo-py && pytest tests/importers`
-- `cd miruzo-py && pytest tests/persist`
+- `cd miruzo-py && uv run pytest tests/importers`
+- `cd miruzo-py && uv run pytest tests/persist`
 
 Notes:
 

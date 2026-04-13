@@ -17,6 +17,7 @@
 		"source.convertImportFormat"
 	],
 	"python.analysis.importFormat": "absolute",
+	"python.defaultInterpreterPath": "${workspaceFolder}/miruzo-py/.venv/bin/python",
 	"python.testing.cwd": "./miruzo-py",
 	"python.testing.pytestArgs": [
 		"./tests"

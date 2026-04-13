@@ -9,7 +9,9 @@ regardless of who is executing them.
 ## Setup Command
 
 - Go 1.26.x (respect [`miruzo/go.mod`](./miruzo/go.mod)).
-- Python 3.10+ for ingest tooling (3.13 recommended for local development).
+- Python 3.10+ for ingest tooling (3.14.x recommended for local development;
+  see [`miruzo-py/.python-version`](./miruzo-py/.python-version)).
+- `uv` (Python package/dependency manager)
 - Database backend version requirements:
   - MySQL `8.0.16+` (`CHECK` support required)
     - Note: MySQL support in Go API is planned but not implemented yet
@@ -21,25 +23,25 @@ regardless of who is executing them.
   - SQLite: `sqlite3` (stdlib, DSN: `sqlite:///...`)
 - Install dependencies:
   - `cd miruzo && go mod download`
-  - `cd miruzo-py && pip install -r requirements.txt`
+  - `cd miruzo-py && uv sync --extra dev`
 - OS-specific setup (required for DB drivers / Go tools):
   - Linux (Debian/Ubuntu):
     - Go tools:
       `cd miruzo && make tools`
     - PostgreSQL Python driver dependencies:
-      `sudo apt install -y libpq-dev && pip install psycopg[c,pool]`
+      `sudo apt install -y libpq-dev && uv sync --extra dev --extra postgres`
     - MySQL Python driver dependencies:
       `sudo apt install -y build-essential default-libmysqlclient-dev pkg-config`
-      and `pip install mysqlclient`
+      and `uv sync --extra dev --extra mysql`
   - macOS:
     - Go tools (recommended):
       `brew install gopls delve go-air sqlc goreleaser`
     - Go tools (alternative):
       `cd miruzo && make tools`
     - PostgreSQL Python driver dependencies:
-      `brew install libpq && pip install psycopg[c,pool]`
+      `brew install libpq && uv sync --extra dev --extra postgres`
     - MySQL Python driver dependencies:
-      `brew install mysql pkg-config && pip install mysqlclient`
+      `brew install mysql pkg-config && uv sync --extra dev --extra mysql`
 - Configure runtime files:
   - API: use `miruzo/config.yaml` (`miruzo/internal/app/config.sample.yaml`
     can be used as the base).
@@ -67,7 +69,7 @@ regardless of who is executing them.
   - Python: `cd miruzo-py && ruff check app scripts tests && ruff format`.
 - Execute tests:
   - `cd miruzo && go test ./...`
-  - `cd miruzo-py && pytest`
+  - `cd miruzo-py && uv run pytest`
 
 ## Operations Commands
 
@@ -76,7 +78,7 @@ regardless of who is executing them.
   - `cd miruzo && air`
   - `cd miruzo && go run ./cmd/miruzo-api`
 - Run importer help:
-  - `cd miruzo-py && python -m scripts.gataku_import --help`
+  - `cd miruzo-py && uv run python -m scripts.gataku_import --help`
 - Migration commands:
   - `cd miruzo && go run ./cmd/miruzo-cli migrate up`
   - `cd miruzo && go run ./cmd/miruzo-cli migrate down [N]`
@@ -165,13 +167,14 @@ regardless of who is executing them.
 
 - Default suites:
   - `cd miruzo && go test ./...`
-  - `cd miruzo-py && pytest`
+  - `cd miruzo-py && uv run pytest`
 - Run focused suites as needed:
   - `cd miruzo && go test ./internal/service/...` for service logic
   - `cd miruzo && go test ./internal/adapter/persistence/contract/...` for
     repository contract behavior (SQLite + PostgreSQL)
-  - `cd miruzo-py && pytest tests/importers` for importer flows
-  - `cd miruzo-py && pytest tests/persist` for SQLAlchemy Core repositories
+  - `cd miruzo-py && uv run pytest tests/importers` for importer flows
+  - `cd miruzo-py && uv run pytest tests/persist` for SQLAlchemy Core
+    repositories
 - Docker-based tests must clean up containers; reuse the helper fixtures
   already committed (do not hand-roll `docker run` invocations)
 - Use in-memory SQLite for unit tests unless the code path explicitly requires

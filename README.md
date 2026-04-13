@@ -40,7 +40,9 @@ For details, see [`docs/unit.md`](./docs/unit.md).
 
 - Git
 - Go 1.26.x (see [`miruzo/go.mod`](./miruzo/go.mod))
-- Python 3.10+ (3.13 recommended for local development)
+- Python 3.10+ (3.14.x recommended for local development; see
+  [`miruzo-py/.python-version`](./miruzo-py/.python-version))
+- `uv` (Python package/dependency manager)
 
 Backend/runtime matrix:
 
@@ -105,7 +107,7 @@ Run importer help:
 
 ```bash
 cd miruzo-py
-python -m scripts.gataku_import --help
+uv run python -m scripts.gataku_import --help
 ```
 
 
@@ -115,7 +117,7 @@ Default suites:
 
 ```bash
 cd miruzo && go test ./...
-cd miruzo-py && pytest
+cd miruzo-py && uv run pytest
 ```
 
 Focused suites:
@@ -123,8 +125,8 @@ Focused suites:
 ```bash
 cd miruzo && go test ./internal/service/...
 cd miruzo && go test ./internal/adapter/persistence/contract/...
-cd miruzo-py && pytest tests/importers
-cd miruzo-py && pytest tests/persist
+cd miruzo-py && uv run pytest tests/importers
+cd miruzo-py && uv run pytest tests/persist
 ```
 
 Optional test database DSN environment variables:
