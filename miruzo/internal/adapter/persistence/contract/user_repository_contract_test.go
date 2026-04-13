@@ -18,17 +18,17 @@ func TestUserRepositorySchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
-			ops := h.BeginTx(t)
-			t.Run(fmt.Sprintf("daily_love_used=%d", tt), func(t *testing.T) {
-				ops.AssertExecErrorIs(
-					t,
-					c.DBErrorMappingDefault,
-					persist.ErrCheckViolation,
-					fmt.Sprintf(stmt, ops.Param(1)),
-					tt,
-				)
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				t.Run(fmt.Sprintf("daily_love_used=%d", tt), func(t *testing.T) {
+					ops.AssertExecErrorIs(
+						t,
+						c.DBErrorMappingDefault,
+						persist.ErrCheckViolation,
+						fmt.Sprintf(stmt, ops.Param(1)),
+						tt,
+					)
+				})
 			})
-			ops.Rollback(t)
 		}
 	})
 }

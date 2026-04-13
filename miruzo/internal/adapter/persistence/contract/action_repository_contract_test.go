@@ -28,21 +28,21 @@ func TestActionSchemaRejectsInvalidKind(t *testing.T) {
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		for _, tt := range tests {
-			ops := h.BeginTx(t)
-			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-			t.Run(fmt.Sprintf("kind=%d", tt), func(t *testing.T) {
-				ops.AssertExecErrorIs(
-					t,
-					c.DBErrorMappingDefault,
-					persist.ErrCheckViolation,
-					fmt.Sprintf(stmt, ops.ParamRange(1, 4)...),
-					ingest.ID,
-					tt,
-					baseTime,
-					baseTime,
-				)
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+				t.Run(fmt.Sprintf("kind=%d", tt), func(t *testing.T) {
+					ops.AssertExecErrorIs(
+						t,
+						c.DBErrorMappingDefault,
+						persist.ErrCheckViolation,
+						fmt.Sprintf(stmt, ops.ParamRange(1, 4)...),
+						ingest.ID,
+						tt,
+						baseTime,
+						baseTime,
+					)
+				})
 			})
-			ops.Rollback(t)
 		}
 	})
 }
