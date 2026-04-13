@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
 type repository struct {
@@ -37,6 +38,28 @@ func (repo repository) Create(
 	}
 
 	return actionID, nil
+}
+
+func (repo repository) CreateDailyDecayIfAbsent(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	occurredAt time.Time,
+	periodStartAt time.Time,
+) error {
+	rowCount, err := repo.queries.CreateDailyDecayActionIfAbsent(ctx, gen.CreateDailyDecayActionIfAbsentParams{
+		IngestID:      ingestID,
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
+	})
+	if err != nil {
+		return shared.MapPostgreError("CreateDailyDecayIfAbsent", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
 }
 
 func (repo repository) ExistsSince(

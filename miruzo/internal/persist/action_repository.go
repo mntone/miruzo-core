@@ -16,6 +16,13 @@ type ActionRepository interface {
 		periodStartAt time.Time,
 	) (model.ActionIDType, error)
 
+	CreateDailyDecayIfAbsent(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		occurredAt time.Time,
+		periodStartAt time.Time,
+	) error
+
 	ExistsSince(
 		ctx context.Context,
 		ingestID model.IngestIDType,

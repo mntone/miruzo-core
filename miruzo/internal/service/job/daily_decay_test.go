@@ -101,32 +101,32 @@ func TestDailyDecayServiceApplyReturnsIterateError(t *testing.T) {
 	assert.Equal(t, "store.User.DailyLoveUsed", mgr.UserStub.DailyLoveUsed, model.QuotaInt(5))
 }
 
-func TestDailyDecayServiceApplyReturnsExistsSinceError(t *testing.T) {
+func TestDailyDecayServiceApplySkipsOnCreateDailyDecayIfAbsentConflict(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
 	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
 	)
-	mgr.ActionStub.ExistsSinceError = persist.ErrConflict
+	mgr.ActionStub.CreateDailyDecayIfAbsentError = persist.ErrConflict
 
 	err := service.ApplyDailyDecay(context.Background())
-	assert.ErrorIs(t, "ApplyDailyDecay() error", err, serviceerror.ErrConflict)
+	assert.NilError(t, "ApplyDailyDecay() error", err)
 	assert.Equal(t, "store.Stats(IngestID=1).Score", mgr.StatsStub.Store[1].Score, model.ScoreType(120))
-	assert.Equal(t, "store.User.DailyLoveUsed", mgr.UserStub.DailyLoveUsed, model.QuotaInt(5))
+	assert.Equal(t, "store.User.DailyLoveUsed", mgr.UserStub.DailyLoveUsed, model.QuotaInt(0))
 }
 
-func TestDailyDecayServiceApplyReturnsCreateError(t *testing.T) {
+func TestDailyDecayServiceApplyReturnsCreateDailyDecayIfAbsentError(t *testing.T) {
 	baseTime := mb.GetDefaultBaseTime()
 	service, mgr, _ := newDailyDecayServiceFixture(
 		5,
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
 	)
-	mgr.ActionStub.CreateError = persist.ErrConflict
+	mgr.ActionStub.CreateDailyDecayIfAbsentError = persist.ErrUnavailable
 
 	err := service.ApplyDailyDecay(context.Background())
-	assert.ErrorIs(t, "ApplyDailyDecay() error", err, serviceerror.ErrConflict)
+	assert.ErrorIs(t, "ApplyDailyDecay() error", err, serviceerror.ErrServiceUnavailable)
 	assert.Empty(t, "store.Action", mgr.ActionStub.Store)
 	assert.Equal(t, "store.User.DailyLoveUsed", mgr.UserStub.DailyLoveUsed, model.QuotaInt(5))
 }

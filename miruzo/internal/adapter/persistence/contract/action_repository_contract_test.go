@@ -243,6 +243,90 @@ func TestActionRepositoryCreateAllowsDuplicatePeriodForNonDecay(t *testing.T) {
 	})
 }
 
+// --- CreateDailyDecayIfAbsent ---
+
+func TestActionRepositoryCreateDailyDecayIfAbsentReturnsConflictOnDuplicatePeriod(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			err := ops.Action().CreateDailyDecayIfAbsent(
+				t.Context(),
+				ingest.ID,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateDailyDecayIfAbsent() first error", err)
+
+			err = ops.Action().CreateDailyDecayIfAbsent(
+				t.Context(),
+				ingest.ID,
+				baseTime.Add(time.Second),
+				periodStartAt,
+			)
+			assert.ErrorIs(t, "CreateDailyDecayIfAbsent() second error", err, persist.ErrConflict)
+		})
+	})
+}
+
+func TestActionRepositoryCreateDailyDecayIfAbsentAllowsDuplicatePeriodForNonDecay(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+			_, err := ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeView,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "Create() error", err)
+
+			err = ops.Action().CreateDailyDecayIfAbsent(
+				t.Context(),
+				ingest.ID,
+				baseTime.Add(time.Second),
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateDailyDecayIfAbsent() error", err)
+		})
+	})
+}
+
+func TestActionRepositoryCreateDailyDecayIfAbsentAllowsDifferentPeriod(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+	nextPeriodStartAt := periodStartAt.Add(24 * time.Hour)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			err := ops.Action().CreateDailyDecayIfAbsent(
+				t.Context(),
+				ingest.ID,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateDailyDecayIfAbsent() first error", err)
+
+			err = ops.Action().CreateDailyDecayIfAbsent(
+				t.Context(),
+				ingest.ID,
+				baseTime.Add(24*time.Hour),
+				nextPeriodStartAt,
+			)
+			assert.NilError(t, "CreateDailyDecayIfAbsent() second error", err)
+		})
+	})
+}
+
 // --- ExistsSince ---
 
 func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {

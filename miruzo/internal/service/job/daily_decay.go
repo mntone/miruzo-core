@@ -2,13 +2,13 @@ package job
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/clock"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/period"
 	"github.com/mntone/miruzo-core/miruzo/internal/domain/score"
-	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/service/serviceerror"
 )
@@ -57,29 +57,18 @@ func (srv *DailyDecayService) ApplyDailyDecay(ctx context.Context) error {
 				continue
 			}
 
-			existsDecayAction, err := repos.Action().ExistsSince(
+			err = repos.Action().CreateDailyDecayIfAbsent(
 				ctx,
 				row.IngestID,
-				model.ActionTypeDecay,
-				periodStartAt,
-			)
-			if err != nil {
-				reporter.AddFailed(err)
-				return err
-			}
-			if existsDecayAction {
-				reporter.AddSkipped()
-				continue
-			}
-
-			_, err = repos.Action().Create(
-				ctx,
-				row.IngestID,
-				model.ActionTypeDecay,
 				occurredAt,
 				periodStartAt,
 			)
 			if err != nil {
+				if errors.Is(err, persist.ErrConflict) {
+					reporter.AddSkipped()
+					continue
+				}
+
 				reporter.AddFailed(err)
 				return err
 			}
