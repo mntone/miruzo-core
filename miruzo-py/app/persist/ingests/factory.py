@@ -14,10 +14,17 @@ def _create_ingest_repository_from_backend(
 	max_executions: int,
 ) -> IngestRepository:
 	match backend:
-		case DatabaseBackend.MYSQL | DatabaseBackend.SQLITE:
-			return _IngestRepositoryBaseImpl(session, max_executions=max_executions)
+		case DatabaseBackend.MYSQL:
+			from app.persist.ingests.mysql import _IngestRepositoryMySQLImpl
+
+			return _IngestRepositoryMySQLImpl(session, max_executions=max_executions)
+
 		case DatabaseBackend.POSTGRE_SQL:
 			return _IngestRepositoryPostgresImpl(session, max_executions=max_executions)
+
+		case DatabaseBackend.SQLITE:
+			return _IngestRepositoryBaseImpl(session, max_executions=max_executions)
+
 		case _:
 			raise ValueError(f'Unsupported database type: {backend}')
 
