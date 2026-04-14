@@ -5,23 +5,30 @@ from typing import cast
 
 import pytest
 
+from tests.stubs.clock import FixedClockProvider
+
 from app.config.environments import env
-from app.models.enums import IngestMode
-from app.persist.ingests.protocol import IngestCreateInput
+from app.models.enums import ExecutionStatus, IngestMode
+from app.models.ingest import Execution
+from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreateInput
 from app.services.ingests.service import IngestService
 from app.services.ingests.utils.fingerprint import compute_fingerprint
 
 
-class _StubRepository:
+class _StubIngestRepository:
 	def __init__(self, *, fail: bool = False) -> None:
 		self.fail = fail
 		self.created: IngestCreateInput | None = None
+		self.appended: IngestAppendExecutionInput | None = None
 
 	def create(self, entry: IngestCreateInput) -> int:
 		self.created = entry
 		if self.fail:
 			raise RuntimeError('boom')
 		return 1
+
+	def append_execution(self, entry: IngestAppendExecutionInput) -> None:
+		self.appended = entry
 
 
 def _setup_roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -37,6 +44,19 @@ def _setup_roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 	return assets_root
 
 
+def _new_ingest_service_fixture(
+	now: datetime,
+	*,
+	fail: bool = False,
+) -> tuple[IngestService, _StubIngestRepository]:
+	repo = _StubIngestRepository(fail=fail)
+	service = IngestService(
+		repository=repo,
+		clock=FixedClockProvider(now),
+	)
+	return service, repo
+
+
 def test_create_ingest_copy_creates_file(
 	tmp_path: Path,
 	monkeypatch: pytest.MonkeyPatch,
@@ -47,13 +67,13 @@ def test_create_ingest_copy_creates_file(
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
-	repo = _StubRepository()
-	service = IngestService(repo)  # type: ignore[arg-type]
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service, repo = _new_ingest_service_fixture(now)
 
 	ingest = service.create_ingest(
 		origin_path=origin_relative,
 		fingerprint=None,
-		captured_at=datetime.now(timezone.utc),
+		captured_at=now,
 		ingest_mode=IngestMode.COPY,
 	)
 
@@ -72,13 +92,13 @@ def test_create_ingest_symlink_does_not_copy(
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
-	repo = _StubRepository()
-	service = IngestService(repo)  # type: ignore[arg-type]
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service, _ = _new_ingest_service_fixture(now)
 
 	ingest = service.create_ingest(
 		origin_path=origin_relative,
 		fingerprint=None,
-		captured_at=datetime.now(timezone.utc),
+		captured_at=now,
 		ingest_mode=IngestMode.SYMLINK,
 	)
 
@@ -96,13 +116,14 @@ def test_create_ingest_raises_for_unknown_mode(
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
-	service = IngestService(_StubRepository())  # type: ignore[arg-type]
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service, _ = _new_ingest_service_fixture(now)
 
 	with pytest.raises(ValueError, match='Unsupported ingest mode'):
 		service.create_ingest(
 			origin_path=origin_relative,
 			fingerprint=None,
-			captured_at=datetime.now(timezone.utc),
+			captured_at=now,
 			ingest_mode=cast(IngestMode, 999),
 		)
 
@@ -117,7 +138,8 @@ def test_create_ingest_copy_cleans_up_on_failure(
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
-	service = IngestService(_StubRepository(fail=True))  # type: ignore[arg-type]
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service, _ = _new_ingest_service_fixture(now, fail=True)
 	output_path = tmp_path / 'media' / 'l0orig' / 'foo' / 'bar.webp'
 
 	with pytest.raises(RuntimeError, match='boom'):
@@ -142,14 +164,14 @@ def test_create_ingest_recomputes_invalid_fingerprint(
 	origin.parent.mkdir(parents=True)
 	origin.write_bytes(b'data')
 
-	repo = _StubRepository()
-	service = IngestService(repo)  # type: ignore[arg-type]
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service, repo = _new_ingest_service_fixture(now)
 
 	caplog.set_level(logging.WARNING)
 	ingest = service.create_ingest(
 		origin_path=origin_relative,
 		fingerprint='not-a-hash',
-		captured_at=datetime.now(timezone.utc),
+		captured_at=now,
 		ingest_mode=IngestMode.COPY,
 	)
 
@@ -158,3 +180,26 @@ def test_create_ingest_recomputes_invalid_fingerprint(
 	assert repo.created is not None
 	assert repo.created.fingerprint == compute_fingerprint(output_path)
 	assert 'invalid fingerprint detected' in caplog.text
+
+
+def test_append_execution_uses_clock() -> None:
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service, repo = _new_ingest_service_fixture(now)
+	execution = Execution(
+		status=ExecutionStatus.SUCCESS,
+		error_type=None,
+		error_message=None,
+		executed_at=now,
+		inspect=None,
+		collect=None,
+		plan=None,
+		execute=None,
+		store=None,
+		overall=None,
+	)
+
+	service.append_execution(ingest_id=10, execution=execution)
+	assert repo.appended is not None
+	assert repo.appended.ingest_id == 10
+	assert repo.appended.updated_at == now
+	assert repo.appended.execution == execution

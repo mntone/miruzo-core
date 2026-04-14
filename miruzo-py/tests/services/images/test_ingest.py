@@ -9,6 +9,7 @@ from tests.fixtures.image_file import new_image_file_fixture
 from tests.fixtures.ingest import make_ingest_fixture
 from tests.services.images.utils import build_variant_spec
 from tests.services.images.variants.utils import build_variant_file
+from tests.stubs.clock import FixedClockProvider
 from tests.stubs.image import StubImageRepository
 from tests.stubs.stats import StubStatsRepository
 
@@ -91,7 +92,7 @@ class FailingPipeline:
 		raise ValueError('boom')
 
 
-def new_image_ingest_service_fixture() -> ImageIngestService:
+def _new_image_ingest_service_fixture(now: datetime) -> ImageIngestService:
 	policy = VariantPolicy(
 		durable_write=False,
 		regenerate_mismatched=False,
@@ -105,6 +106,7 @@ def new_image_ingest_service_fixture() -> ImageIngestService:
 			image=StubImageRepository(),
 			stats=StubStatsRepository(),
 		),
+		clock=FixedClockProvider(now),
 		policy=policy,
 		initial_score=100,
 	)
@@ -121,15 +123,16 @@ def test_image_ingest_service_records_image(tmp_path: Path) -> None:
 	variant_file = build_variant_file(spec, width=320)
 	results = [VariantCommitResult.success('generate', VariantReport(spec, variant_file))]
 
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
 	ingest_core = DummyIngestCore(ingest)
-	service = new_image_ingest_service_fixture()
+	service = _new_image_ingest_service_fixture(now)
 	service._ingest_core = ingest_core  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = DummyPipeline(tmp_path, [layer], results)  # pyright: ignore[reportAttributeAccessIssue]
 
 	entry = service.ingest(
 		origin_path=image_pathes.relpath,
 		fingerprint=None,
-		captured_at=datetime.now(timezone.utc),
+		captured_at=now,
 		ingest_mode=IngestMode.COPY,
 	)
 
@@ -163,7 +166,8 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 	image_pathes = new_image_file_fixture(tmp_path)
 	ingest = make_ingest_fixture(ingest_id)
 
-	service = new_image_ingest_service_fixture()
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	service = _new_image_ingest_service_fixture(now)
 	ingest_core = DummyIngestCore(ingest)
 	service._ingest_core = ingest_core  # pyright: ignore[reportAttributeAccessIssue]
 	service._pipeline = FailingPipeline(tmp_path, [])  # pyright: ignore[reportAttributeAccessIssue]
@@ -172,7 +176,7 @@ def test_image_ingest_service_records_failure_entry(tmp_path: Path) -> None:
 		service.ingest(
 			origin_path=image_pathes.relpath,
 			fingerprint=None,
-			captured_at=datetime.now(timezone.utc),
+			captured_at=now,
 			ingest_mode=IngestMode.COPY,
 		)
 

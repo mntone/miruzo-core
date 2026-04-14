@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import final
 
 from app.config.environments import env
+from app.domain.clock.protocol import ClockProvider
 from app.models.enums import ImageKind, IngestMode
 from app.models.image import Image
 from app.models.ingest import Ingest
@@ -26,12 +27,17 @@ class ImageIngestService:
 	def __init__(
 		self,
 		repos: Repositories,
+		*,
+		clock: ClockProvider,
 		policy: VariantPolicy,
 		initial_score: int,
 	) -> None:
 		self._image_repo = repos.image
 		self._stats_repo = repos.stats
-		self._ingest_core = IngestService(repos.ingest)
+		self._ingest_core = IngestService(
+			repository=repos.ingest,
+			clock=clock,
+		)
 		self._pipeline = VariantPipeline(
 			media_root=env.media_root,
 			policy=policy,

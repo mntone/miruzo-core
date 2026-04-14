@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from logging import getLogger
 from pathlib import Path
 from typing import final
 
+from app.domain.clock.protocol import ClockProvider
 from app.models.enums import IngestMode
 from app.models.ingest import Execution, Ingest
 from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreateInput, IngestRepository
@@ -20,8 +21,14 @@ log = getLogger(__name__)
 
 @final
 class IngestService:
-	def __init__(self, repository: IngestRepository) -> None:
+	def __init__(
+		self,
+		*,
+		repository: IngestRepository,
+		clock: ClockProvider,
+	) -> None:
 		self._repository = repository
+		self._clock = clock
 
 	def create_ingest(
 		self,
@@ -54,7 +61,7 @@ class IngestService:
 				log.warning('invalid fingerprint detected; recomputing for %s', origin_path)
 				fingerprint = compute_fingerprint(output_path)
 
-		now = datetime.now(timezone.utc)
+		now = self._clock.now()
 		try:
 			ingest_id = self._repository.create(
 				IngestCreateInput(
@@ -82,7 +89,7 @@ class IngestService:
 	def append_execution(self, ingest_id: int, execution: Execution) -> None:
 		"""Append an execution entry to the ingest record."""
 
-		now = datetime.now(timezone.utc)
+		now = self._clock.now()
 		self._repository.append_execution(
 			IngestAppendExecutionInput(
 				ingest_id=ingest_id,

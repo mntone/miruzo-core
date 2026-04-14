@@ -9,6 +9,7 @@ from scripts.importers.common.report import ImportStats, ProgressReporter
 from app.config.environments import Settings
 from app.config.environments import env as global_env
 from app.databases.database import create_session
+from app.domain.clock.system import create_system_clock
 from app.models.enums import IngestMode
 from app.persist.uow import UnitOfWork
 from app.services.images.ingest import ImageIngestService
@@ -95,6 +96,7 @@ def import_jsonl(
 		force=force,
 	)
 
+	clock = create_system_clock()
 	stats = ImportStats()
 	warned_created_at_fallback = False
 	reporter = ProgressReporter(report_variants=report_variants)
@@ -107,6 +109,7 @@ def import_jsonl(
 	with UnitOfWork(session_factory=create_session) as uow:
 		ingest = ImageIngestService(
 			repos=uow.repositories,
+			clock=clock,
 			policy=DEFAULT_VARIANT_POLICY,
 			initial_score=env.score.initial_score,
 		)
