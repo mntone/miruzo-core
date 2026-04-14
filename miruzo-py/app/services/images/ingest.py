@@ -38,6 +38,7 @@ class ImageIngestService:
 			repository=repos.ingest,
 			clock=clock,
 		)
+		self._clock = clock
 		self._pipeline = VariantPipeline(
 			media_root=env.media_root,
 			policy=policy,
@@ -68,7 +69,7 @@ class ImageIngestService:
 		)
 
 		executor = LocalVariantExecutor()
-		session = VariantPipelineExecutionSession(executor)
+		session = VariantPipelineExecutionSession(executor, clock=self._clock)
 		try:
 			with session:
 				with session.phase('inspect'):

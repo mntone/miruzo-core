@@ -1,9 +1,12 @@
 from collections.abc import Sequence
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 from PIL import UnidentifiedImageError as PILUnidentifiedImageError
 from sqlalchemy.exc import DataError
+
+from tests.stubs.clock import FixedClockProvider
 
 from app.models.enums import ExecutionStatus
 from app.services.images.variants.pipeline_execution import VariantPipelineExecutionSession
@@ -28,7 +31,11 @@ class DummyExecutor:
 
 
 def test_execution_session_to_entry_records_success() -> None:
-	session = VariantPipelineExecutionSession(DummyExecutor())
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	session = VariantPipelineExecutionSession(
+		executor=DummyExecutor(),
+		clock=FixedClockProvider(now),
+	)
 
 	with session:
 		with session.phase('inspect'):
@@ -38,6 +45,7 @@ def test_execution_session_to_entry_records_success() -> None:
 	assert entry.status == ExecutionStatus.SUCCESS
 	assert entry.error_type is None
 	assert entry.error_message is None
+	assert entry.executed_at == now
 	assert entry.inspect is not None
 	assert entry.overall is not None
 
@@ -75,7 +83,11 @@ def test_execution_session_to_entry_records_errors(
 	error_message: str | None,
 	swallow: bool,
 ) -> None:
-	session = VariantPipelineExecutionSession(DummyExecutor())
+	now = datetime(2026, 1, 10, 9, tzinfo=timezone.utc)
+	session = VariantPipelineExecutionSession(
+		executor=DummyExecutor(),
+		clock=FixedClockProvider(now),
+	)
 
 	def raise_in_session() -> None:
 		with session:
@@ -92,6 +104,7 @@ def test_execution_session_to_entry_records_errors(
 	entry = session.to_dto()
 	assert entry.status == status
 	assert entry.error_type == error_type
+	assert entry.executed_at == now
 	if error_message is None:
 		assert entry.error_message
 	else:

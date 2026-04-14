@@ -1,6 +1,6 @@
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 from time import monotonic
 from types import TracebackType
@@ -10,6 +10,7 @@ from PIL import UnidentifiedImageError as PILUnidentifiedImageError
 from PIL.Image import DecompressionBombError as PILDecompressionBombError
 from sqlalchemy.exc import DataError, IntegrityError, OperationalError
 
+from app.domain.clock.protocol import ClockProvider
 from app.models.enums import ExecutionStatus
 from app.models.ingest import Execution
 from app.services.images.variants.executors.executor import VariantExecutor
@@ -24,8 +25,14 @@ _ExecutionPhase = Literal['inspect', 'collect', 'plan', 'execute', 'store']
 
 
 class VariantPipelineExecutionSession:
-	def __init__(self, executor: VariantExecutor) -> None:
+	def __init__(
+		self,
+		executor: VariantExecutor,
+		*,
+		clock: ClockProvider,
+	) -> None:
 		self._executor = executor
+		self._clock = clock
 
 		self._status = ExecutionStatus.SUCCESS
 		self._executed_at: datetime | None = None
@@ -44,7 +51,7 @@ class VariantPipelineExecutionSession:
 		self._overall: timedelta | None = None
 
 	def __enter__(self) -> 'VariantPipelineExecutionSession':
-		self._executed_at = datetime.now(timezone.utc)
+		self._executed_at = self._clock.now()
 		mark = monotonic()
 		self._start_mark = mark
 		self._last_mark = mark
