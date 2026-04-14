@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.config.environments import DatabaseBackend, env
 from app.models.ingest import MAX_EXECUTIONS
 from app.persist.ingests.base import _IngestRepositoryBaseImpl
-from app.persist.ingests.postgres import _IngestRepositoryPostgresImpl
 from app.persist.ingests.protocol import IngestRepository
 
 
@@ -20,7 +19,9 @@ def _create_ingest_repository_from_backend(
 			return _IngestRepositoryMySQLImpl(session, max_executions=max_executions)
 
 		case DatabaseBackend.POSTGRE_SQL:
-			return _IngestRepositoryPostgresImpl(session, max_executions=max_executions)
+			from app.persist.ingests.postgres import _IngestRepositoryPostgreSQLImpl
+
+			return _IngestRepositoryPostgreSQLImpl(session, max_executions=max_executions)
 
 		case DatabaseBackend.SQLITE:
 			return _IngestRepositoryBaseImpl(session, max_executions=max_executions)

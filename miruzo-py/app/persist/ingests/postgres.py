@@ -9,7 +9,9 @@ from app.models.enums import ExecutionStatus
 from app.persist.ingests.base import _IngestRepositoryBaseImpl
 from app.persist.ingests.protocol import IngestAppendExecutionInput, IngestCreateInput
 
-_APPEND_SUCCESS_SQL = text(
+# keep latest non-success executions, restore chronological order,
+# then append new success execution
+_APPEND_SUCCESS_STMT = text(
 	"""
 	UPDATE ingests
 	SET
@@ -24,7 +26,7 @@ _APPEND_SUCCESS_SQL = text(
 					FROM jsonb_array_elements(executions) WITH ORDINALITY AS t(v, i)
 					WHERE(v->>'status')::int<>0
 					ORDER BY i DESC
-					LIMIT :execution_maximum-1
+					LIMIT :max_retained_executions
 				)l
 				UNION ALL
 				SELECT :execution, 2147483647
@@ -34,33 +36,33 @@ _APPEND_SUCCESS_SQL = text(
 	""",
 ).bindparams(
 	bindparam('updated_at', type_=DateTime),
-	bindparam('execution', type_=JSONB),
-	bindparam('execution_maximum', type_=Integer),
 	bindparam('ingest_id', type_=BigInteger),
+	bindparam('execution', type_=JSONB),
+	bindparam('max_retained_executions', type_=Integer),
 )
 
-
-_APPEND_ERROR_SQL = text(
+# append new error execution, then keep the latest retained executions
+_APPEND_ERROR_STMT = text(
 	"""
 	UPDATE ingests
 	SET
 		updated_at=:updated_at,
 		executions=jsonb_path_query_array(
 			executions||:execution,
-			('$[last-'||(:execution_maximum-1)||' to last]')::jsonpath
+			('$[last-'||:max_retained_executions||' to last]')::jsonpath
 		)
 	WHERE id=:ingest_id
 	""",
 ).bindparams(
 	bindparam('updated_at', type_=DateTime),
-	bindparam('execution', type_=JSONB),
-	bindparam('execution_maximum', type_=Integer),
 	bindparam('ingest_id', type_=BigInteger),
+	bindparam('execution', type_=JSONB),
+	bindparam('max_retained_executions', type_=Integer),
 )
 
 
 @final
-class _IngestRepositoryPostgresImpl(_IngestRepositoryBaseImpl):
+class _IngestRepositoryPostgreSQLImpl(_IngestRepositoryBaseImpl):
 	def create(self, entry: IngestCreateInput) -> int:
 		stmt = (
 			insert(ingest_table)
@@ -78,12 +80,12 @@ class _IngestRepositoryPostgresImpl(_IngestRepositoryBaseImpl):
 			'ingest_id': entry.ingest_id,
 			'updated_at': entry.updated_at,
 			'execution': entry.execution.model_dump(mode='json'),
-			'execution_maximum': self._max_executions,
+			'max_retained_executions': self._max_executions - 1,
 		}
 		if entry.execution.status == ExecutionStatus.SUCCESS:
-			result = self._session.execute(_APPEND_SUCCESS_SQL, params)
+			result = self._session.execute(_APPEND_SUCCESS_STMT, params)
 		else:
-			result = self._session.execute(_APPEND_ERROR_SQL, params)
+			result = self._session.execute(_APPEND_ERROR_STMT, params)
 
 		if result.rowcount != 1:  # pyright: ignore[reportAttributeAccessIssue]
 			raise NoResultFound('No row was found when one was required')
