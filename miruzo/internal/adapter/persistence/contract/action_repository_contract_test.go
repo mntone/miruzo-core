@@ -230,6 +230,33 @@ func TestActionSchemaRejectsDuplicateLovePerTimestamp(t *testing.T) {
 	})
 }
 
+func TestActionSchemaRejectsDuplicateHallOfFamePerTimestamp(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime().Add(time.Minute)
+	assertActionUniqueViolation(t, []testActionUniqueViolation{
+		{
+			name:             "HallOfFameGrantedThenGrantedAtSameOccurredAt",
+			firstActionType:  model.ActionTypeHallOfFameGranted,
+			firstOccurredAt:  baseTime,
+			secondActionType: model.ActionTypeHallOfFameGranted,
+			secondOccurredAt: baseTime,
+		},
+		{
+			name:             "HallOfFameRevokedThenRevokedAtSameOccurredAt",
+			firstActionType:  model.ActionTypeHallOfFameRevoked,
+			firstOccurredAt:  baseTime,
+			secondActionType: model.ActionTypeHallOfFameRevoked,
+			secondOccurredAt: baseTime,
+		},
+		{
+			name:             "HallOfFameGrantedThenRevokedAtSameOccurredAt",
+			firstActionType:  model.ActionTypeHallOfFameGranted,
+			firstOccurredAt:  baseTime,
+			secondActionType: model.ActionTypeHallOfFameRevoked,
+			secondOccurredAt: baseTime,
+		},
+	})
+}
+
 // --- Create ---
 
 func TestActionRepositoryCreates(t *testing.T) {

@@ -140,6 +140,9 @@ WHERE kind=1/*decay*/;
 CREATE UNIQUE INDEX uq_actions_love_once_per_timestamp
 ON actions(ingest_id, occurred_at)
 WHERE kind IN(13/*love*/, 14/*love_canceled*/);
+CREATE UNIQUE INDEX uq_actions_hall_of_fame_once_per_timestamp
+ON actions(ingest_id, occurred_at)
+WHERE kind IN(15/*hall_of_fame_granted*/, 16/*hall_of_fame_revoked*/);
 
 -- Create jobs table
 CREATE TABLE jobs(
