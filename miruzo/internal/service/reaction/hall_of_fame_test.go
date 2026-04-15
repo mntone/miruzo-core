@@ -49,9 +49,9 @@ func TestGrantHallOfFameUpdates(t *testing.T) {
 	assert.EqualFn(t, "statsArgs.HallOfFameAt", statsArgs.HallOfFameAt, current)
 	assert.Equal(t, "statsArgs.HallOfFameScoreThreshold", statsArgs.HallOfFameScoreThreshold, 180)
 
-	actionArgs := provider.ActionStub.CreateArgs[0]
+	actionArgs := provider.ActionStub.CreateHallOfFameIfAbsentArgs[0]
 	assert.Equal(t, "actionArgs.IngestID", actionArgs.IngestID, ingestID)
-	assert.Equal(t, "actionArgs.Type", actionArgs.Type, model.ActionTypeHallOfFameGranted)
+	assert.Equal(t, "actionArgs.Type", actionArgs.Type, persist.HallOfFameActionTypeGranted)
 	assert.EqualFn(t, "actionArgs.OccurredAt", actionArgs.OccurredAt, current)
 }
 
@@ -84,7 +84,7 @@ func TestGrantHallOfFameReturnsConflict(t *testing.T) {
 	assert.EqualFn(t, "args.HallOfFameAt", args.HallOfFameAt, current)
 	assert.Equal(t, "args.HallOfFameScoreThreshold", args.HallOfFameScoreThreshold, 180)
 
-	assert.Empty(t, "manager.ActionStub.CreateArgs", provider.ActionStub.CreateArgs)
+	assert.Empty(t, "manager.ActionStub.CreateHallOfFameIfAbsentArgs", provider.ActionStub.CreateHallOfFameIfAbsentArgs)
 	assert.Empty(t, "action count", provider.ActionStub.Store)
 }
 
@@ -112,7 +112,7 @@ func TestGrantHallOfFameReturnsServiceUnavailableWhenStatsUpdateFails(t *testing
 
 	_, err = service.GrantHallOfFame(context.Background(), ingestID)
 	assert.ErrorIs(t, "GrantHallOfFame() error", err, serviceerror.ErrServiceUnavailable)
-	assert.Empty(t, "manager.ActionStub.CreateArgs", provider.ActionStub.CreateArgs)
+	assert.Empty(t, "manager.ActionStub.CreateHallOfFameIfAbsentArgs", provider.ActionStub.CreateHallOfFameIfAbsentArgs)
 }
 
 func TestGrantHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
@@ -123,7 +123,7 @@ func TestGrantHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 		IngestID: ingestID,
 		Score:    180,
 	})
-	provider.ActionStub.CreateError = persist.ErrUnavailable
+	provider.ActionStub.CreateHallOfFameIfAbsentError = persist.ErrUnavailable
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
@@ -148,7 +148,7 @@ func TestGrantHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 	assert.EqualFn(t, "args.HallOfFameAt", args.HallOfFameAt, current)
 	assert.Equal(t, "args.HallOfFameScoreThreshold", args.HallOfFameScoreThreshold, 180)
 
-	assert.LenIs(t, "manager.ActionStub.CreateArgs", provider.ActionStub.CreateArgs, 1)
+	assert.LenIs(t, "manager.ActionStub.CreateHallOfFameIfAbsentArgs", provider.ActionStub.CreateHallOfFameIfAbsentArgs, 1)
 	assert.Empty(t, "action count", provider.ActionStub.Store)
 }
 
@@ -183,9 +183,9 @@ func TestRevokeHallOfFameUpdates(t *testing.T) {
 	statsArgs := provider.StatsStub.ApplyHallOfFameRevokedArgs[0]
 	assert.Equal(t, "statsArgs.IngestID", statsArgs, ingestID)
 
-	actionArgs := provider.ActionStub.CreateArgs[0]
+	actionArgs := provider.ActionStub.CreateHallOfFameIfAbsentArgs[0]
 	assert.Equal(t, "actionArgs.IngestID", actionArgs.IngestID, ingestID)
-	assert.Equal(t, "actionArgs.Type", actionArgs.Type, model.ActionTypeHallOfFameRevoked)
+	assert.Equal(t, "actionArgs.Type", actionArgs.Type, persist.HallOfFameActionTypeRevoked)
 	assert.EqualFn(t, "actionArgs.OccurredAt", actionArgs.OccurredAt, current)
 }
 
@@ -216,7 +216,7 @@ func TestRevokeHallOfFameReturnsConflict(t *testing.T) {
 	args := provider.StatsStub.ApplyHallOfFameRevokedArgs[0]
 	assert.Equal(t, "statsArgs.IngestID", args, ingestID)
 
-	assert.Empty(t, "manager.ActionStub.CreateArgs", provider.ActionStub.CreateArgs)
+	assert.Empty(t, "manager.ActionStub.CreateHallOfFameIfAbsentArgs", provider.ActionStub.CreateHallOfFameIfAbsentArgs)
 	assert.Empty(t, "action count", provider.ActionStub.Store)
 }
 
@@ -245,7 +245,7 @@ func TestRevokeHallOfFameReturnsServiceUnavailableWhenStatsUpdateFails(t *testin
 
 	_, err = service.RevokeHallOfFame(context.Background(), ingestID)
 	assert.ErrorIs(t, "RevokeHallOfFame() error", err, serviceerror.ErrServiceUnavailable)
-	assert.Empty(t, "manager.ActionStub.CreateArgs", provider.ActionStub.CreateArgs)
+	assert.Empty(t, "manager.ActionStub.CreateHallOfFameIfAbsentArgs", provider.ActionStub.CreateHallOfFameIfAbsentArgs)
 }
 
 func TestRevokeHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
@@ -257,7 +257,7 @@ func TestRevokeHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 		Score:        180,
 		HallOfFameAt: mo.Some(current.Add(-2 * time.Hour)),
 	})
-	provider.ActionStub.CreateError = persist.ErrUnavailable
+	provider.ActionStub.CreateHallOfFameIfAbsentError = persist.ErrUnavailable
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
@@ -280,6 +280,6 @@ func TestRevokeHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 	args := provider.StatsStub.ApplyHallOfFameRevokedArgs[0]
 	assert.Equal(t, "args.IngestID", args, ingestID)
 
-	assert.LenIs(t, "manager.ActionStub.CreateArgs", provider.ActionStub.CreateArgs, 1)
+	assert.LenIs(t, "manager.ActionStub.CreateHallOfFameIfAbsentArgs", provider.ActionStub.CreateHallOfFameIfAbsentArgs, 1)
 	assert.Empty(t, "action count", provider.ActionStub.Store)
 }

@@ -27,10 +27,10 @@ func (srv *Service) GrantHallOfFame(
 			return err
 		}
 
-		_, err = repos.Action().Create(
+		err = repos.Action().CreateHallOfFameIfAbsent(
 			ctx,
 			ingestID,
-			model.ActionTypeHallOfFameGranted,
+			persist.HallOfFameActionTypeGranted,
 			hallOfFameGrantedAt,
 			periodStartAt,
 		)
@@ -60,10 +60,10 @@ func (srv *Service) RevokeHallOfFame(
 			return err
 		}
 
-		_, err = repos.Action().Create(
+		err = repos.Action().CreateHallOfFameIfAbsent(
 			ctx,
 			ingestID,
-			model.ActionTypeHallOfFameRevoked,
+			persist.HallOfFameActionTypeRevoked,
 			hallOfFameRevokedAt,
 			periodStartAt,
 		)

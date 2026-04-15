@@ -36,6 +36,13 @@ type actionRepositoryCreateLoveIfAbsentArgs struct {
 	PeriodStartAt time.Time
 }
 
+type actionRepositoryCreateHallOfFameIfAbsentArgs struct {
+	IngestID      model.IngestIDType
+	Type          persist.HallOfFameActionType
+	OccurredAt    time.Time
+	PeriodStartAt time.Time
+}
+
 type actionRepositoryExistsSinceArgs struct {
 	IngestID        model.IngestIDType
 	Type            model.ActionType
@@ -56,6 +63,8 @@ type actionRepository struct {
 	CreateDailyDecayIfAbsentArgs  []actionRepositoryCreateDailyDecayIfAbsentArgs
 	CreateLoveIfAbsentError       error
 	CreateLoveIfAbsentArgs        []actionRepositoryCreateLoveIfAbsentArgs
+	CreateHallOfFameIfAbsentError error
+	CreateHallOfFameIfAbsentArgs  []actionRepositoryCreateHallOfFameIfAbsentArgs
 	ExistsSinceError              error
 	ExistsSinceArgs               []actionRepositoryExistsSinceArgs
 }
@@ -197,6 +206,47 @@ func (repo *actionRepository) CreateLoveIfAbsent(
 	repo.appendCreatedAction(
 		ingestID,
 		model.ActionType(loveType),
+		occurredAt,
+		periodStartAt,
+	)
+	return nil
+}
+
+func (repo *actionRepository) CreateHallOfFameIfAbsent(
+	_ context.Context,
+	ingestID model.IngestIDType,
+	hallOfFameType persist.HallOfFameActionType,
+	occurredAt time.Time,
+	periodStartAt time.Time,
+) error {
+	repo.CreateHallOfFameIfAbsentArgs = append(repo.CreateHallOfFameIfAbsentArgs, actionRepositoryCreateHallOfFameIfAbsentArgs{
+		IngestID:      ingestID,
+		Type:          hallOfFameType,
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
+	})
+
+	if repo.CreateHallOfFameIfAbsentError != nil {
+		return repo.CreateHallOfFameIfAbsentError
+	}
+
+	for _, action := range repo.Store {
+		if action.IngestID != ingestID {
+			continue
+		}
+		if action.Type != model.ActionType(persist.HallOfFameActionTypeGranted) &&
+			action.Type != model.ActionType(persist.HallOfFameActionTypeRevoked) {
+			continue
+		}
+		if !action.OccurredAt.Equal(occurredAt) {
+			continue
+		}
+		return persist.ErrConflict
+	}
+
+	repo.appendCreatedAction(
+		ingestID,
+		model.ActionType(hallOfFameType),
 		occurredAt,
 		periodStartAt,
 	)

@@ -14,6 +14,13 @@ const (
 	LoveActionTypeLoveCanceled LoveActionType = LoveActionType(model.ActionTypeLoveCanceled)
 )
 
+type HallOfFameActionType uint32
+
+const (
+	HallOfFameActionTypeGranted HallOfFameActionType = HallOfFameActionType(model.ActionTypeHallOfFameGranted)
+	HallOfFameActionTypeRevoked HallOfFameActionType = HallOfFameActionType(model.ActionTypeHallOfFameRevoked)
+)
+
 type ActionRepository interface {
 	Create(
 		ctx context.Context,
@@ -34,6 +41,14 @@ type ActionRepository interface {
 		ctx context.Context,
 		ingestID model.IngestIDType,
 		loveType LoveActionType,
+		occurredAt time.Time,
+		periodStartAt time.Time,
+	) error
+
+	CreateHallOfFameIfAbsent(
+		ctx context.Context,
+		ingestID model.IngestIDType,
+		hallOfFameType HallOfFameActionType,
 		occurredAt time.Time,
 		periodStartAt time.Time,
 	) error

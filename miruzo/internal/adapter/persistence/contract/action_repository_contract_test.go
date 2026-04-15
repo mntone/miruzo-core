@@ -508,6 +508,95 @@ func TestActionRepositoryCreateLoveIfAbsentAllowsDuplicateOccurredAtForNonLove(t
 	})
 }
 
+// --- CreateHallOfFameIfAbsent ---
+
+func TestActionRepositoryCreateHallOfFameIfAbsentReturnsConflictOnDuplicateOccurredAt(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			err := ops.Action().CreateHallOfFameIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.HallOfFameActionTypeGranted,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateHallOfFameIfAbsent() first error", err)
+
+			err = ops.Action().CreateHallOfFameIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.HallOfFameActionTypeRevoked,
+				baseTime,
+				periodStartAt,
+			)
+			assert.ErrorIs(t, "CreateHallOfFameIfAbsent() second error", err, persist.ErrConflict)
+		})
+	})
+}
+
+func TestActionRepositoryCreateHallOfFameIfAbsentAllowsDifferentOccurredAt(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			err := ops.Action().CreateHallOfFameIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.HallOfFameActionTypeGranted,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateHallOfFameIfAbsent() first error", err)
+
+			err = ops.Action().CreateHallOfFameIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.HallOfFameActionTypeRevoked,
+				baseTime.Add(time.Microsecond),
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateHallOfFameIfAbsent() second error", err)
+		})
+	})
+}
+
+func TestActionRepositoryCreateHallOfFameIfAbsentAllowsDuplicateOccurredAtForNonHallOfFame(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			_, err := ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeView,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "Create() error", err)
+
+			err = ops.Action().CreateHallOfFameIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.HallOfFameActionTypeGranted,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateHallOfFameIfAbsent() error", err)
+		})
+	})
+}
+
 // --- ExistsSince ---
 
 func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {

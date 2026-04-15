@@ -80,6 +80,30 @@ func (repo actionRepository) CreateLoveIfAbsent(
 	return nil
 }
 
+func (repo actionRepository) CreateHallOfFameIfAbsent(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	hallOfFameType persist.HallOfFameActionType,
+	occurredAt time.Time,
+	periodStartAt time.Time,
+) error {
+	rowCount, err := repo.queries.CreateHallOfFameActionIfAbsent(ctx, gen.CreateHallOfFameActionIfAbsentParams{
+		IngestID:      ingestID,
+		Kind:          int16(hallOfFameType),
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
+	})
+	if err != nil {
+		return shared.MapPostgreError("CreateHallOfFameIfAbsent", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
+}
+
 func (repo actionRepository) ExistsSince(
 	ctx context.Context,
 	ingestID model.IngestIDType,
