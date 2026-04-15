@@ -116,7 +116,7 @@ func TestLoveRollsBackWhenActionCreateFails(t *testing.T) {
 		IngestID: ingestID,
 		Score:    100,
 	})
-	provider.ActionStub.CreateError = persist.ErrUnavailable
+	provider.ActionStub.CreateLoveIfAbsentError = persist.ErrUnavailable
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 

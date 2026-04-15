@@ -29,6 +29,13 @@ type actionRepositoryCreateDailyDecayIfAbsentArgs struct {
 	PeriodStartAt time.Time
 }
 
+type actionRepositoryCreateLoveIfAbsentArgs struct {
+	IngestID      model.IngestIDType
+	Type          persist.LoveActionType
+	OccurredAt    time.Time
+	PeriodStartAt time.Time
+}
+
 type actionRepositoryExistsSinceArgs struct {
 	IngestID        model.IngestIDType
 	Type            model.ActionType
@@ -47,6 +54,8 @@ type actionRepository struct {
 	CreateArgs                    []actionRepositoryCreateArgs
 	CreateDailyDecayIfAbsentError error
 	CreateDailyDecayIfAbsentArgs  []actionRepositoryCreateDailyDecayIfAbsentArgs
+	CreateLoveIfAbsentError       error
+	CreateLoveIfAbsentArgs        []actionRepositoryCreateLoveIfAbsentArgs
 	ExistsSinceError              error
 	ExistsSinceArgs               []actionRepositoryExistsSinceArgs
 }
@@ -150,6 +159,47 @@ func (repo *actionRepository) CreateDailyDecayIfAbsent(
 	}
 
 	repo.appendCreatedAction(ingestID, model.ActionTypeDecay, occurredAt, periodStartAt)
+	return nil
+}
+
+func (repo *actionRepository) CreateLoveIfAbsent(
+	_ context.Context,
+	ingestID model.IngestIDType,
+	loveType persist.LoveActionType,
+	occurredAt time.Time,
+	periodStartAt time.Time,
+) error {
+	repo.CreateLoveIfAbsentArgs = append(repo.CreateLoveIfAbsentArgs, actionRepositoryCreateLoveIfAbsentArgs{
+		IngestID:      ingestID,
+		Type:          loveType,
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
+	})
+
+	if repo.CreateLoveIfAbsentError != nil {
+		return repo.CreateLoveIfAbsentError
+	}
+
+	for _, action := range repo.Store {
+		if action.IngestID != ingestID {
+			continue
+		}
+		if action.Type != model.ActionType(persist.LoveActionTypeLove) &&
+			action.Type != model.ActionType(persist.LoveActionTypeLoveCanceled) {
+			continue
+		}
+		if !action.OccurredAt.Equal(occurredAt) {
+			continue
+		}
+		return persist.ErrConflict
+	}
+
+	repo.appendCreatedAction(
+		ingestID,
+		model.ActionType(loveType),
+		occurredAt,
+		periodStartAt,
+	)
 	return nil
 }
 

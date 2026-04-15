@@ -45,10 +45,10 @@ func (srv *Service) Love(
 			return err
 		}
 
-		_, err = repos.Action().Create(
+		err = repos.Action().CreateLoveIfAbsent(
 			ctx,
 			ingestID,
-			model.ActionTypeLove,
+			persist.LoveActionTypeLove,
 			lovedAt,
 			periodStartAt,
 		)

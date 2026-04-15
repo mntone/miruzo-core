@@ -132,7 +132,7 @@ func TestLoveCancelRollsBackWhenActionCreateFails(t *testing.T) {
 		FirstLovedAt: lovedAt,
 		LastLovedAt:  lovedAt,
 	})
-	provider.ActionStub.CreateError = persist.ErrUnavailable
+	provider.ActionStub.CreateLoveIfAbsentError = persist.ErrUnavailable
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 

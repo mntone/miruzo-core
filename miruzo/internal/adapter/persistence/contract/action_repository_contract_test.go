@@ -386,6 +386,94 @@ func TestActionRepositoryCreateDailyDecayIfAbsentAllowsDifferentPeriod(t *testin
 	})
 }
 
+// --- CreateLoveIfAbsent ---
+
+func TestActionRepositoryCreateLoveIfAbsentReturnsConflictOnDuplicateOccurredAt(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			err := ops.Action().CreateLoveIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.LoveActionTypeLove,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateLoveIfAbsent() first error", err)
+
+			err = ops.Action().CreateLoveIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.LoveActionTypeLoveCanceled,
+				baseTime,
+				periodStartAt,
+			)
+			assert.ErrorIs(t, "CreateLoveIfAbsent() second error", err, persist.ErrConflict)
+		})
+	})
+}
+
+func TestActionRepositoryCreateLoveIfAbsentAllowsDifferentOccurredAt(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+
+			err := ops.Action().CreateLoveIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.LoveActionTypeLove,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateLoveIfAbsent() first error", err)
+
+			err = ops.Action().CreateLoveIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.LoveActionTypeLoveCanceled,
+				baseTime.Add(time.Microsecond),
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateLoveIfAbsent() second error", err)
+		})
+	})
+}
+
+func TestActionRepositoryCreateLoveIfAbsentAllowsDuplicateOccurredAtForNonLove(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	periodStartAt := actionResolver.PeriodStart(baseTime)
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+			_, err := ops.Action().Create(
+				t.Context(),
+				ingest.ID,
+				model.ActionTypeView,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "Create() error", err)
+
+			err = ops.Action().CreateLoveIfAbsent(
+				t.Context(),
+				ingest.ID,
+				persist.LoveActionTypeLove,
+				baseTime,
+				periodStartAt,
+			)
+			assert.NilError(t, "CreateLoveIfAbsent() error", err)
+		})
+	})
+}
+
 // --- ExistsSince ---
 
 func TestActionRepositoryExistsSinceReturnsFalse(t *testing.T) {

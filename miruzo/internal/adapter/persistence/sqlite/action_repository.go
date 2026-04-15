@@ -56,6 +56,30 @@ func (repo actionRepository) CreateDailyDecayIfAbsent(
 	return nil
 }
 
+func (repo actionRepository) CreateLoveIfAbsent(
+	ctx context.Context,
+	ingestID model.IngestIDType,
+	loveType persist.LoveActionType,
+	occurredAt time.Time,
+	periodStartAt time.Time,
+) error {
+	rowCount, err := repo.queries.CreateLoveActionIfAbsent(ctx, gen.CreateLoveActionIfAbsentParams{
+		IngestID:      ingestID,
+		Kind:          int64(loveType),
+		OccurredAt:    occurredAt,
+		PeriodStartAt: periodStartAt,
+	})
+	if err != nil {
+		return shared.MapSQLiteError("CreateLoveIfAbsent", err)
+	}
+
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
+}
+
 func (repo actionRepository) ExistsSince(
 	ctx context.Context,
 	ingestID model.IngestIDType,
