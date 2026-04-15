@@ -133,34 +133,93 @@ func TestActionSchemaRejectsInvalidPeriodStartAt(t *testing.T) {
 	})
 }
 
-func TestActionSchemaRejectsDuplicateDecayPerPeriod(t *testing.T) {
-	baseTime := mb.GetDefaultBaseTime()
-	periodStartAt := actionResolver.PeriodStart(baseTime)
+type testActionUniqueViolation struct {
+	name             string
+	firstActionType  model.ActionType
+	firstOccurredAt  time.Time
+	secondActionType model.ActionType
+	secondOccurredAt time.Time
+}
+
+func assertActionUniqueViolation(t *testing.T, tests []testActionUniqueViolation) {
+	t.Helper()
+
 	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at, period_start_at) VALUES(%s, %s, %s, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
-		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
-			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-			dialectStmt := fmt.Sprintf(stmt, ops.ParamRange(1, 4)...)
-			ops.MustExec(
-				t,
-				dialectStmt,
-				ingest.ID,
-				model.ActionTypeDecay,
-				baseTime,
-				periodStartAt,
-			)
-			ops.AssertExecErrorIs(
-				t,
-				c.DBErrorMappingDefault,
-				persist.ErrUniqueViolation,
-				dialectStmt,
-				ingest.ID,
-				model.ActionTypeDecay,
-				baseTime.Add(time.Second),
-				periodStartAt,
-			)
-		})
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+					ingest := ops.MustAddIngest(t, mb.Ingest().Build())
+					dialectStmt := fmt.Sprintf(stmt, ops.ParamRange(1, 4)...)
+					ops.MustExec(
+						t,
+						dialectStmt,
+						ingest.ID,
+						tt.firstActionType,
+						tt.firstOccurredAt,
+						actionResolver.PeriodStart(tt.firstOccurredAt),
+					)
+					ops.AssertExecErrorIs(
+						t,
+						c.DBErrorMappingDefault,
+						persist.ErrUniqueViolation,
+						dialectStmt,
+						ingest.ID,
+						tt.secondActionType,
+						tt.secondOccurredAt,
+						actionResolver.PeriodStart(tt.secondOccurredAt),
+					)
+				})
+			})
+		}
+	})
+}
+
+func TestActionSchemaRejectsDuplicateDecayPerPeriod(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	assertActionUniqueViolation(t, []testActionUniqueViolation{
+		{
+			name:             "SamePeriodSameOccurredAt",
+			firstActionType:  model.ActionTypeDecay,
+			firstOccurredAt:  baseTime.Add(1 * time.Microsecond),
+			secondActionType: model.ActionTypeDecay,
+			secondOccurredAt: baseTime.Add(1 * time.Microsecond),
+		},
+		{
+			name:             "SamePeriodDifferentOccurredAt",
+			firstActionType:  model.ActionTypeDecay,
+			firstOccurredAt:  baseTime.Add(1 * time.Microsecond),
+			secondActionType: model.ActionTypeDecay,
+			secondOccurredAt: baseTime.Add(2 * time.Microsecond),
+		},
+	})
+}
+
+func TestActionSchemaRejectsDuplicateLovePerTimestamp(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime().Add(time.Minute)
+	assertActionUniqueViolation(t, []testActionUniqueViolation{
+		{
+			name:             "LoveThenLoveAtSameOccurredAt",
+			firstActionType:  model.ActionTypeLove,
+			firstOccurredAt:  baseTime,
+			secondActionType: model.ActionTypeLove,
+			secondOccurredAt: baseTime,
+		},
+		{
+			name:             "LoveCanceledThenLoveCanceledAtSameOccurredAt",
+			firstActionType:  model.ActionTypeLoveCanceled,
+			firstOccurredAt:  baseTime,
+			secondActionType: model.ActionTypeLoveCanceled,
+			secondOccurredAt: baseTime,
+		},
+		{
+			name:             "LoveThenLoveCanceledAtSameOccurredAt",
+			firstActionType:  model.ActionTypeLove,
+			firstOccurredAt:  baseTime,
+			secondActionType: model.ActionTypeLoveCanceled,
+			secondOccurredAt: baseTime,
+		},
 	})
 }
 

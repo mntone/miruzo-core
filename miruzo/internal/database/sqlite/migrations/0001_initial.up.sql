@@ -139,6 +139,9 @@ CREATE TABLE actions(
 CREATE UNIQUE INDEX uq_actions_decay_once_per_period
 ON actions(ingest_id, period_start_at)
 WHERE kind=1/*decay*/;
+CREATE UNIQUE INDEX uq_actions_love_once_per_timestamp
+ON actions(ingest_id, occurred_at)
+WHERE kind IN(13/*love*/, 14/*love_canceled*/);
 
 -- Create jobs table
 CREATE TABLE jobs(
