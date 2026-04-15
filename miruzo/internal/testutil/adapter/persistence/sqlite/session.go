@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -17,6 +15,7 @@ import (
 )
 
 type sqliteTxSession struct {
+	sqliteDialect
 	tx     *sql.Tx
 	nextID model.IngestIDType
 	persist.SessionRepositories
@@ -28,30 +27,6 @@ func newTxSession(tx *sql.Tx) *sqliteTxSession {
 		nextID:              modelbuilder.GetNextID(),
 		SessionRepositories: sqlite.NewSessionRepositories(gen.New(tx)),
 	}
-}
-
-// --- Dialect ---
-
-func (s sqliteTxSession) Backend() backend.Backend {
-	return backend.SQLite
-}
-
-func (s sqliteTxSession) MapError(
-	operation string,
-	err error,
-	mapping contract.DBErrorMapping,
-) error {
-	switch mapping {
-	case contract.DBErrorMappingDefault:
-		err = dbshared.MapSQLiteError(operation, err)
-	case contract.DBErrorMappingDelete:
-		err = dbshared.MapSQLiteDeleteError(operation, err)
-	}
-	return err
-}
-
-func (s sqliteTxSession) BindVarStyle() contract.BindVarStyle {
-	return contract.BindVarStyleQuestion
 }
 
 // --- TransactionOperations ---

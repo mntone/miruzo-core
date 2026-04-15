@@ -5,32 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
-
-type BindVarStyle string
-
-const (
-	BindVarStyleDollar   BindVarStyle = "$"
-	BindVarStyleQuestion BindVarStyle = "?"
-)
-
-type DBErrorMapping string
-
-const (
-	DBErrorMappingNone    DBErrorMapping = "none"
-	DBErrorMappingDefault DBErrorMapping = "default"
-	DBErrorMappingDelete  DBErrorMapping = "delete"
-)
-
-type Dialect interface {
-	Backend() backend.Backend
-	MapError(operation string, err error, mapping DBErrorMapping) error
-	BindVarStyle() BindVarStyle
-}
 
 type TransactionOperations interface {
 	Exec(t testing.TB, stmt string, args ...any) error
@@ -57,27 +35,6 @@ type TxSession struct {
 	Dialect
 	TransactionOperations
 	RepositoryProvider
-}
-
-// --- dialect helpers ---
-
-// Param returns placeholder for index.
-func (s TxSession) Param(index int32) string {
-	return fmt.Sprintf("%s%d", s.BindVarStyle(), index)
-}
-
-// ParamRange returns placeholders for [start, end] (inclusive).
-func (s TxSession) ParamRange(start, end int32) []any {
-	if start > end {
-		panic("invalid param range: start > end")
-	}
-
-	length := end - start + 1
-	params := make([]any, length)
-	for i := int32(0); i < length; i += 1 {
-		params[i] = s.Param(start + i)
-	}
-	return params
 }
 
 // --- operation helpers ---

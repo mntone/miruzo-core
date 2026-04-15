@@ -12,6 +12,7 @@ import (
 )
 
 type postgresHarness struct {
+	postgresDialect
 	pool *pgxpool.Pool
 }
 

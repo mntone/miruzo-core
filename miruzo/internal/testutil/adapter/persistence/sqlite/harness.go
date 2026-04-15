@@ -11,6 +11,7 @@ import (
 )
 
 type sqliteHarness struct {
+	sqliteDialect
 	db *sql.DB
 }
 

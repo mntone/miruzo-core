@@ -9,6 +9,8 @@ import (
 type TxCallback func(t *testing.T, ops TxSession)
 
 type Harness interface {
+	Dialect
+
 	Backend() backend.Backend
 	Supports(capability Capability) bool
 	RequireCapability(t testing.TB, capability Capability)

@@ -8,7 +8,6 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
-	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -18,6 +17,7 @@ import (
 )
 
 type postgresTxSession struct {
+	postgresDialect
 	tx     pgx.Tx
 	nextID model.IngestIDType
 	persist.SessionRepositories
@@ -29,30 +29,6 @@ func newTxSession(tx pgx.Tx) *postgresTxSession {
 		nextID:              modelbuilder.GetNextID(),
 		SessionRepositories: postgres.NewSessionRepositories(gen.New(tx)),
 	}
-}
-
-// --- Dialect ---
-
-func (s postgresTxSession) Backend() backend.Backend {
-	return backend.PostgreSQL
-}
-
-func (s postgresTxSession) MapError(
-	operation string,
-	err error,
-	mapping contract.DBErrorMapping,
-) error {
-	switch mapping {
-	case contract.DBErrorMappingDefault:
-		err = dbshared.MapPostgreError(operation, err)
-	case contract.DBErrorMappingDelete:
-		err = dbshared.MapPostgreDeleteError(operation, err)
-	}
-	return err
-}
-
-func (s postgresTxSession) BindVarStyle() contract.BindVarStyle {
-	return contract.BindVarStyleDollar
 }
 
 // --- TransactionOperations ---
