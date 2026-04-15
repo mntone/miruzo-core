@@ -27,6 +27,8 @@ func TestActionSchemaRejectsInvalidKind(t *testing.T) {
 	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at, period_start_at) VALUES(%s, %s, %s, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 4)...)
+
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
@@ -35,7 +37,7 @@ func TestActionSchemaRejectsInvalidKind(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(stmt, ops.ParamRange(1, 4)...),
+						dialectStmt,
 						ingest.ID,
 						tt,
 						baseTime,
@@ -71,6 +73,8 @@ func TestActionSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RequireCapability(t, c.SupportsInfinityTimestamp)
 
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 3)...)
+
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
@@ -79,7 +83,7 @@ func TestActionSchemaRejectsInvalidOccurredAt(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						tt.wantErr,
-						fmt.Sprintf(stmt, ops.ParamRange(1, 3)...),
+						dialectStmt,
 						ingest.ID,
 						tt.occurredAt,
 						baseTime,
@@ -114,6 +118,8 @@ func TestActionSchemaRejectsInvalidPeriodStartAt(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RequireCapability(t, c.SupportsInfinityTimestamp)
 
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 3)...)
+
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ingest := ops.MustAddIngest(t, mb.Ingest().Build())
@@ -122,7 +128,7 @@ func TestActionSchemaRejectsInvalidPeriodStartAt(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						tt.wantErr,
-						fmt.Sprintf(stmt, ops.ParamRange(1, 3)...),
+						dialectStmt,
 						ingest.ID,
 						baseTime,
 						tt.periodStartAt,
@@ -147,11 +153,12 @@ func assertActionUniqueViolation(t *testing.T, tests []testActionUniqueViolation
 	stmt := "INSERT INTO actions(ingest_id, kind, occurred_at, period_start_at) VALUES(%s, %s, %s, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 4)...)
+
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 					ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-					dialectStmt := fmt.Sprintf(stmt, ops.ParamRange(1, 4)...)
 					ops.MustExec(
 						t,
 						dialectStmt,

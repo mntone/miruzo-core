@@ -17,6 +17,8 @@ func TestUserRepositorySchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 	stmt := "UPDATE users SET daily_love_used=%s WHERE id=1"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmt := fmt.Sprintf(stmt, h.Param(1))
+
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				t.Run(fmt.Sprintf("daily_love_used=%d", tt), func(t *testing.T) {
@@ -24,7 +26,7 @@ func TestUserRepositorySchemaRejectsInvalidDailyLoveUsed(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(stmt, ops.Param(1)),
+						dialectStmt,
 						tt,
 					)
 				})

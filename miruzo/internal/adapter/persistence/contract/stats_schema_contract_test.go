@@ -26,9 +26,11 @@ func TestStatsSchemaRejectsInvalidScore(t *testing.T) {
 	}
 
 	ingest := mb.Ingest().Build()
-	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated) VALUES(%s, %d, %s)"
+	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated) VALUES(%s, %%d, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmtFmt := fmt.Sprintf(stmt, h.ParamRange(1, 2)...)
+
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ops.MustAddIngest(t, ingest)
@@ -37,7 +39,7 @@ func TestStatsSchemaRejectsInvalidScore(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(stmt, ops.Param(1), tt.score, ops.Param(2)),
+						fmt.Sprintf(dialectStmtFmt, tt.score),
 						ingest.ID,
 						100,
 					)
@@ -66,9 +68,11 @@ func TestStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
 	}
 
 	ingest := mb.Ingest().Build()
-	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated, score_evaluated_at) VALUES(%s, %s, %d, %s)"
+	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated, score_evaluated_at) VALUES(%s, %s, %%d, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmtFmt := fmt.Sprintf(stmt, h.ParamRange(1, 3)...)
+
 		for _, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				ops.MustAddIngest(t, ingest)
@@ -77,7 +81,7 @@ func TestStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(stmt, ops.Param(1), ops.Param(2), tt.scoreEvaluated, ops.Param(3)),
+						fmt.Sprintf(dialectStmtFmt, tt.scoreEvaluated),
 						ingest.ID,
 						100,
 						tt.scoreEvaluatedAt,

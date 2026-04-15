@@ -34,6 +34,8 @@ func TestIngestSchemaRejectsInvalidRelativePath(t *testing.T) {
 	stmt := "INSERT INTO ingests(relative_path, fingerprint, ingested_at, captured_at, updated_at) VALUES(%s, %s, %s, %s, %s)"
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 5)...)
+
 		for i, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				t.Run(tt.name, func(t *testing.T) {
@@ -41,7 +43,7 @@ func TestIngestSchemaRejectsInvalidRelativePath(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(stmt, ops.ParamRange(1, 5)...),
+						dialectStmt,
 						tt.relativePath,
 						fmt.Sprintf("%064d", i+1),
 						baseTime,
@@ -93,6 +95,8 @@ func TestIngestSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RequireCapability(t, c.SupportsInfinityTimestamp)
 
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 5)...)
+
 		for i, tt := range tests {
 			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 				t.Run(tt.name, func(t *testing.T) {
@@ -100,7 +104,7 @@ func TestIngestSchemaRejectsInvalidOccurredAt(t *testing.T) {
 						t,
 						c.DBErrorMappingDefault,
 						persist.ErrCheckViolation,
-						fmt.Sprintf(stmt, ops.ParamRange(1, 5)...),
+						dialectStmt,
 						"orig/test.png",
 						fmt.Sprintf("%064d", i+1),
 						tt.ingestedAt,
