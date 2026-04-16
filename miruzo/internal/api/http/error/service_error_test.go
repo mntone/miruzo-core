@@ -1,7 +1,6 @@
 package error_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +13,7 @@ import (
 func TestWriteServiceErrorWritesNothingForCanceled(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 
-	httperror.WriteServiceError(responseRecorder, context.Canceled)
+	httperror.WriteServiceError(responseRecorder, serviceerror.ErrClientClosedRequest)
 
 	if responseRecorder.Code != http.StatusOK {
 		t.Fatalf("expected default status 200, got %d", responseRecorder.Code)
@@ -111,19 +110,6 @@ func TestWriteServiceErrorReturnsGatewayTimeoutForTimeout(t *testing.T) {
 		responseRecorder,
 		fmt.Errorf("query timed out: %w", serviceerror.ErrGatewayTimeout),
 	)
-
-	if responseRecorder.Code != http.StatusGatewayTimeout {
-		t.Fatalf("expected status 504, got %d", responseRecorder.Code)
-	}
-	if responseRecorder.Body.String() != "{\"type\":\"gateway_timeout\"}" {
-		t.Fatalf("unexpected body: %q", responseRecorder.Body.String())
-	}
-}
-
-func TestWriteServiceErrorReturnsGatewayTimeoutForDeadlineExceeded(t *testing.T) {
-	responseRecorder := httptest.NewRecorder()
-
-	httperror.WriteServiceError(responseRecorder, context.DeadlineExceeded)
 
 	if responseRecorder.Code != http.StatusGatewayTimeout {
 		t.Fatalf("expected status 504, got %d", responseRecorder.Code)

@@ -10,86 +10,93 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-func TestMapPersistErrorMapsNotFound(t *testing.T) {
-	err := serviceerror.MapPersistError(fmt.Errorf("not found: %w", persist.ErrNotFound))
-	if !errors.Is(err, serviceerror.ErrNotFound) {
-		t.Fatalf("expected ErrNotFound, got %v", err)
-	}
-}
+func TestMapPersistErrorMapsErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		inErr   error
+		wantErr error
+	}{
+		// App errors
+		{"conflict", fmt.Errorf("x: %w", persist.ErrConflict), serviceerror.ErrConflict},
+		{"no_rows", fmt.Errorf("x: %w", persist.ErrNoRows), serviceerror.ErrNotFound},
+		{"quota_exceeded", fmt.Errorf("x: %w", persist.ErrQuotaExceeded), serviceerror.ErrTooManyRequests},
+		{"quota_underflow", fmt.Errorf("x: %w", persist.ErrQuotaUnderflow), serviceerror.ErrConflict},
 
-func TestMapPersistErrorMapsQuotaExceeded(t *testing.T) {
-	err := serviceerror.MapPersistError(fmt.Errorf("not found: %w", persist.ErrQuotaExceeded))
-	if !errors.Is(err, serviceerror.ErrTooManyRequests) {
-		t.Fatalf("expected ErrTooManyRequests, got %v", err)
-	}
-}
+		// Canceled errors
+		{"context_canceled", fmt.Errorf("x: %w", persist.ErrContextCanceled), serviceerror.ErrClientClosedRequest},
+		{"deadline_exceeded", fmt.Errorf("x: %w", persist.ErrDeadlineExceeded), serviceerror.ErrGatewayTimeout},
+		{"query_canceled", fmt.Errorf("x: %w", persist.ErrQueryCanceled), serviceerror.ErrGatewayTimeout},
 
-func TestMapPersistErrorMapsTimeout(t *testing.T) {
-	err := serviceerror.MapPersistError(fmt.Errorf("query timeout: %w", persist.ErrTimeout))
-	if !errors.Is(err, serviceerror.ErrGatewayTimeout) {
-		t.Fatalf("expected ErrGatewayTimeout, got %v", err)
-	}
-}
+		// Connection errors
+		{"conn_init", fmt.Errorf("x: %w", persist.ErrConnectionInit), serviceerror.ErrServiceUnavailable},
+		{"conn_lost", fmt.Errorf("x: %w", persist.ErrConnectionLost), serviceerror.ErrServiceUnavailable},
+		{"conn_refused", fmt.Errorf("x: %w", persist.ErrConnectionRefused), serviceerror.ErrServiceUnavailable},
+		{"conn_timeout", fmt.Errorf("x: %w", persist.ErrConnectionTimeout), serviceerror.ErrGatewayTimeout},
+		{"conn_unavailable", fmt.Errorf("x: %w", persist.ErrConnectionUnavailable), serviceerror.ErrServiceUnavailable},
 
-func TestMapPersistErrorMapsUnavailable(t *testing.T) {
-	err := serviceerror.MapPersistError(fmt.Errorf("unavailable: %w", persist.ErrUnavailable))
-	if !errors.Is(err, serviceerror.ErrServiceUnavailable) {
-		t.Fatalf("expected ErrServiceUnavailable, got %v", err)
-	}
+		// Constraint violations
+		{"check", fmt.Errorf("x: %w", persist.ErrCheckViolation), serviceerror.ErrUnprocessableContent},
+		{"exclusion", fmt.Errorf("x: %w", persist.ErrExclusionViolation), serviceerror.ErrConflict},
+		{"fk_not_found", fmt.Errorf("x: %w", persist.ErrForeignKeyReferenceNotFound), serviceerror.ErrUnprocessableContent},
+		{"fk_referenced", fmt.Errorf("x: %w", persist.ErrForeignKeyReferenced), serviceerror.ErrConflict},
+		{"not_null", fmt.Errorf("x: %w", persist.ErrNotNullViolation), serviceerror.ErrUnprocessableContent},
+		{"unique", fmt.Errorf("x: %w", persist.ErrUniqueViolation), serviceerror.ErrConflict},
+		{"invalid_param", fmt.Errorf("x: %w", persist.ErrInvalidParam), serviceerror.ErrUnprocessableContent},
 
-	recoverableErr := serviceerror.MapPersistError(
-		fmt.Errorf("recoverable unavailable: %w", persist.ErrRecoverableUnavailable),
-	)
-	if !errors.Is(recoverableErr, serviceerror.ErrServiceUnavailable) {
-		t.Fatalf("expected ErrServiceUnavailable, got %v", recoverableErr)
-	}
-}
+		// Contention errors
+		{"deadlock", fmt.Errorf("x: %w", persist.ErrDeadlockDetected), serviceerror.ErrServiceUnavailable},
+		{"lock_timeout", fmt.Errorf("x: %w", persist.ErrLockTimeout), serviceerror.ErrServiceUnavailable},
+		{"lock_unavailable", fmt.Errorf("x: %w", persist.ErrLockUnavailable), serviceerror.ErrServiceUnavailable},
+		{"resource_busy", fmt.Errorf("x: %w", persist.ErrResourceBusy), serviceerror.ErrServiceUnavailable},
+		{"tx_serialization", fmt.Errorf("x: %w", persist.ErrTxSerialization), serviceerror.ErrServiceUnavailable},
 
-func TestMapPersistErrorMapsConflict(t *testing.T) {
-	tests := []error{
-		fmt.Errorf("conflict: %w", persist.ErrConflict),
-		fmt.Errorf("recoverable conflict: %w", persist.ErrRecoverableConflict),
-		fmt.Errorf("unique violation: %w", persist.ErrUniqueViolation),
-		fmt.Errorf("exclusion violation: %w", persist.ErrExclusionViolation),
-		fmt.Errorf("foreign key referenced: %w", persist.ErrForeignKeyReferenced),
-		fmt.Errorf("quota underflow: %w", persist.ErrQuotaUnderflow),
+		// Resource exhaustion
+		{"out_of_memory", fmt.Errorf("x: %w", persist.ErrOutOfMemory), serviceerror.ErrServiceUnavailable},
+		{"resource_exhausted", fmt.Errorf("x: %w", persist.ErrResourceExhausted), serviceerror.ErrServiceUnavailable},
+		{"storage_full", fmt.Errorf("x: %w", persist.ErrStorageFull), serviceerror.ErrServiceUnavailable},
+		{"too_many_connections", fmt.Errorf("x: %w", persist.ErrTooManyConnections), serviceerror.ErrTooManyRequests},
+
+		// Storage errors
+		{"storage_corrupted", fmt.Errorf("x: %w", persist.ErrStorageCorrupted), serviceerror.ErrServiceUnavailable},
+		{"storage_unavailable", fmt.Errorf("x: %w", persist.ErrStorageUnavailable), serviceerror.ErrServiceUnavailable},
+
+		// Syntax errors
 	}
 
 	for _, tt := range tests {
-		gotErr := serviceerror.MapPersistError(tt)
-		assert.ErrorIs(t, gotErr.Error(), gotErr, serviceerror.ErrConflict)
+		t.Run(tt.name, func(t *testing.T) {
+			got := serviceerror.MapPersistError(tt.inErr)
+			if tt.wantErr == nil {
+				assert.ErrorIs(t, "err", got, tt.inErr)
+			} else {
+				assert.ErrorIs(t, "err", got, tt.wantErr)
+			}
+		})
 	}
 }
 
-func TestMapPersistErrorMapsUnprocessableContent(t *testing.T) {
-	checkErr := serviceerror.MapPersistError(fmt.Errorf("check: %w", persist.ErrCheckViolation))
-	if !errors.Is(checkErr, serviceerror.ErrUnprocessableContent) {
-		t.Fatalf("expected ErrUnprocessableContent for check, got %v", checkErr)
+func TestMapPersistErrorPassesThroughErrors(t *testing.T) {
+	tests := []struct {
+		name  string
+		inErr error
+	}{
+		// Nil error
+		{"nil error", nil},
+
+		// Syntax errors
+		{"syntax_error", fmt.Errorf("x: %w", persist.ErrSyntax)},
+		{"invalid_statement", fmt.Errorf("x: %w", persist.ErrInvalidStatement)},
+
+		// Unknown error
+		{"unknown error", errors.New("unknown error")},
 	}
 
-	notNullErr := serviceerror.MapPersistError(fmt.Errorf("not null: %w", persist.ErrNotNullViolation))
-	if !errors.Is(notNullErr, serviceerror.ErrUnprocessableContent) {
-		t.Fatalf("expected ErrUnprocessableContent for not null, got %v", notNullErr)
-	}
-
-	foreignKeyReferenceNotFoundErr := serviceerror.MapPersistError(
-		fmt.Errorf(
-			"foreign key reference not found: %w",
-			persist.ErrForeignKeyReferenceNotFound,
-		),
-	)
-	if !errors.Is(foreignKeyReferenceNotFoundErr, serviceerror.ErrUnprocessableContent) {
-		t.Fatalf(
-			"expected ErrUnprocessableContent for foreign key reference not found, got %v",
-			foreignKeyReferenceNotFoundErr,
-		)
-	}
-}
-
-func TestMapPersistErrorPassesThroughUnknownError(t *testing.T) {
-	source := errors.New("unknown error")
-	err := serviceerror.MapPersistError(source)
-	if !errors.Is(err, source) {
-		t.Fatalf("expected original error, got %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := serviceerror.MapPersistError(tt.inErr)
+			if !errors.Is(err, tt.inErr) {
+				t.Fatalf("err = got %v, want original error", err)
+			}
+		})
 	}
 }

@@ -112,7 +112,7 @@ func TestGetQuotaReturnsNotFoundWhenSingletonUserMissing(t *testing.T) {
 	offset := 5 * time.Hour
 	resolver := period.NewDailyResolver(offset)
 	repo := stub.NewStubUserRepository(0)
-	repo.GetError = persist.ErrNotFound
+	repo.GetError = persist.ErrNoRows
 
 	service, err := user.New(
 		repo,

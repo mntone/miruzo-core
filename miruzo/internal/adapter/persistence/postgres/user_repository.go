@@ -21,7 +21,7 @@ func (repo userRepository) Get(
 	user, err := repo.queries.GetUser(ctx)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return persist.User{}, persist.ErrNotFound
+			return persist.User{}, persist.ErrNoRows
 		}
 
 		return persist.User{}, shared.MapPostgreError("Get", err)
@@ -53,7 +53,7 @@ func (repo userRepository) DecrementDailyLoveUsed(ctx context.Context) (model.Qu
 	dailyLoveUsed, err := repo.queries.DecrementDailyLoveUsed(ctx)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, persist.ErrNotFound
+			return 0, persist.ErrNoRows
 		}
 
 		mapError := shared.MapPostgreError("DecrementDailyLoveUsed", err)
@@ -73,7 +73,7 @@ func (repo userRepository) ResetDailyLoveUsed(ctx context.Context) error {
 	}
 
 	if rowCount == 0 {
-		return persist.ErrNotFound
+		return persist.ErrNoRows
 	}
 
 	return nil

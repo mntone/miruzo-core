@@ -149,7 +149,7 @@ func (repo repository) ApplyView(
 	}
 
 	if rowCount == 0 {
-		return persist.ErrNotFound
+		return persist.ErrNoRows
 	}
 
 	return nil
@@ -171,7 +171,7 @@ func (repo repository) ApplyViewWithMilestone(
 	}
 
 	if rowCount == 0 {
-		return persist.ErrNotFound
+		return persist.ErrNoRows
 	}
 
 	return nil

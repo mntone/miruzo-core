@@ -12,7 +12,7 @@ func TestSettingsRepositoryGetValueReturnsNotFound(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			_, err := ops.Settings().GetValue(t.Context(), "key2")
-			assert.ErrorIs(t, "GetValue() error", err, persist.ErrNotFound)
+			assert.ErrorIs(t, "GetValue() error", err, persist.ErrNoRows)
 		})
 	})
 }

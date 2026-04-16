@@ -66,7 +66,7 @@ func (prov *TimezoneProvider) EnsureSettings(
 		prov.location = mo.Some(appLocation)
 		return
 	}
-	if !errors.Is(err, persist.ErrNotFound) {
+	if !errors.Is(err, persist.ErrNoRows) {
 		log.Fatalf("settings: failed to load timezone: %v", err)
 	}
 

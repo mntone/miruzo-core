@@ -42,7 +42,7 @@ func TestStatsRepositoryApplyViewReturnsNotFound(t *testing.T) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ops.MustAddIngest(t, ingest)
 			err := ops.Stats().ApplyView(t.Context(), ingest.ID, scoreDelta, evaluatedAt)
-			assert.ErrorIs(t, "ApplyView() error", err, persist.ErrNotFound)
+			assert.ErrorIs(t, "ApplyView() error", err, persist.ErrNoRows)
 		})
 	})
 }
@@ -89,7 +89,7 @@ func TestStatsRepositoryApplyViewWithMilestoneReturnsNotFound(t *testing.T) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ops.MustAddIngest(t, ingest)
 			err := ops.Stats().ApplyViewWithMilestone(t.Context(), ingest.ID, scoreDelta, evaluatedAt)
-			assert.ErrorIs(t, "ApplyViewWithMilestone() error", err, persist.ErrNotFound)
+			assert.ErrorIs(t, "ApplyViewWithMilestone() error", err, persist.ErrNoRows)
 		})
 	})
 }

@@ -98,7 +98,7 @@ func TestListBaseMapsPersistErrorToServiceError(t *testing.T) {
 		2,
 		[]media.ImageFormat{},
 		func(requestContext context.Context, loadSpec int) ([]persist.ImageWithCursorKey[time.Time], error) {
-			return nil, fmt.Errorf("database unavailable: %w", persist.ErrUnavailable)
+			return nil, fmt.Errorf("database unavailable: %w", persist.ErrConnectionLost)
 		},
 		0,
 		testutilDomain.NewTestVariantLayersBuilder(),

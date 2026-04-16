@@ -1,7 +1,6 @@
 package error
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"unsafe"
@@ -61,7 +60,7 @@ func WriteInternalServerError(responseWriter http.ResponseWriter) {
 
 func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, context.Canceled):
+	case errors.Is(err, serviceerror.ErrClientClosedRequest):
 		return
 
 	case errors.Is(err, serviceerror.ErrNotFound):
@@ -99,7 +98,7 @@ func WriteServiceError(responseWriter http.ResponseWriter, err error) {
 			getUnsafeByteSlice(jsonTooManyRequests),
 		)
 
-	case errors.Is(err, serviceerror.ErrGatewayTimeout), errors.Is(err, context.DeadlineExceeded):
+	case errors.Is(err, serviceerror.ErrGatewayTimeout):
 		_ = response.WriteJSONBytes(
 			responseWriter,
 			http.StatusGatewayTimeout,

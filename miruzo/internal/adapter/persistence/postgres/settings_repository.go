@@ -21,7 +21,7 @@ func (repo settingsRepository) GetValue(
 	value, err := repo.queries.GetSettingsValueByKey(ctx, key)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", persist.ErrNotFound
+			return "", persist.ErrNoRows
 		}
 
 		return "", shared.MapPostgreError("GetValue", err)

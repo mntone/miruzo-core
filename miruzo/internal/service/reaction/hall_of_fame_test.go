@@ -96,7 +96,7 @@ func TestGrantHallOfFameReturnsServiceUnavailableWhenStatsUpdateFails(t *testing
 		IngestID: ingestID,
 		Score:    180,
 	})
-	provider.StatsStub.ApplyHallOfFameGrantedError = persist.ErrUnavailable
+	provider.StatsStub.ApplyHallOfFameGrantedError = persist.ErrConnectionLost
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
@@ -123,7 +123,7 @@ func TestGrantHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 		IngestID: ingestID,
 		Score:    180,
 	})
-	provider.ActionStub.CreateHallOfFameIfAbsentError = persist.ErrUnavailable
+	provider.ActionStub.CreateHallOfFameIfAbsentError = persist.ErrConnectionLost
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
@@ -229,7 +229,7 @@ func TestRevokeHallOfFameReturnsServiceUnavailableWhenStatsUpdateFails(t *testin
 		Score:        180,
 		HallOfFameAt: mo.Some(current.Add(-2 * time.Hour)),
 	})
-	provider.StatsStub.ApplyHallOfFameRevokedError = persist.ErrUnavailable
+	provider.StatsStub.ApplyHallOfFameRevokedError = persist.ErrConnectionLost
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 
@@ -257,7 +257,7 @@ func TestRevokeHallOfFameRollsBackWhenActionCreateFails(t *testing.T) {
 		Score:        180,
 		HallOfFameAt: mo.Some(current.Add(-2 * time.Hour)),
 	})
-	provider.ActionStub.CreateHallOfFameIfAbsentError = persist.ErrUnavailable
+	provider.ActionStub.CreateHallOfFameIfAbsentError = persist.ErrConnectionLost
 	resolver := period.NewDailyResolver(offset)
 	scoreCalc := testutilDomain.NewTestScoreCalculator(resolver)
 

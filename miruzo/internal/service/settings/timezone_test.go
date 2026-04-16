@@ -29,7 +29,7 @@ func TestTimezoneProviderEnsureSettingsUsesStoredValue(t *testing.T) {
 func TestTimezoneProviderEnsureSettingsUsesInitialLocation(t *testing.T) {
 	t.Parallel()
 
-	repo := stub.NewStubSettingsRepositoryWithGetError(persist.ErrNotFound)
+	repo := stub.NewStubSettingsRepositoryWithGetError(persist.ErrNoRows)
 	resolver := tt.NewFixedTimezoneResolverWithLocation("America/New_York")
 	provider := NewTimezoneProvider(repo, resolver)
 
@@ -44,7 +44,7 @@ func TestTimezoneProviderEnsureSettingsUsesInitialLocation(t *testing.T) {
 func TestTimezoneProviderEnsureSettingsUsesSystemLocation(t *testing.T) {
 	t.Parallel()
 
-	repo := stub.NewStubSettingsRepositoryWithGetError(persist.ErrNotFound)
+	repo := stub.NewStubSettingsRepositoryWithGetError(persist.ErrNoRows)
 	resolver := tt.NewFixedTimezoneResolverWithLocation("America/New_York")
 	provider := NewTimezoneProvider(repo, resolver)
 
@@ -58,7 +58,7 @@ func TestTimezoneProviderEnsureSettingsUsesSystemLocation(t *testing.T) {
 func TestTimezoneProviderEnsureSettingsFallsBackToUTC(t *testing.T) {
 	t.Parallel()
 
-	repo := stub.NewStubSettingsRepositoryWithGetError(persist.ErrNotFound)
+	repo := stub.NewStubSettingsRepositoryWithGetError(persist.ErrNoRows)
 	resolver := tt.NewEmptyTimezoneResolver()
 	provider := NewTimezoneProvider(repo, resolver)
 

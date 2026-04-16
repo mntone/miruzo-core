@@ -123,7 +123,7 @@ func TestDailyDecayServiceApplyReturnsCreateDailyDecayIfAbsentError(t *testing.T
 		baseTime.Add(1*time.Second),
 		mb.Stats(1).Score(120).Viewed(2, baseTime.Add(-time.Hour)).Build(),
 	)
-	mgr.ActionStub.CreateDailyDecayIfAbsentError = persist.ErrUnavailable
+	mgr.ActionStub.CreateDailyDecayIfAbsentError = persist.ErrConnectionLost
 
 	err := service.ApplyDailyDecay(context.Background())
 	assert.ErrorIs(t, "ApplyDailyDecay() error", err, serviceerror.ErrServiceUnavailable)

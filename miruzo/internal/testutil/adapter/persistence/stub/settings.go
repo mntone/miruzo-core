@@ -59,7 +59,7 @@ func (repo *settingsRepository) GetValue(
 
 	value, ok := repo.Store[key]
 	if !ok {
-		return "", persist.ErrNotFound
+		return "", persist.ErrNoRows
 	}
 
 	return value, nil

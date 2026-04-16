@@ -54,7 +54,7 @@ func TestUserRepositoryGetReturnsNotFoundWhenUserMissing(t *testing.T) {
 			ops.MustRemoveUser(t)
 
 			_, err := ops.User().Get(t.Context())
-			assert.ErrorIs(t, "Get() error", err, persist.ErrNotFound)
+			assert.ErrorIs(t, "Get() error", err, persist.ErrNoRows)
 		})
 	})
 }
@@ -113,7 +113,7 @@ func TestUserRepositoryDecrementDailyLoveUsedReturnsNotFound(t *testing.T) {
 			ops.MustRemoveUser(t)
 
 			_, err := ops.User().DecrementDailyLoveUsed(t.Context())
-			assert.ErrorIs(t, "DecrementDailyLoveUsed() error", err, persist.ErrNotFound)
+			assert.ErrorIs(t, "DecrementDailyLoveUsed() error", err, persist.ErrNoRows)
 		})
 	})
 }
@@ -150,7 +150,7 @@ func TestUserRepositoryResetDailyLoveUsedReturnsNotFoundWhenUserMissing(t *testi
 			ops.MustRemoveUser(t)
 
 			err := ops.User().ResetDailyLoveUsed(t.Context())
-			assert.ErrorIs(t, "ResetDailyLoveUsed() error", err, persist.ErrNotFound)
+			assert.ErrorIs(t, "ResetDailyLoveUsed() error", err, persist.ErrNoRows)
 		})
 	})
 }

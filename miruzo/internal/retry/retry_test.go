@@ -32,7 +32,7 @@ func TestRetryRetriesRecoverableErrors(t *testing.T) {
 		func(_ context.Context) (string, error) {
 			callCount++
 			if callCount < 3 {
-				return "", fmt.Errorf("retryable: %w", persist.ErrRecoverableUnavailable)
+				return "", fmt.Errorf("retryable: %w", persist.ErrContention)
 			}
 
 			return "ok", nil
@@ -109,15 +109,12 @@ func TestRetryStopsAtMaxAttempts(t *testing.T) {
 		},
 		func(_ context.Context) (string, error) {
 			callCount++
-			return "", fmt.Errorf("retryable: %w", persist.ErrRecoverableConflict)
+			return "", fmt.Errorf("retryable: %w", persist.ErrContention)
 		},
 	)
 
-	if !errors.Is(err, persist.ErrConflict) {
-		t.Fatalf("expected ErrConflict, got %v", err)
-	}
-	if errors.Is(err, persist.ErrRecoverableConflict) {
-		t.Fatalf("did not expect ErrRecoverableConflict, got %v", err)
+	if !errors.Is(err, persist.ErrContention) {
+		t.Fatalf("expected ErrContention, got %v", err)
 	}
 	if callCount != 2 {
 		t.Fatalf("expected 2 attempts, got %d", callCount)
@@ -145,7 +142,7 @@ func TestRetryReturnsContextErrorWhenSleepCanceled(t *testing.T) {
 		},
 		func(_ context.Context) (string, error) {
 			callCount++
-			return "", fmt.Errorf("retryable: %w", persist.ErrRecoverableUnavailable)
+			return "", fmt.Errorf("retryable: %w", persist.ErrContention)
 		},
 	)
 

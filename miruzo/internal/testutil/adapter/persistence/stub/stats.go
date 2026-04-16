@@ -202,7 +202,7 @@ func (repo *statsRepository) ApplyLove(
 
 	stats, ok := repo.Store[ingestID]
 	if !ok {
-		return model.LoveStats{}, persist.ErrNotFound
+		return model.LoveStats{}, persist.ErrNoRows
 	}
 
 	lastLovedAt, present := stats.LastLovedAt.Get()
@@ -291,7 +291,7 @@ func (repo *statsRepository) ApplyView(
 
 	stats, ok := repo.Store[ingestID]
 	if !ok {
-		return persist.ErrNotFound
+		return persist.ErrNoRows
 	}
 
 	stats.Score += scoreDelta
@@ -320,7 +320,7 @@ func (repo *statsRepository) ApplyViewWithMilestone(
 
 	stats, ok := repo.Store[ingestID]
 	if !ok {
-		return persist.ErrNotFound
+		return persist.ErrNoRows
 	}
 
 	stats.Score += scoreDelta
