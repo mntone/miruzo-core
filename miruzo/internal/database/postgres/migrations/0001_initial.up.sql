@@ -6,7 +6,6 @@ CHECK (VALUE <> 'infinity' AND VALUE <> '-infinity');
 CREATE TABLE settings(
 	key VARCHAR PRIMARY KEY
 		CONSTRAINT ck_settings_key
-			NOT NULL
 			CHECK (length(key) BETWEEN 2 AND 8),
 	value VARCHAR NOT NULL
 );
@@ -150,7 +149,6 @@ WHERE kind IN(15/*hall_of_fame_granted*/, 16/*hall_of_fame_revoked*/);
 CREATE TABLE jobs(
 	name CHAR(16) PRIMARY KEY
 		CONSTRAINT ck_jobs_name
-			NOT NULL
 			CHECK (length(name) >= 8),
 	started_at FINITE_TIMESTAMP NOT NULL,
 	finished_at FINITE_TIMESTAMP

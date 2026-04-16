@@ -2,7 +2,6 @@
 CREATE TABLE settings(
 	key TEXT PRIMARY KEY
 		CONSTRAINT ck_settings_key
-			NOT NULL
 			CHECK (length(key) BETWEEN 2 AND 8),
 	value TEXT NOT NULL
 ) STRICT;
@@ -152,7 +151,6 @@ WHERE kind IN(15/*hall_of_fame_granted*/, 16/*hall_of_fame_revoked*/);
 CREATE TABLE jobs(
 	name TEXT PRIMARY KEY
 		CONSTRAINT ck_jobs_name
-			NOT NULL
 			CHECK (length(name) BETWEEN 8 AND 16),
 	started_at TEXT NOT NULL,
 	finished_at TEXT
@@ -162,7 +160,6 @@ CREATE TABLE jobs(
 CREATE TABLE users(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
 		CONSTRAINT ck_users_id
-			NOT NULL
 			CHECK (id BETWEEN 1 AND 32767),
 	daily_love_used INTEGER
 		CONSTRAINT ck_users_daily_love_used
