@@ -3,14 +3,13 @@ from sqlalchemy import (
 	Column,
 	DateTime,
 	ForeignKey,
-	SmallInteger,
 	Table,
 	text,
 )
 
 from app.databases.metadata import metadata
 from app.databases.tables.ingests import _ingest_table
-from app.databases.types import JSON_VALUE
+from app.databases.types import JSON_VALUE, LEAST8_INT
 from app.models.enums import ImageKind
 
 _image_table = Table(
@@ -24,7 +23,7 @@ _image_table = Table(
 	Column('ingested_at', DateTime, nullable=False),
 	Column(
 		'kind',
-		SmallInteger,
+		LEAST8_INT,
 		CheckConstraint('kind IN(0, 1, 2, 3)', 'ck_images_kind'),
 		nullable=False,
 		server_default=text(str(int(ImageKind.UNSPECIFIED))),
@@ -32,6 +31,26 @@ _image_table = Table(
 	Column('original', JSON_VALUE, nullable=False),
 	Column('fallback', JSON_VALUE),
 	Column('variants', JSON_VALUE, nullable=False),
+)
+
+# MySQL constraints
+_image_table.append_constraint(
+	CheckConstraint(
+		"JSON_TYPE(original) = 'OBJECT'",
+		'ck_images_original',
+	).ddl_if(dialect='mysql'),
+)
+_image_table.append_constraint(
+	CheckConstraint(
+		"JSON_TYPE(fallback) = 'OBJECT'",
+		'ck_images_fallback',
+	).ddl_if(dialect='mysql'),
+)
+_image_table.append_constraint(
+	CheckConstraint(
+		"JSON_TYPE(variants) = 'ARRAY'",
+		'ck_images_variants',
+	).ddl_if(dialect='mysql'),
 )
 
 # PostgreSQL constraints
