@@ -94,13 +94,15 @@ CREATE TABLE stats(
 				(view_count = 0::BIGINT AND last_viewed_at IS NULL)
 			),
 	view_count BIGINT
-		NOT NULL
-		CHECK (view_count >= 0)
-		DEFAULT 0,
+		CONSTRAINT ck_stats_view_count
+			NOT NULL
+			CHECK (view_count >= 0)
+			DEFAULT 0,
 	view_milestone_count BIGINT
-		NOT NULL
-		CHECK (view_milestone_count >= 0 AND view_milestone_count <= view_count)
-		DEFAULT 0,
+		CONSTRAINT ck_stats_view_milestone_count
+			NOT NULL
+			CHECK (view_milestone_count BETWEEN 0 AND view_count)
+			DEFAULT 0,
 	view_milestone_archived_at FINITE_TIMESTAMP
 		CONSTRAINT ck_stats_view_milestone_archived_at
 			CHECK (

@@ -92,6 +92,91 @@ func TestStatsSchemaRejectsInvalidScoreEvaluated(t *testing.T) {
 	})
 }
 
+func TestStatsSchemaRejectsInvalidViewCount(t *testing.T) {
+	tests := []struct {
+		name      string
+		viewCount string
+	}{
+		{
+			name:      "view_count=-1",
+			viewCount: "-1",
+		},
+		{
+			name:      "view_count=9223372036854775808(math.MaxInt64+1)",
+			viewCount: "9223372036854775808",
+		},
+	}
+
+	ingest := mb.Ingest().Build()
+	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated, view_count) VALUES(%s, 100, 100, %%s)"
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmtFmt := fmt.Sprintf(stmt, h.Param(1))
+
+		for _, tt := range tests {
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				ops.MustAddIngest(t, ingest)
+				t.Run(tt.name, func(t *testing.T) {
+					ops.AssertExecErrorIs(
+						t,
+						c.DBErrorMappingDefault,
+						persist.ErrCheckViolation,
+						fmt.Sprintf(dialectStmtFmt, tt.viewCount),
+						ingest.ID,
+					)
+				})
+			})
+		}
+	})
+}
+
+func TestStatsSchemaRejectsInvalidViewMilestoneCount(t *testing.T) {
+	baseTime := mb.GetDefaultBaseTime()
+	tests := []struct {
+		name                    string
+		viewCount               int64
+		viewMilestoneCount      int64
+		viewMilestoneArchivedAt time.Time
+	}{
+		{
+			name:                    "view_milestone_count=-100(<1)",
+			viewCount:               1,
+			viewMilestoneCount:      -100,
+			viewMilestoneArchivedAt: baseTime.Add(35 * time.Minute),
+		},
+		{
+			name:                    "view_milestone_count=200(>199)",
+			viewCount:               199,
+			viewMilestoneCount:      200,
+			viewMilestoneArchivedAt: baseTime.Add(70 * time.Minute),
+		},
+	}
+
+	ingest := mb.Ingest().Build()
+	stmt := "INSERT INTO stats(ingest_id, score, score_evaluated, view_count, view_milestone_count, view_milestone_archived_at) VALUES(%s, 100, 100, %s, %%d, %s)"
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmtFmt := fmt.Sprintf(stmt, h.ParamRange(1, 3)...)
+
+		for _, tt := range tests {
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				ops.MustAddIngest(t, ingest)
+				t.Run(tt.name, func(t *testing.T) {
+					ops.AssertExecErrorIs(
+						t,
+						c.DBErrorMappingDefault,
+						persist.ErrCheckViolation,
+						fmt.Sprintf(dialectStmtFmt, tt.viewMilestoneCount),
+						ingest.ID,
+						tt.viewCount,
+						tt.viewMilestoneArchivedAt,
+					)
+				})
+			})
+		}
+	})
+}
+
 func TestStatsSchemaRejectsInvalidOccurredAt(t *testing.T) {
 	tests := []struct {
 		name string
