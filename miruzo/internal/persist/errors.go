@@ -67,11 +67,3 @@ func IsRecoverable(err error) bool {
 		errors.Is(err, ErrConnectionLost) ||
 		errors.Is(err, ErrContention)
 }
-
-func ToTerminalError(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	return err
-}

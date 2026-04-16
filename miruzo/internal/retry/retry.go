@@ -63,7 +63,7 @@ func Retry[T any](
 			return zero, err
 		}
 		if attempt+1 >= maxAttempts {
-			return zero, persist.ToTerminalError(err)
+			return zero, err
 		}
 
 		var delay time.Duration

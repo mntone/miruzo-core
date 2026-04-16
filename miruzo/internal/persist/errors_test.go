@@ -40,18 +40,3 @@ func TestIsRecoverableReturnsFalseForNonRecoverableErrors(t *testing.T) {
 		}
 	}
 }
-
-func TestToTerminalErrorNilReturnsNil(t *testing.T) {
-	if err := ToTerminalError(nil); err != nil {
-		t.Fatalf("expected nil, got %v", err)
-	}
-}
-
-func TestToTerminalErrorLeavesOtherErrorsUntouched(t *testing.T) {
-	source := errors.New("unexpected")
-	err := ToTerminalError(source)
-
-	if !errors.Is(err, source) {
-		t.Fatalf("expected original error, got %v", err)
-	}
-}
