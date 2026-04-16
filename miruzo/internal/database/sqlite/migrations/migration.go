@@ -32,5 +32,6 @@ func NewSpec(db *sql.DB) migration.Spec {
 		NewSourceDriver:   newSourceDriver,
 		DatabaseName:      "sqlite3",
 		NewDatabaseDriver: newDatabaseDriverFunc(db),
+		KeepDatabaseOpen:  true,
 	}
 }

@@ -41,6 +41,5 @@ func NewSpec(pool *pgxpool.Pool) migration.Spec {
 		NewSourceDriver:   newSourceDriver,
 		DatabaseName:      "pgx",
 		NewDatabaseDriver: newDatabaseDriverFunc(pool),
-		CloseDatabase:     true,
 	}
 }

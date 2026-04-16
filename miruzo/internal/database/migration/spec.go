@@ -23,7 +23,7 @@ type Spec struct {
 
 	DatabaseName      string
 	NewDatabaseDriver func() (database.Driver, error)
-	CloseDatabase     bool
+	KeepDatabaseOpen  bool
 }
 
 func (spec Spec) NewInstance() (*migrate.Migrate, func() error, error) {
@@ -48,7 +48,7 @@ func (spec Spec) NewInstance() (*migrate.Migrate, func() error, error) {
 	if err != nil {
 		sourceCloseErr := source.Close()
 
-		if !spec.CloseDatabase {
+		if spec.KeepDatabaseOpen {
 			return nil, nil, errors.Join(
 				fmt.Errorf("create migration instance: %w", err),
 				wrapCloseError("close migration source", sourceCloseErr),
@@ -64,7 +64,7 @@ func (spec Spec) NewInstance() (*migrate.Migrate, func() error, error) {
 	}
 
 	var close func() error
-	if !spec.CloseDatabase {
+	if spec.KeepDatabaseOpen {
 		close = func() error {
 			sourceCloseErr := source.Close()
 			return wrapCloseError("close migration source", sourceCloseErr)

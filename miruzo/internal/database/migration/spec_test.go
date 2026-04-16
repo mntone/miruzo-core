@@ -139,7 +139,7 @@ func TestSpecNewInstanceClosesSourceWhenDatabaseCreateFails(t *testing.T) {
 	}
 }
 
-func TestSpecNewInstanceCloseOnlySourceWhenCloseDatabaseFalse(t *testing.T) {
+func TestSpecNewInstanceCloseOnlySourceWhenKeepDatabaseOpenTrue(t *testing.T) {
 	t.Parallel()
 
 	sourceDriver := &fakeSourceDriver{}
@@ -153,7 +153,7 @@ func TestSpecNewInstanceCloseOnlySourceWhenCloseDatabaseFalse(t *testing.T) {
 		NewDatabaseDriver: func() (database.Driver, error) {
 			return databaseDriver, nil
 		},
-		CloseDatabase: false,
+		KeepDatabaseOpen: true,
 	}
 
 	m, close, err := spec.NewInstance()
@@ -169,7 +169,7 @@ func TestSpecNewInstanceCloseOnlySourceWhenCloseDatabaseFalse(t *testing.T) {
 	assert.Equal(t, "databaseDriver.closeCount", databaseDriver.closeCount, 0)
 }
 
-func TestSpecNewInstanceCloseSourceAndDatabaseWhenCloseDatabaseTrue(t *testing.T) {
+func TestSpecNewInstanceCloseSourceAndDatabaseWhenKeepDatabaseOpenFalse(t *testing.T) {
 	t.Parallel()
 
 	sourceDriver := &fakeSourceDriver{}
@@ -183,7 +183,7 @@ func TestSpecNewInstanceCloseSourceAndDatabaseWhenCloseDatabaseTrue(t *testing.T
 		NewDatabaseDriver: func() (database.Driver, error) {
 			return databaseDriver, nil
 		},
-		CloseDatabase: true,
+		KeepDatabaseOpen: false,
 	}
 
 	m, close, err := spec.NewInstance()
@@ -199,7 +199,7 @@ func TestSpecNewInstanceCloseSourceAndDatabaseWhenCloseDatabaseTrue(t *testing.T
 	assert.Equal(t, "databaseDriver.closeCount", databaseDriver.closeCount, 1)
 }
 
-func TestSpecNewInstanceCloseReturnsSourceErrorWhenCloseDatabaseFalse(t *testing.T) {
+func TestSpecNewInstanceCloseReturnsSourceErrorWhenKeepDatabaseOpenTrue(t *testing.T) {
 	t.Parallel()
 
 	sourceDriver := &fakeSourceDriver{
@@ -215,7 +215,7 @@ func TestSpecNewInstanceCloseReturnsSourceErrorWhenCloseDatabaseFalse(t *testing
 		NewDatabaseDriver: func() (database.Driver, error) {
 			return databaseDriver, nil
 		},
-		CloseDatabase: false,
+		KeepDatabaseOpen: true,
 	}
 
 	m, close, err := spec.NewInstance()
@@ -234,7 +234,7 @@ func TestSpecNewInstanceCloseReturnsSourceErrorWhenCloseDatabaseFalse(t *testing
 	assert.Equal(t, "databaseDriver.closeCount", databaseDriver.closeCount, 0)
 }
 
-func TestSpecNewInstanceCloseReturnsBothErrorsWhenCloseDatabaseTrue(t *testing.T) {
+func TestSpecNewInstanceCloseReturnsBothErrorsWhenKeepDatabaseOpenFalse(t *testing.T) {
 	t.Parallel()
 
 	sourceDriver := &fakeSourceDriver{
@@ -252,7 +252,7 @@ func TestSpecNewInstanceCloseReturnsBothErrorsWhenCloseDatabaseTrue(t *testing.T
 		NewDatabaseDriver: func() (database.Driver, error) {
 			return databaseDriver, nil
 		},
-		CloseDatabase: true,
+		KeepDatabaseOpen: false,
 	}
 
 	m, close, err := spec.NewInstance()
