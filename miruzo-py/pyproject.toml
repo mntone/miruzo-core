@@ -25,6 +25,7 @@ dependencies = [
 dev = [
 	"pytest>=9.0.3,<10",
 	"pytest-cov>=7.1,<8",
+	"ruff>=0.15,<0.16",
 	"testcontainers[mysql,postgres]>=4.14.2,<5",
 ]
 mysql = [
