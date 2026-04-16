@@ -2,8 +2,11 @@
 CREATE TABLE settings(
 	key TEXT PRIMARY KEY
 		CONSTRAINT ck_settings_key
-			CHECK (length(key) BETWEEN 2 AND 8),
+			CHECK (length(key) BETWEEN 2 AND 8 AND key NOT GLOB '*[^a-z0-9_]*'),
 	value TEXT NOT NULL
+		CONSTRAINT ck_settings_value
+			NOT NULL
+			CHECK (length(value) <= 255)
 ) STRICT;
 
 -- Create ingests table

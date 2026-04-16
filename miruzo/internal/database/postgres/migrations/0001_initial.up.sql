@@ -4,10 +4,10 @@ CHECK (VALUE <> 'infinity' AND VALUE <> '-infinity');
 
 -- Create settings table
 CREATE TABLE settings(
-	key VARCHAR PRIMARY KEY
+	key CHAR(8) PRIMARY KEY
 		CONSTRAINT ck_settings_key
-			CHECK (length(key) BETWEEN 2 AND 8),
-	value VARCHAR NOT NULL
+			CHECK (rtrim(key) ~ '^[a-z\d_]{2,8}$'),
+	value VARCHAR(255) NOT NULL
 );
 
 -- Create ingests table
