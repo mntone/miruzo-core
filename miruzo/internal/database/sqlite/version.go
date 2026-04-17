@@ -4,41 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/database/shared"
 )
 
-type sqliteVersion struct {
-	major, minor, patch int
-}
-
-func (v sqliteVersion) LessThan(min sqliteVersion) bool {
-	if v.major != min.major {
-		return v.major < min.major
-	}
-	if v.minor != min.minor {
-		return v.minor < min.minor
-	}
-	return v.patch < min.patch
-}
-
-func (v sqliteVersion) String() string {
-	return fmt.Sprintf("%d.%d.%d", v.major, v.minor, v.patch)
-}
-
-func parseSQLiteVersion(s string) (sqliteVersion, error) {
-	var v sqliteVersion
-	if _, err := fmt.Sscanf(s, "%d.%d.%d", &v.major, &v.minor, &v.patch); err != nil {
-		return sqliteVersion{}, fmt.Errorf("invalid sqlite_version %q: %w", s, err)
-	}
-	return v, nil
-}
-
-func verifySQLiteVersion(ctx context.Context, db *sql.DB, min sqliteVersion) error {
+func verifySQLiteVersion(ctx context.Context, db *sql.DB, min shared.Version) error {
 	var raw string
 	if err := db.QueryRowContext(ctx, "SELECT sqlite_version()").Scan(&raw); err != nil {
 		return fmt.Errorf("read sqlite_version: %w", err)
 	}
 
-	version, err := parseSQLiteVersion(raw)
+	version, err := shared.ParseVersion(raw)
 	if err != nil {
 		return err
 	}
@@ -48,13 +24,13 @@ func verifySQLiteVersion(ctx context.Context, db *sql.DB, min sqliteVersion) err
 	return nil
 }
 
-var minSQLiteForReturningAndStrict = sqliteVersion{
-	major: 3,
-	minor: 37,
-	patch: 0,
+var minSQLiteForReturningAndStrict = shared.Version{
+	Major: 3,
+	Minor: 37,
+	Patch: 0,
 }
 
-func supportsSQLiteReturningAndStrictVersion(version sqliteVersion) bool {
+func supportsSQLiteReturningAndStrictVersion(version shared.Version) bool {
 	return !version.LessThan(minSQLiteForReturningAndStrict)
 }
 
@@ -64,7 +40,7 @@ func verifySQLiteSupportsReturningAndStrict(ctx context.Context, db *sql.DB) err
 		return fmt.Errorf("read sqlite_version: %w", err)
 	}
 
-	version, err := parseSQLiteVersion(raw)
+	version, err := shared.ParseVersion(raw)
 	if err != nil {
 		return err
 	}

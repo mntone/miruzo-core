@@ -1,77 +1,29 @@
 package sqlite
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/mntone/miruzo-core/miruzo/internal/database/shared"
 )
 
-func TestParseSQLiteVersion(t *testing.T) {
-	testCases := []struct {
-		version  string
-		expected sqliteVersion
-	}{
-		{
-			version: "3.35.0",
-			expected: sqliteVersion{
-				major: 3,
-				minor: 35,
-				patch: 0,
-			},
-		},
-		{
-			version: "3.45.0",
-			expected: sqliteVersion{
-				major: 3,
-				minor: 45,
-				patch: 0,
-			},
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.version, func(t *testing.T) {
-			got, err := parseSQLiteVersion(testCase.version)
-			if err != nil {
-				t.Fatalf("parseSQLiteVersion(%q) returned unexpected error: %v", testCase.version, err)
-			}
-
-			if got != testCase.expected {
-				t.Fatalf("parseSQLiteVersion(%q) = %+v, want %+v", testCase.version, got, testCase.expected)
-			}
-		})
-	}
-}
-
-func TestParseSQLiteVersionReturnsErrorForInvalidFormat(t *testing.T) {
-	testCases := []string{
-		"3",
-		"3.35",
-		"x.35.0",
-		"3.35.beta",
-	}
-
-	for _, version := range testCases {
-		t.Run(version, func(t *testing.T) {
-			_, err := parseSQLiteVersion(version)
-			if err == nil {
-				t.Fatalf("parseSQLiteVersion(%q) expected error but got nil", version)
-			}
-
-			if !strings.Contains(err.Error(), "invalid sqlite_version") {
-				t.Fatalf("parseSQLiteVersion(%q) error = %q, want to include %q", version, err.Error(), "invalid sqlite_version")
-			}
-		})
-	}
-}
-
 func TestSupportsSQLiteReturningAndStrictVersionAcceptsBoundary(t *testing.T) {
-	if !supportsSQLiteReturningAndStrictVersion(sqliteVersion{3, 37, 0}) {
+	version := shared.Version{
+		Major: 3,
+		Minor: 37,
+		Patch: 0,
+	}
+	if !supportsSQLiteReturningAndStrictVersion(version) {
 		t.Fatalf("supportsSQLiteReturningAndStrictVersion(%q) = false, want true", "3.37.0")
 	}
 }
 
 func TestSupportsSQLiteReturningAndStrictVersionRejectsOlderVersion(t *testing.T) {
-	if supportsSQLiteReturningAndStrictVersion(sqliteVersion{3, 34, 1}) {
+	version := shared.Version{
+		Major: 3,
+		Minor: 34,
+		Patch: 1,
+	}
+	if supportsSQLiteReturningAndStrictVersion(version) {
 		t.Fatalf("supportsSQLiteReturningAndStrictVersion(%q) = true, want false", "3.34.1")
 	}
 }
