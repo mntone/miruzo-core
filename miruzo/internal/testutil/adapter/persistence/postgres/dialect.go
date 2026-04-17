@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
-	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 )
 
@@ -21,9 +21,9 @@ func (postgresDialect) MapError(
 ) error {
 	switch mapping {
 	case contract.DBErrorMappingDefault:
-		err = dbshared.MapPostgreError(operation, err)
+		err = dberrors.ToPersist(operation, err)
 	case contract.DBErrorMappingDelete:
-		err = dbshared.MapPostgreDeleteError(operation, err)
+		err = dberrors.ToPersistDelete(operation, err)
 	}
 	return err
 }

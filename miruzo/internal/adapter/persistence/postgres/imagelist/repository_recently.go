@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -44,7 +44,7 @@ func (repo repository) ListRecently(
 			int32(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapPostgreError("ListRecently", err)
+			return nil, dberrors.ToPersist("ListRecently", err)
 		}
 
 		return mapRecentlyRows(rows)
@@ -59,7 +59,7 @@ func (repo repository) ListRecently(
 		},
 	)
 	if err != nil {
-		return nil, shared.MapPostgreError("ListRecently", err)
+		return nil, dberrors.ToPersist("ListRecently", err)
 	}
 
 	return mapRecentlyAfterRows(rows)

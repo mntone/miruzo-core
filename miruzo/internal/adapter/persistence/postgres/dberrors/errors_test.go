@@ -1,4 +1,4 @@
-package shared_test
+package dberrors_test
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-func TestMapPostgreErrorMapsContextErrors(t *testing.T) {
+func TestPostgreSQLToPersistMapsContextErrors(t *testing.T) {
 	tests := []struct {
 		name    string
 		build   func() error
@@ -38,10 +38,10 @@ func TestMapPostgreErrorMapsContextErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapPostgreError("ListLatest", tt.build())
+			err := dberrors.ToPersist("ListLatest", tt.build())
 			assert.ErrorIs(
 				t,
-				"MapPostgreError("+tt.name+")",
+				"ToPersist("+tt.name+")",
 				err,
 				tt.wantErr,
 			)
@@ -52,7 +52,7 @@ func TestMapPostgreErrorMapsContextErrors(t *testing.T) {
 	}
 }
 
-func TestMapPostgreErrorMapsSQLStates(t *testing.T) {
+func TestPostgreSQLToPersistMapsSQLStates(t *testing.T) {
 	tests := []struct {
 		name     string
 		sqlState string
@@ -122,13 +122,13 @@ func TestMapPostgreErrorMapsSQLStates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapPostgreError(
+			err := dberrors.ToPersist(
 				"ListLatest",
 				fmt.Errorf("query failed: %w", &pgconn.PgError{Code: tt.sqlState}),
 			)
 			assert.ErrorIs(
 				t,
-				fmt.Sprintf("MapPostgreError(%s)", tt.sqlState),
+				fmt.Sprintf("ToPersist(%s)", tt.sqlState),
 				err, tt.wantErr,
 			)
 			if !strings.Contains(err.Error(), "operation=ListLatest") {
@@ -141,8 +141,8 @@ func TestMapPostgreErrorMapsSQLStates(t *testing.T) {
 	}
 }
 
-func TestMapPostgreErrorMapsLockNotAvailableWithTimeoutMessage(t *testing.T) {
-	err := shared.MapPostgreError(
+func TestPostgreSQLToPersistMapsLockNotAvailableWithTimeoutMessage(t *testing.T) {
+	err := dberrors.ToPersist(
 		"ListLatest",
 		fmt.Errorf(
 			"query failed: %w",
@@ -154,7 +154,7 @@ func TestMapPostgreErrorMapsLockNotAvailableWithTimeoutMessage(t *testing.T) {
 	)
 	assert.ErrorIs(
 		t,
-		"MapPostgreError(55P03 lock timeout)",
+		"ToPersist(55P03 lock timeout)",
 		err,
 		persist.ErrLockTimeout,
 	)
@@ -166,14 +166,14 @@ func TestMapPostgreErrorMapsLockNotAvailableWithTimeoutMessage(t *testing.T) {
 	}
 }
 
-func TestMapPostgreDeleteErrorMapsForeignKeyViolationToReferenced(t *testing.T) {
-	err := shared.MapPostgreDeleteError(
+func TestPostgreSQLToPersistDeleteErrorMapsForeignKeyViolationToReferenced(t *testing.T) {
+	err := dberrors.ToPersistDelete(
 		"DeleteImage",
 		fmt.Errorf("query failed: %w", &pgconn.PgError{Code: "23503"}),
 	)
 	assert.ErrorIs(
 		t,
-		"MapPostgreDeleteError(23503)",
+		"ToPersistDelete(23503)",
 		err,
 		persist.ErrForeignKeyReferenced,
 	)
@@ -185,7 +185,7 @@ func TestMapPostgreDeleteErrorMapsForeignKeyViolationToReferenced(t *testing.T) 
 	}
 }
 
-func TestMapPostgreErrorPassesThroughErrors(t *testing.T) {
+func TestPostgreSQLToPersistPassesThroughErrors(t *testing.T) {
 	tests := []struct {
 		name  string
 		inErr error
@@ -199,7 +199,7 @@ func TestMapPostgreErrorPassesThroughErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapPostgreError("ListLatest", tt.inErr)
+			err := dberrors.ToPersist("ListLatest", tt.inErr)
 			if !errors.Is(err, tt.inErr) {
 				t.Fatalf("err = got %v, want original error", err)
 			}

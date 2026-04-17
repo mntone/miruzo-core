@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -23,7 +23,7 @@ func (repo jobRepository) MarkStarted(
 		StartedAt: startedAt,
 	})
 	if err != nil {
-		return shared.MapPostgreError("MarkStarted", err)
+		return dberrors.ToPersist("MarkStarted", err)
 	}
 
 	if rowCount == 0 {
@@ -43,7 +43,7 @@ func (repo jobRepository) MarkFinished(
 		FinishedAt: &finishedAt,
 	})
 	if err != nil {
-		return shared.MapPostgreError("MarkFinished", err)
+		return dberrors.ToPersist("MarkFinished", err)
 	}
 
 	if rowCount == 0 {

@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -24,7 +24,7 @@ func (repo userRepository) Get(
 			return persist.User{}, persist.ErrNoRows
 		}
 
-		return persist.User{}, shared.MapPostgreError("Get", err)
+		return persist.User{}, dberrors.ToPersist("Get", err)
 	}
 
 	return persist.User{
@@ -43,7 +43,7 @@ func (repo userRepository) IncrementDailyLoveUsed(
 			return 0, persist.ErrQuotaExceeded
 		}
 
-		return 0, shared.MapPostgreError("IncrementDailyLoveUsed", err)
+		return 0, dberrors.ToPersist("IncrementDailyLoveUsed", err)
 	}
 
 	return model.QuotaInt(dailyLoveUsed), nil
@@ -56,7 +56,7 @@ func (repo userRepository) DecrementDailyLoveUsed(ctx context.Context) (model.Qu
 			return 0, persist.ErrNoRows
 		}
 
-		mapError := shared.MapPostgreError("DecrementDailyLoveUsed", err)
+		mapError := dberrors.ToPersist("DecrementDailyLoveUsed", err)
 		if errors.Is(mapError, persist.ErrCheckViolation) {
 			return 0, persist.ErrQuotaUnderflow
 		}
@@ -69,7 +69,7 @@ func (repo userRepository) DecrementDailyLoveUsed(ctx context.Context) (model.Qu
 func (repo userRepository) ResetDailyLoveUsed(ctx context.Context) error {
 	rowCount, err := repo.queries.ResetDailyLoveUsed(ctx)
 	if err != nil {
-		return shared.MapPostgreError("ResetDailyLoveUsed", err)
+		return dberrors.ToPersist("ResetDailyLoveUsed", err)
 	}
 
 	if rowCount == 0 {

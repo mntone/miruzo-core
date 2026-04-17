@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -24,7 +24,7 @@ func (repo settingsRepository) GetValue(
 			return "", persist.ErrNoRows
 		}
 
-		return "", shared.MapPostgreError("GetValue", err)
+		return "", dberrors.ToPersist("GetValue", err)
 	}
 
 	return value, nil
@@ -40,7 +40,7 @@ func (repo settingsRepository) UpdateValue(
 		Value: value,
 	})
 	if err != nil {
-		return shared.MapPostgreError("UpdateValue", err)
+		return dberrors.ToPersist("UpdateValue", err)
 	}
 
 	return nil

@@ -4,7 +4,7 @@ import (
 	"context"
 	"iter"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -23,7 +23,7 @@ func (repo repository) IterateStatsForDailyDecay(
 				MaxCount:     batchCount,
 			})
 			if err != nil {
-				yield(persist.DailyDecayStats{}, shared.MapPostgreError("IterateStatsForDailyDecay", err))
+				yield(persist.DailyDecayStats{}, dberrors.ToPersist("IterateStatsForDailyDecay", err))
 				return
 			}
 			if len(rows) == 0 {

@@ -1,4 +1,4 @@
-package shared
+package dberrors
 
 import (
 	"context"
@@ -74,7 +74,7 @@ var pgToPersistError = map[string]error{
 
 var isPgconnTimeoutError = pgconn.Timeout
 
-func toPersistError(operation string, persistError error, pgError *pgconn.PgError) error {
+func wrapPostgreSQLError(operation string, persistError error, pgError *pgconn.PgError) error {
 	return fmt.Errorf(
 		"%w: operation=%s sqlstate=%s: %s",
 		persistError,
@@ -84,7 +84,7 @@ func toPersistError(operation string, persistError error, pgError *pgconn.PgErro
 	)
 }
 
-func mapPostgreBaseError(operation string, err error, foreignKeyError error) error {
+func convertPostgreSQLError(operation string, err error, foreignKeyError error) error {
 	if err == nil {
 		return nil
 	}
@@ -118,28 +118,28 @@ func mapPostgreBaseError(operation string, err error, foreignKeyError error) err
 
 	if pgError, ok := errors.AsType[*pgconn.PgError](err); ok {
 		if pgError.Code == pgerrcode.ForeignKeyViolation {
-			return toPersistError(operation, foreignKeyError, pgError)
+			return wrapPostgreSQLError(operation, foreignKeyError, pgError)
 		}
 
 		if pgError.Code == pgerrcode.LockNotAvailable {
 			if strings.Contains(pgError.Message, "lock timeout") {
-				return toPersistError(operation, persist.ErrLockTimeout, pgError)
+				return wrapPostgreSQLError(operation, persist.ErrLockTimeout, pgError)
 			}
-			return toPersistError(operation, persist.ErrLockUnavailable, pgError)
+			return wrapPostgreSQLError(operation, persist.ErrLockUnavailable, pgError)
 		}
 
 		if persistError, ok := pgToPersistError[pgError.Code]; ok {
-			return toPersistError(operation, persistError, pgError)
+			return wrapPostgreSQLError(operation, persistError, pgError)
 		}
 	}
 	return err
 }
 
-func MapPostgreError(operation string, err error) error {
-	// MapPostgreError is for non-DELETE operations (read/insert/update).
-	return mapPostgreBaseError(operation, err, persist.ErrForeignKeyReferenceNotFound)
+func ToPersist(operation string, err error) error {
+	// ToPersist is for non-DELETE operations (read/insert/update).
+	return convertPostgreSQLError(operation, err, persist.ErrForeignKeyReferenceNotFound)
 }
 
-func MapPostgreDeleteError(operation string, err error) error {
-	return mapPostgreBaseError(operation, err, persist.ErrForeignKeyReferenced)
+func ToPersistDelete(operation string, err error) error {
+	return convertPostgreSQLError(operation, err, persist.ErrForeignKeyReferenced)
 }

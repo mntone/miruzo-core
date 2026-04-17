@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
+	postgresshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -25,7 +26,7 @@ func (repo repository) ApplyDecay(
 		EvaluatedAt: &evaluatedAt,
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyDecay", err)
+		return dberrors.ToPersist("ApplyDecay", err)
 	}
 
 	if rowCount == 0 {
@@ -47,7 +48,7 @@ func (repo repository) ApplyHallOfFameGranted(
 		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyHallOfFameGranted", err)
+		return dberrors.ToPersist("ApplyHallOfFameGranted", err)
 	}
 
 	if rowCount == 0 {
@@ -63,7 +64,7 @@ func (repo repository) ApplyHallOfFameRevoked(
 ) error {
 	rowCount, err := repo.queries.ApplyHallOfFameRevokedToStats(ctx, ingestID)
 	if err != nil {
-		return shared.MapPostgreError("ApplyHallOfFameRevoked", err)
+		return dberrors.ToPersist("ApplyHallOfFameRevoked", err)
 	}
 
 	if rowCount == 0 {
@@ -93,7 +94,7 @@ func (repo repository) ApplyLove(
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, shared.MapPostgreError("ApplyLove", err)
+		return model.LoveStats{}, dberrors.ToPersist("ApplyLove", err)
 	}
 
 	return model.LoveStats{
@@ -116,14 +117,14 @@ func (repo repository) ApplyLoveCanceled(
 		ScoreDelta:     scoreDelta,
 		PeriodStartAt:  &periodStartAt,
 		LoveCanceledAt: &loveCanceledAt,
-		DayStartOffset: shared.PgtypeIntervalFromDuration(dayStartOffset),
+		DayStartOffset: postgresshared.PgtypeIntervalFromDuration(dayStartOffset),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, shared.MapPostgreError("ApplyLoveCanceled", err)
+		return model.LoveStats{}, dberrors.ToPersist("ApplyLoveCanceled", err)
 	}
 
 	return model.LoveStats{
@@ -145,7 +146,7 @@ func (repo repository) ApplyView(
 		ViewedAt:   &viewedAt,
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyView", err)
+		return dberrors.ToPersist("ApplyView", err)
 	}
 
 	if rowCount == 0 {
@@ -167,7 +168,7 @@ func (repo repository) ApplyViewWithMilestone(
 		ViewedAt:   &viewedAt,
 	})
 	if err != nil {
-		return shared.MapPostgreError("ApplyViewWithMilestone", err)
+		return dberrors.ToPersist("ApplyViewWithMilestone", err)
 	}
 
 	if rowCount == 0 {

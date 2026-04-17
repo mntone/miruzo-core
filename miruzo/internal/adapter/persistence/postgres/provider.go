@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	sharedPostgre "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -36,7 +36,7 @@ func (prov postgresProvider) Session(
 	if err != nil {
 		return fmt.Errorf(
 			"begin postgres transaction: %w",
-			sharedPostgre.MapPostgreError("Session()", err),
+			dberrors.ToPersist("Session()", err),
 		)
 	}
 
@@ -49,7 +49,7 @@ func (prov postgresProvider) Session(
 				"rollback postgres: %w",
 				shared.JoinErrors(
 					err,
-					sharedPostgre.MapPostgreError("Session()", rollbackErr),
+					dberrors.ToPersist("Session()", rollbackErr),
 				),
 			)
 		}
@@ -61,7 +61,7 @@ func (prov postgresProvider) Session(
 	if err != nil {
 		return fmt.Errorf(
 			"commit postgres: %w",
-			sharedPostgre.MapPostgreError("Session()", err),
+			dberrors.ToPersist("Session()", err),
 		)
 	}
 

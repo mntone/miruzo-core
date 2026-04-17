@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -44,7 +44,7 @@ func (repo repository) ListFirstLove(
 			int32(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapPostgreError("ListFirstLove", err)
+			return nil, dberrors.ToPersist("ListFirstLove", err)
 		}
 
 		return mapFirstLoveRows(rows)
@@ -59,7 +59,7 @@ func (repo repository) ListFirstLove(
 		},
 	)
 	if err != nil {
-		return nil, shared.MapPostgreError("ListFirstLove", err)
+		return nil, dberrors.ToPersist("ListFirstLove", err)
 	}
 
 	return mapFirstLoveAfterRows(rows)

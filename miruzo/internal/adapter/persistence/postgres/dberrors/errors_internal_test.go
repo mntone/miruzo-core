@@ -1,4 +1,4 @@
-package shared
+package dberrors
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ func (timeoutMarkerError) Error() string {
 	return "timeout marker"
 }
 
-func TestMapPostgreErrorMapsPgconnTimeoutByHook(t *testing.T) {
+func TestPostgreSQLToPersistMapsPgconnTimeoutByHook(t *testing.T) {
 	original := isPgconnTimeoutError
 	isPgconnTimeoutError = func(err error) bool {
 		_, ok := err.(timeoutMarkerError)
@@ -25,10 +25,10 @@ func TestMapPostgreErrorMapsPgconnTimeoutByHook(t *testing.T) {
 		isPgconnTimeoutError = original
 	})
 
-	err := MapPostgreError("ListLatest", timeoutMarkerError{})
+	err := ToPersist("ListLatest", timeoutMarkerError{})
 	assert.ErrorIs(
 		t,
-		"MapPostgreError(pgconn.Timeout)",
+		"ToPersist(pgconn.Timeout)",
 		err,
 		persist.ErrConnectionTimeout,
 	)
@@ -37,7 +37,7 @@ func TestMapPostgreErrorMapsPgconnTimeoutByHook(t *testing.T) {
 	}
 }
 
-func TestMapPostgreErrorPassesThroughWhenNotTimeoutByHook(t *testing.T) {
+func TestPostgreSQLToPersistPassesThroughWhenNotTimeoutByHook(t *testing.T) {
 	original := isPgconnTimeoutError
 	isPgconnTimeoutError = func(error) bool { return false }
 	t.Cleanup(func() {
@@ -45,7 +45,7 @@ func TestMapPostgreErrorPassesThroughWhenNotTimeoutByHook(t *testing.T) {
 	})
 
 	source := errors.New("unknown")
-	err := MapPostgreError("ListLatest", source)
+	err := ToPersist("ListLatest", source)
 	if !errors.Is(err, source) {
 		t.Fatalf("expected pass-through error, got %v", err)
 	}

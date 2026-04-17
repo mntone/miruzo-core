@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
-	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -74,7 +74,7 @@ func (s postgresTxSession) InsertImage(t testing.TB, e persist.Image) error {
 		e.Original, e.Fallback.ToPointer(), e.Layers,
 	)
 	if err != nil {
-		return dbshared.MapPostgreError("InsertImage", err)
+		return dberrors.ToPersist("InsertImage", err)
 	}
 
 	return nil
