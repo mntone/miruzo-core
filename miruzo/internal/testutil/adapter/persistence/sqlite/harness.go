@@ -25,10 +25,12 @@ func (h sqliteHarness) Backend() backend.Backend {
 	return backend.SQLite
 }
 
-func (h sqliteHarness) Supports(capability contract.Capability) bool {
+func (sqliteHarness) Supports(capability contract.Capability) bool {
 	switch capability {
 	case contract.SupportsLastInsertID,
-		contract.SupportsReturningClause:
+		contract.SupportsNumberedPlaceholder,
+		contract.SupportsReturningClause,
+		contract.SupportsUnnumberedPlaceholder:
 		return true
 	}
 	return false

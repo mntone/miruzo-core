@@ -17,9 +17,11 @@ func TestPostgreHarnessBackend(t *testing.T) {
 func TestPostgreHarnessSupportsCapabilityMatrix(t *testing.T) {
 	h := postgresHarness{}
 	expected := map[contract.Capability]bool{
-		contract.SupportsLastInsertID:      false,
-		contract.SupportsReturningClause:   true,
-		contract.SupportsInfinityTimestamp: true,
+		contract.SupportsInfinityTimestamp:     true,
+		contract.SupportsLastInsertID:          false,
+		contract.SupportsNumberedPlaceholder:   true,
+		contract.SupportsReturningClause:       true,
+		contract.SupportsUnnumberedPlaceholder: false,
 	}
 
 	for _, capability := range contract.AllCapabilities() {

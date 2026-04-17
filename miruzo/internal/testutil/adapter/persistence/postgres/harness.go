@@ -26,10 +26,11 @@ func (h postgresHarness) Backend() backend.Backend {
 	return backend.PostgreSQL
 }
 
-func (h postgresHarness) Supports(capability contract.Capability) bool {
+func (postgresHarness) Supports(capability contract.Capability) bool {
 	switch capability {
-	case contract.SupportsReturningClause,
-		contract.SupportsInfinityTimestamp:
+	case contract.SupportsInfinityTimestamp,
+		contract.SupportsReturningClause,
+		contract.SupportsNumberedPlaceholder:
 		return true
 	}
 	return false

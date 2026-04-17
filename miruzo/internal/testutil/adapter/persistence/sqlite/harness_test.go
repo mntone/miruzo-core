@@ -17,9 +17,11 @@ func TestSQLiteHarnessBackend(t *testing.T) {
 func TestSQLiteHarnessSupportsCapabilityMatrix(t *testing.T) {
 	h := sqliteHarness{}
 	expected := map[contract.Capability]bool{
-		contract.SupportsLastInsertID:      true,
-		contract.SupportsReturningClause:   true,
-		contract.SupportsInfinityTimestamp: false,
+		contract.SupportsInfinityTimestamp:     false,
+		contract.SupportsLastInsertID:          true,
+		contract.SupportsNumberedPlaceholder:   true,
+		contract.SupportsReturningClause:       true,
+		contract.SupportsUnnumberedPlaceholder: true,
 	}
 
 	for _, capability := range contract.AllCapabilities() {
