@@ -1,0 +1,58 @@
+package mysql
+
+import (
+	"github.com/mntone/miruzo-core/miruzo/internal/database/mysql/gen"
+	"github.com/mntone/miruzo-core/miruzo/internal/persist"
+)
+
+type mysqlRepositories struct {
+	queries *gen.Queries
+}
+
+func newRepositories(queries *gen.Queries) mysqlRepositories {
+	return mysqlRepositories{
+		queries: queries,
+	}
+}
+
+func (repos mysqlRepositories) ImageList() persist.ImageListRepository {
+	return nil
+}
+
+func (repos mysqlRepositories) Job() persist.JobRepository {
+	return nil
+}
+
+func (repos mysqlRepositories) Settings() persist.SettingsRepository {
+	return nil
+}
+
+func (repos mysqlRepositories) User() persist.UserRepository {
+	return nil
+}
+
+type mysqlSessionRepositories struct {
+	mysqlRepositories
+}
+
+func NewSessionRepositories(queries *gen.Queries) mysqlSessionRepositories {
+	return mysqlSessionRepositories{
+		mysqlRepositories: newRepositories(queries),
+	}
+}
+
+func (repos mysqlSessionRepositories) Action() persist.ActionRepository {
+	return nil
+}
+
+func (repos mysqlSessionRepositories) Stats() persist.StatsRepository {
+	return nil
+}
+
+func (repos mysqlSessionRepositories) View() persist.ViewRepository {
+	return nil
+}
+
+func (repos mysqlSessionRepositories) User() persist.SessionUserRepository {
+	return nil
+}
