@@ -62,6 +62,8 @@ func TestMapPostgreErrorMapsSQLStates(t *testing.T) {
 		{"query_canceled", pgerrcode.QueryCanceled, persist.ErrQueryCanceled},
 
 		// Connection errors
+		{"invalid_authorization_specification", pgerrcode.InvalidAuthorizationSpecification, persist.ErrAuthorizationFailed},
+		{"invalid_password", pgerrcode.InvalidPassword, persist.ErrAuthorizationFailed},
 		{"sqlclient_unable_to_establish_sqlconnection", pgerrcode.SQLClientUnableToEstablishSQLConnection, persist.ErrConnectionInit},
 		{"connection_does_not_exist", pgerrcode.ConnectionDoesNotExist, persist.ErrConnectionLost},
 		{"connection_failure", pgerrcode.ConnectionFailure, persist.ErrConnectionLost},
@@ -112,6 +114,10 @@ func TestMapPostgreErrorMapsSQLStates(t *testing.T) {
 		{"undefined_function", pgerrcode.UndefinedFunction, persist.ErrInvalidStatement},
 		{"undefined_parameter", pgerrcode.UndefinedParameter, persist.ErrInvalidStatement},
 		{"undefined_table", pgerrcode.UndefinedTable, persist.ErrInvalidStatement},
+
+		// Transaction errors
+		{"in_failed_sql_transaction", pgerrcode.InFailedSQLTransaction, persist.ErrTxAborted},
+		{"read_only_sql_transaction", pgerrcode.ReadOnlySQLTransaction, persist.ErrTxReadonly},
 	}
 
 	for _, tt := range tests {

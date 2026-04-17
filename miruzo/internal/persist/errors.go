@@ -21,6 +21,7 @@ var (
 
 	// Connection errors (MySQL and PostgreSQL only)
 	ErrConnection            = errors.New("connection")
+	ErrAuthorizationFailed   = fmt.Errorf("%w authorization failed", ErrConnection)
 	ErrConnectionInit        = fmt.Errorf("%w init failed", ErrConnection)
 	ErrConnectionLost        = fmt.Errorf("%w lost", ErrConnection)
 	ErrConnectionRefused     = fmt.Errorf("%w refused", ErrConnection)
@@ -55,11 +56,17 @@ var (
 	// Storage errors
 	ErrStorage            = errors.New("storage")
 	ErrStorageCorrupted   = fmt.Errorf("%w corrupted", ErrStorage)
+	ErrStorageReadonly    = fmt.Errorf("%w readonly", ErrStorage)
 	ErrStorageUnavailable = fmt.Errorf("%w unavailable", ErrStorage)
 
 	// Syntax errors
 	ErrSyntax           = errors.New("syntax error")
 	ErrInvalidStatement = errors.New("invalid statement")
+
+	// Transaction errors
+	ErrTransaction = errors.New("transaction")
+	ErrTxAborted   = fmt.Errorf("%w aborted", ErrTransaction)
+	ErrTxReadonly  = fmt.Errorf("%w readonly", ErrTransaction)
 )
 
 func IsRecoverable(err error) bool {

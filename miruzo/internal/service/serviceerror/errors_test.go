@@ -28,6 +28,7 @@ func TestMapPersistErrorMapsErrors(t *testing.T) {
 		{"query_canceled", fmt.Errorf("x: %w", persist.ErrQueryCanceled), serviceerror.ErrGatewayTimeout},
 
 		// Connection errors
+		{"auth_failed", fmt.Errorf("x: %w", persist.ErrAuthorizationFailed), serviceerror.ErrServiceUnavailable},
 		{"conn_init", fmt.Errorf("x: %w", persist.ErrConnectionInit), serviceerror.ErrServiceUnavailable},
 		{"conn_lost", fmt.Errorf("x: %w", persist.ErrConnectionLost), serviceerror.ErrServiceUnavailable},
 		{"conn_refused", fmt.Errorf("x: %w", persist.ErrConnectionRefused), serviceerror.ErrServiceUnavailable},
@@ -61,6 +62,10 @@ func TestMapPersistErrorMapsErrors(t *testing.T) {
 		{"storage_unavailable", fmt.Errorf("x: %w", persist.ErrStorageUnavailable), serviceerror.ErrServiceUnavailable},
 
 		// Syntax errors
+
+		// Transaction errors
+		{"tx_aborted", fmt.Errorf("x: %w", persist.ErrTxAborted), serviceerror.ErrServiceUnavailable},
+		{"tx_readonly", fmt.Errorf("x: %w", persist.ErrTxReadonly), serviceerror.ErrServiceUnavailable},
 	}
 
 	for _, tt := range tests {

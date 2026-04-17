@@ -26,10 +26,14 @@ func TestIsRecoverableReturnsTrueForRecoverableErrors(t *testing.T) {
 func TestIsRecoverableReturnsFalseForNonRecoverableErrors(t *testing.T) {
 	tests := []error{
 		nil,
+		ErrAuthorizationFailed,
 		ErrTooManyConnections,
 		ErrStorageCorrupted,
+		ErrStorageReadonly,
 		ErrStorageUnavailable,
 		ErrSyntax,
+		ErrTxAborted,
+		ErrTxReadonly,
 		ErrInvalidStatement,
 		errors.New("unexpected"),
 	}

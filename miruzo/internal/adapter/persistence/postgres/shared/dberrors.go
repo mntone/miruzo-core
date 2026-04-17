@@ -16,6 +16,8 @@ var pgToPersistError = map[string]error{
 	pgerrcode.QueryCanceled: persist.ErrQueryCanceled,
 
 	// Connection errors
+	pgerrcode.InvalidAuthorizationSpecification:             persist.ErrAuthorizationFailed,
+	pgerrcode.InvalidPassword:                               persist.ErrAuthorizationFailed,
 	pgerrcode.SQLClientUnableToEstablishSQLConnection:       persist.ErrConnectionInit,
 	pgerrcode.ConnectionDoesNotExist:                        persist.ErrConnectionLost,
 	pgerrcode.ConnectionFailure:                             persist.ErrConnectionLost,
@@ -64,6 +66,10 @@ var pgToPersistError = map[string]error{
 	pgerrcode.UndefinedFunction:     persist.ErrInvalidStatement,
 	pgerrcode.UndefinedParameter:    persist.ErrInvalidStatement,
 	pgerrcode.UndefinedTable:        persist.ErrInvalidStatement,
+
+	// Transaction errors
+	pgerrcode.InFailedSQLTransaction: persist.ErrTxAborted,
+	pgerrcode.ReadOnlySQLTransaction: persist.ErrTxReadonly,
 }
 
 var isPgconnTimeoutError = pgconn.Timeout

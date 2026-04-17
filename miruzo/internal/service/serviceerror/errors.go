@@ -58,10 +58,12 @@ func MapPersistError(err error) error {
 	case errors.Is(err, persist.ErrTooManyConnections):
 		return fmt.Errorf("%w: %v", ErrTooManyRequests, err)
 
-	// Contention, resource exhaustion and storage errors
+	// Contention, resource exhaustion, storage and transaction errors
 	case errors.Is(err, persist.ErrContention),
 		errors.Is(err, persist.ErrResourceExhausted),
-		errors.Is(err, persist.ErrStorage):
+		errors.Is(err, persist.ErrStorage),
+		errors.Is(err, persist.ErrTxAborted),
+		errors.Is(err, persist.ErrTxReadonly):
 		return fmt.Errorf("%w: %v", ErrServiceUnavailable, err)
 
 	default:

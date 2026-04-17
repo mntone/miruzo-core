@@ -49,6 +49,7 @@ func TestMapSQLiteErrorMapsByCode(t *testing.T) {
 		{"locked", sqlite3.ErrLocked, persist.ErrResourceBusy},
 		{"no_memory", sqlite3.ErrNomem, persist.ErrOutOfMemory},
 		{"disk_full", sqlite3.ErrFull, persist.ErrStorageFull},
+		{"readonly", sqlite3.ErrReadonly, persist.ErrStorageReadonly},
 		{"io_error", sqlite3.ErrIoErr, persist.ErrStorageUnavailable},
 		{"cant_open", sqlite3.ErrCantOpen, persist.ErrStorageUnavailable},
 		{"corrupt", sqlite3.ErrCorrupt, persist.ErrStorageCorrupted},
@@ -168,6 +169,25 @@ func TestMapSQLiteErrorMapsByMessageWithDB(t *testing.T) {
 				t.Fatalf("expected operation detail, got %v", err)
 			}
 		})
+	}
+}
+
+func TestMapSQLiteErrorMapsAbortRollbackToTxAborted(t *testing.T) {
+	err := shared.MapSQLiteError(
+		"ListLatest",
+		sqlite3.Error{
+			Code:         sqlite3.ErrAbort,
+			ExtendedCode: sqlite3.ErrAbortRollback,
+		},
+	)
+	assert.ErrorIs(
+		t,
+		"MapSQLiteError(abort_rollback)",
+		err,
+		persist.ErrTxAborted,
+	)
+	if !strings.Contains(err.Error(), "operation=ListLatest") {
+		t.Fatalf("expected operation detail, got %v", err)
 	}
 }
 

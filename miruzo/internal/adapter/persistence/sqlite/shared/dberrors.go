@@ -96,10 +96,18 @@ func mapSQLiteBaseError(operation string, err error, foreignKeyError error) erro
 			return mapPersistError(operation, persist.ErrStorageFull, &sqliteError, err)
 
 		// Storage errors
-		case sqlite3.ErrIoErr, sqlite3.ErrCantOpen:
-			return mapPersistError(operation, persist.ErrStorageUnavailable, &sqliteError, err)
 		case sqlite3.ErrCorrupt:
 			return mapPersistError(operation, persist.ErrStorageCorrupted, &sqliteError, err)
+		case sqlite3.ErrReadonly:
+			return mapPersistError(operation, persist.ErrStorageReadonly, &sqliteError, err)
+		case sqlite3.ErrIoErr, sqlite3.ErrCantOpen:
+			return mapPersistError(operation, persist.ErrStorageUnavailable, &sqliteError, err)
+
+		// Transaction errors
+		case sqlite3.ErrAbort:
+			if sqliteError.ExtendedCode == sqlite3.ErrAbortRollback {
+				return mapPersistError(operation, persist.ErrTxAborted, &sqliteError, err)
+			}
 		}
 	}
 	return err
