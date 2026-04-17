@@ -12,7 +12,7 @@ import (
 
 const (
 	postgresImageName = "postgres:18-alpine"
-	postgresDatabase  = "miruzo"
+	postgresDatabase  = "miruzo_test"
 	postgresUsername  = "m"
 	postgresPassword  = "miruzo1234"
 	postgresArgs      = "--encoding=UTF8 --lc-collate=C --lc-ctype=C"

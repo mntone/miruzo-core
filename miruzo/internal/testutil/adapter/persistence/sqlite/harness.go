@@ -21,7 +21,7 @@ func NewHarness(t testing.TB, reg *testutil.CleanupRegistry) sqliteHarness {
 	}
 }
 
-func (h sqliteHarness) Backend() backend.Backend {
+func (sqliteHarness) Backend() backend.Backend {
 	return backend.SQLite
 }
 

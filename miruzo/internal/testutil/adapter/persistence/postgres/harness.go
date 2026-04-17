@@ -22,7 +22,7 @@ func NewHarness(t testing.TB, reg *testutil.CleanupRegistry) postgresHarness {
 	}
 }
 
-func (h postgresHarness) Backend() backend.Backend {
+func (postgresHarness) Backend() backend.Backend {
 	return backend.PostgreSQL
 }
 

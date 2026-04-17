@@ -10,11 +10,11 @@ import (
 
 type postgresDialect struct{}
 
-func (s postgresDialect) Backend() backend.Backend {
+func (postgresDialect) Backend() backend.Backend {
 	return backend.PostgreSQL
 }
 
-func (s postgresDialect) MapError(
+func (postgresDialect) MapError(
 	operation string,
 	err error,
 	mapping contract.DBErrorMapping,
@@ -28,14 +28,14 @@ func (s postgresDialect) MapError(
 	return err
 }
 
-func (s postgresDialect) BindVarStyle() contract.BindVarStyle {
+func (postgresDialect) BindVarStyle() contract.BindVarStyle {
 	return contract.BindVarStyleDollar
 }
 
-func (s postgresDialect) Param(index int32) string {
+func (postgresDialect) Param(index int32) string {
 	return fmt.Sprintf("$%d", index)
 }
 
-func (s postgresDialect) ParamRange(start, end int32) []any {
-	return contract.ParamRange(start, end, s.Param)
+func (d postgresDialect) ParamRange(start, end int32) []any {
+	return contract.ParamRange(start, end, d.Param)
 }

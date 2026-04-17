@@ -10,11 +10,11 @@ import (
 
 type sqliteDialect struct{}
 
-func (s sqliteDialect) Backend() backend.Backend {
+func (sqliteDialect) Backend() backend.Backend {
 	return backend.SQLite
 }
 
-func (s sqliteDialect) MapError(
+func (sqliteDialect) MapError(
 	operation string,
 	err error,
 	mapping contract.DBErrorMapping,
@@ -28,14 +28,14 @@ func (s sqliteDialect) MapError(
 	return err
 }
 
-func (s sqliteDialect) BindVarStyle() contract.BindVarStyle {
+func (sqliteDialect) BindVarStyle() contract.BindVarStyle {
 	return contract.BindVarStyleQuestion
 }
 
-func (s sqliteDialect) Param(index int32) string {
+func (sqliteDialect) Param(index int32) string {
 	return fmt.Sprintf("?%d", index)
 }
 
-func (s sqliteDialect) ParamRange(start, end int32) []any {
-	return contract.ParamRange(start, end, s.Param)
+func (d sqliteDialect) ParamRange(start, end int32) []any {
+	return contract.ParamRange(start, end, d.Param)
 }
