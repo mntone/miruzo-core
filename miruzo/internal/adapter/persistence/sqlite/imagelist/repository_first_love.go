@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -16,7 +17,7 @@ func mapFirstLoveRows(rows []gen.ListImagesFirstLoveRow) ([]persist.ImageWithCur
 			return row.Image
 		},
 		func(row gen.ListImagesFirstLoveRow) time.Time {
-			return shared.TimeFromSql(row.FirstLovedAt)
+			return persistshared.TimeFromSql(row.FirstLovedAt)
 		},
 	)
 }
@@ -28,7 +29,7 @@ func mapFirstLoveAfterRows(rows []gen.ListImagesFirstLoveAfterRow) ([]persist.Im
 			return row.Image
 		},
 		func(row gen.ListImagesFirstLoveAfterRow) time.Time {
-			return shared.TimeFromSql(row.FirstLovedAt)
+			return persistshared.TimeFromSql(row.FirstLovedAt)
 		},
 	)
 }
@@ -44,7 +45,7 @@ func (repo repository) ListFirstLove(
 			int64(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapSQLiteError("ListFirstLove", err)
+			return nil, sqliteshared.MapSQLiteError("ListFirstLove", err)
 		}
 
 		return mapFirstLoveRows(rows)
@@ -53,13 +54,13 @@ func (repo repository) ListFirstLove(
 	rows, err := repo.queries.ListImagesFirstLoveAfter(
 		ctx,
 		gen.ListImagesFirstLoveAfterParams{
-			CursorAt: shared.NullTimeFromTime(cursor.Primary),
+			CursorAt: persistshared.NullTimeFromTime(cursor.Primary),
 			CursorID: cursor.Secondary,
 			MaxCount: int64(spec.MaxCount),
 		},
 	)
 	if err != nil {
-		return nil, shared.MapSQLiteError("ListFirstLove", err)
+		return nil, sqliteshared.MapSQLiteError("ListFirstLove", err)
 	}
 
 	return mapFirstLoveAfterRows(rows)

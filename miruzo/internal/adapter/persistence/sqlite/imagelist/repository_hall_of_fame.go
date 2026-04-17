@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -16,7 +17,7 @@ func mapHallOfFameRows(rows []gen.ListImagesHallOfFameRow) ([]persist.ImageWithC
 			return row.Image
 		},
 		func(row gen.ListImagesHallOfFameRow) time.Time {
-			return shared.TimeFromSql(row.HallOfFameAt)
+			return persistshared.TimeFromSql(row.HallOfFameAt)
 		},
 	)
 }
@@ -28,7 +29,7 @@ func mapHallOfFameAfterRows(rows []gen.ListImagesHallOfFameAfterRow) ([]persist.
 			return row.Image
 		},
 		func(row gen.ListImagesHallOfFameAfterRow) time.Time {
-			return shared.TimeFromSql(row.HallOfFameAt)
+			return persistshared.TimeFromSql(row.HallOfFameAt)
 		},
 	)
 }
@@ -44,7 +45,7 @@ func (repo repository) ListHallOfFame(
 			int64(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapSQLiteError("ListHallOfFame", err)
+			return nil, sqliteshared.MapSQLiteError("ListHallOfFame", err)
 		}
 
 		return mapHallOfFameRows(rows)
@@ -53,13 +54,13 @@ func (repo repository) ListHallOfFame(
 	rows, err := repo.queries.ListImagesHallOfFameAfter(
 		ctx,
 		gen.ListImagesHallOfFameAfterParams{
-			CursorAt: shared.NullTimeFromTime(cursor.Primary),
+			CursorAt: persistshared.NullTimeFromTime(cursor.Primary),
 			CursorID: cursor.Secondary,
 			MaxCount: int64(spec.MaxCount),
 		},
 	)
 	if err != nil {
-		return nil, shared.MapSQLiteError("ListHallOfFame", err)
+		return nil, sqliteshared.MapSQLiteError("ListHallOfFame", err)
 	}
 
 	return mapHallOfFameAfterRows(rows)

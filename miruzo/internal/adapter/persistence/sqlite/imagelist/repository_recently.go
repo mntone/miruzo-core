@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -16,7 +17,7 @@ func mapRecentlyRows(rows []gen.ListImagesRecentlyRow) ([]persist.ImageWithCurso
 			return row.Image
 		},
 		func(row gen.ListImagesRecentlyRow) time.Time {
-			return shared.TimeFromSql(row.LastViewedAt)
+			return persistshared.TimeFromSql(row.LastViewedAt)
 		},
 	)
 }
@@ -28,7 +29,7 @@ func mapRecentlyAfterRows(rows []gen.ListImagesRecentlyAfterRow) ([]persist.Imag
 			return row.Image
 		},
 		func(row gen.ListImagesRecentlyAfterRow) time.Time {
-			return shared.TimeFromSql(row.LastViewedAt)
+			return persistshared.TimeFromSql(row.LastViewedAt)
 		},
 	)
 }
@@ -44,7 +45,7 @@ func (repo repository) ListRecently(
 			int64(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapSQLiteError("ListRecently", err)
+			return nil, sqliteshared.MapSQLiteError("ListRecently", err)
 		}
 
 		return mapRecentlyRows(rows)
@@ -53,13 +54,13 @@ func (repo repository) ListRecently(
 	rows, err := repo.queries.ListImagesRecentlyAfter(
 		ctx,
 		gen.ListImagesRecentlyAfterParams{
-			CursorAt: shared.NullTimeFromTime(cursor.Primary),
+			CursorAt: persistshared.NullTimeFromTime(cursor.Primary),
 			CursorID: cursor.Secondary,
 			MaxCount: int64(spec.MaxCount),
 		},
 	)
 	if err != nil {
-		return nil, shared.MapSQLiteError("ListRecently", err)
+		return nil, sqliteshared.MapSQLiteError("ListRecently", err)
 	}
 
 	return mapRecentlyAfterRows(rows)

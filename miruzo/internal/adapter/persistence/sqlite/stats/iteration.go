@@ -4,7 +4,8 @@ import (
 	"context"
 	"iter"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -24,7 +25,7 @@ func (repo repository) IterateStatsForDailyDecay(
 				MaxCount:     batchCount64,
 			})
 			if err != nil {
-				yield(persist.DailyDecayStats{}, shared.MapSQLiteError("IterateStatsForDailyDecay", err))
+				yield(persist.DailyDecayStats{}, sqliteshared.MapSQLiteError("IterateStatsForDailyDecay", err))
 				return
 			}
 			if len(rows) == 0 {
@@ -35,7 +36,7 @@ func (repo repository) IterateStatsForDailyDecay(
 				stats := persist.DailyDecayStats{
 					IngestID:     row.IngestID,
 					Score:        row.Score,
-					LastViewedAt: shared.OptionTimeFromSql(row.LastViewedAt),
+					LastViewedAt: persistshared.OptionTimeFromSql(row.LastViewedAt),
 				}
 				if !yield(stats, nil) {
 					return

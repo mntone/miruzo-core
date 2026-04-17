@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"testing"
 
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
-	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -97,7 +98,7 @@ func (s sqliteTxSession) InsertImage(t testing.TB, e persist.Image) error {
 		originalBytes, fallbackBytes, layersBytes,
 	)
 	if err != nil {
-		return dbshared.MapSQLiteError("InsertImage", err)
+		return sqliteshared.MapSQLiteError("InsertImage", err)
 	}
 
 	return nil
@@ -125,11 +126,11 @@ func (s sqliteTxSession) SelectStats(t testing.TB, id model.IngestIDType) (model
 		return e, err
 	}
 
-	e.ScoreEvaluatedAt = dbshared.OptionTimeFromSql(scoreEvaluatedAt)
-	e.FirstLovedAt = dbshared.OptionTimeFromSql(firstLovedAt)
-	e.LastLovedAt = dbshared.OptionTimeFromSql(lastLovedAt)
-	e.HallOfFameAt = dbshared.OptionTimeFromSql(hallOfFameAt)
-	e.LastViewedAt = dbshared.OptionTimeFromSql(lastViewedAt)
-	e.ViewMilestoneArchivedAt = dbshared.OptionTimeFromSql(viewMilestoneArchivedAt)
+	e.ScoreEvaluatedAt = persistshared.OptionTimeFromSql(scoreEvaluatedAt)
+	e.FirstLovedAt = persistshared.OptionTimeFromSql(firstLovedAt)
+	e.LastLovedAt = persistshared.OptionTimeFromSql(lastLovedAt)
+	e.HallOfFameAt = persistshared.OptionTimeFromSql(hallOfFameAt)
+	e.LastViewedAt = persistshared.OptionTimeFromSql(lastViewedAt)
+	e.ViewMilestoneArchivedAt = persistshared.OptionTimeFromSql(viewMilestoneArchivedAt)
 	return e, nil
 }

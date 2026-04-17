@@ -6,7 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -21,10 +22,10 @@ func (repo repository) ApplyDecay(
 	rowCount, err := repo.queries.ApplyDecayToStats(ctx, gen.ApplyDecayToStatsParams{
 		IngestID:    ingestID,
 		Score:       score,
-		EvaluatedAt: shared.NullTimeFromTime(evaluatedAt),
+		EvaluatedAt: persistshared.NullTimeFromTime(evaluatedAt),
 	})
 	if err != nil {
-		return shared.MapSQLiteError("ApplyDecay", err)
+		return sqliteshared.MapSQLiteError("ApplyDecay", err)
 	}
 
 	if rowCount == 0 {
@@ -42,11 +43,11 @@ func (repo repository) ApplyHallOfFameGranted(
 ) error {
 	rowCount, err := repo.queries.ApplyHallOfFameGrantedToStats(ctx, gen.ApplyHallOfFameGrantedToStatsParams{
 		IngestID:                 ingestID,
-		HallOfFameAt:             shared.NullTimeFromTime(hallOfFameAt),
+		HallOfFameAt:             persistshared.NullTimeFromTime(hallOfFameAt),
 		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
 	})
 	if err != nil {
-		return shared.MapSQLiteError("ApplyHallOfFameGranted", err)
+		return sqliteshared.MapSQLiteError("ApplyHallOfFameGranted", err)
 	}
 
 	if rowCount == 0 {
@@ -62,7 +63,7 @@ func (repo repository) ApplyHallOfFameRevoked(
 ) error {
 	rowCount, err := repo.queries.ApplyHallOfFameRevokedToStats(ctx, ingestID)
 	if err != nil {
-		return shared.MapSQLiteError("ApplyHallOfFameRevoked", err)
+		return sqliteshared.MapSQLiteError("ApplyHallOfFameRevoked", err)
 	}
 
 	if rowCount == 0 {
@@ -83,8 +84,8 @@ func (repo repository) ApplyLove(
 	loveStats, err := repo.queries.ApplyLoveToStats(ctx, gen.ApplyLoveToStatsParams{
 		IngestID:           ingestID,
 		ScoreDelta:         scoreDelta,
-		LovedAt:            shared.NullTimeFromTime(lovedAt),
-		PeriodStartAt:      shared.NullTimeFromTime(periodStartAt),
+		LovedAt:            persistshared.NullTimeFromTime(lovedAt),
+		PeriodStartAt:      persistshared.NullTimeFromTime(periodStartAt),
 		LoveScoreThreshold: loveScoreThreshold,
 	})
 	if err != nil {
@@ -92,13 +93,13 @@ func (repo repository) ApplyLove(
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, shared.MapSQLiteError("ApplyLove", err)
+		return model.LoveStats{}, sqliteshared.MapSQLiteError("ApplyLove", err)
 	}
 
 	return model.LoveStats{
 		Score:        model.ScoreType(loveStats.Score),
-		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
-		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),
+		FirstLovedAt: persistshared.OptionTimeFromSql(loveStats.FirstLovedAt),
+		LastLovedAt:  persistshared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil
 }
 
@@ -113,8 +114,8 @@ func (repo repository) ApplyLoveCanceled(
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
-		PeriodStartAt:  shared.NullTimeFromTime(periodStartAt),
-		LoveCanceledAt: shared.NullTimeFromTime(loveCanceledAt),
+		PeriodStartAt:  persistshared.NullTimeFromTime(periodStartAt),
+		LoveCanceledAt: persistshared.NullTimeFromTime(loveCanceledAt),
 		DayStartOffset: int64(dayStartOffset.Seconds()),
 	})
 	if err != nil {
@@ -122,13 +123,13 @@ func (repo repository) ApplyLoveCanceled(
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, shared.MapSQLiteError("ApplyLoveCanceled", err)
+		return model.LoveStats{}, sqliteshared.MapSQLiteError("ApplyLoveCanceled", err)
 	}
 
 	return model.LoveStats{
 		Score:        model.ScoreType(loveStats.Score),
-		FirstLovedAt: shared.OptionTimeFromSql(loveStats.FirstLovedAt),
-		LastLovedAt:  shared.OptionTimeFromSql(loveStats.LastLovedAt),
+		FirstLovedAt: persistshared.OptionTimeFromSql(loveStats.FirstLovedAt),
+		LastLovedAt:  persistshared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil
 }
 
@@ -141,10 +142,10 @@ func (repo repository) ApplyView(
 	rowCount, err := repo.queries.ApplyViewToStats(ctx, gen.ApplyViewToStatsParams{
 		IngestID:   ingestID,
 		ScoreDelta: scoreDelta,
-		ViewedAt:   shared.NullTimeFromTime(viewedAt),
+		ViewedAt:   persistshared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
-		return shared.MapSQLiteError("ApplyView", err)
+		return sqliteshared.MapSQLiteError("ApplyView", err)
 	}
 
 	if rowCount == 0 {
@@ -163,10 +164,10 @@ func (repo repository) ApplyViewWithMilestone(
 	rowCount, err := repo.queries.ApplyViewToStatsWithMilestone(ctx, gen.ApplyViewToStatsWithMilestoneParams{
 		IngestID:   ingestID,
 		ScoreDelta: scoreDelta,
-		ViewedAt:   shared.NullTimeFromTime(viewedAt),
+		ViewedAt:   persistshared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
-		return shared.MapSQLiteError("ApplyViewWithMilestone", err)
+		return sqliteshared.MapSQLiteError("ApplyViewWithMilestone", err)
 	}
 
 	if rowCount == 0 {
