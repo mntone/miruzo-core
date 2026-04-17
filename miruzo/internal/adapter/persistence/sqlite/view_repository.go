@@ -3,8 +3,8 @@ package sqlite
 import (
 	"context"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/image"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -21,7 +21,7 @@ func (repo viewRepository) GetImageWithStatsForUpdate(
 ) (persist.ImageWithStats, error) {
 	row, err := repo.queries.GetImageWithStats(ctx, ingestID)
 	if err != nil {
-		return persist.ImageWithStats{}, shared.MapSQLiteError("GetImageWithStatsForUpdate", err)
+		return persist.ImageWithStats{}, dberrors.ToPersist("GetImageWithStatsForUpdate", err)
 	}
 
 	imageResult, err := image.MapImage(row.Image)

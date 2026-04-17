@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -24,7 +24,7 @@ func (repo settingsRepository) GetValue(
 			return "", persist.ErrNoRows
 		}
 
-		return "", shared.MapSQLiteError("GetValue", err)
+		return "", dberrors.ToPersist("GetValue", err)
 	}
 
 	return value, nil
@@ -40,7 +40,7 @@ func (repo settingsRepository) UpdateValue(
 		Value: value,
 	})
 	if err != nil {
-		return shared.MapSQLiteError("UpdateValue", err)
+		return dberrors.ToPersist("UpdateValue", err)
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package shared_test
+package dberrors_test
 
 import (
 	"context"
@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	sqlite3 "github.com/mattn/go-sqlite3"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-func TestMapSQLiteErrorMapsContextErrors(t *testing.T) {
+func TestSQLiteToPersistMapsContextErrors(t *testing.T) {
 	tests := []struct {
 		name    string
 		inErr   error
@@ -27,8 +27,8 @@ func TestMapSQLiteErrorMapsContextErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapSQLiteError("ListLatest", tt.inErr)
-			assert.ErrorIs(t, "MapSQLiteError("+tt.name+")", err, tt.wantErr)
+			err := dberrors.ToPersist("ListLatest", tt.inErr)
+			assert.ErrorIs(t, "ToPersist("+tt.name+")", err, tt.wantErr)
 			if !strings.Contains(err.Error(), "operation=ListLatest") {
 				t.Fatalf("expected operation detail, got %v", err)
 			}
@@ -36,7 +36,7 @@ func TestMapSQLiteErrorMapsContextErrors(t *testing.T) {
 	}
 }
 
-func TestMapSQLiteErrorMapsByCode(t *testing.T) {
+func TestSQLiteToPersistMapsByCode(t *testing.T) {
 	tests := []struct {
 		name    string
 		code    sqlite3.ErrNo
@@ -57,11 +57,11 @@ func TestMapSQLiteErrorMapsByCode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapSQLiteError(
+			err := dberrors.ToPersist(
 				"ListLatest",
 				sqlite3.Error{Code: tt.code},
 			)
-			assert.ErrorIs(t, "MapSQLiteError("+tt.name+")", err, tt.wantErr)
+			assert.ErrorIs(t, "ToPersist("+tt.name+")", err, tt.wantErr)
 			if !strings.Contains(err.Error(), "operation=ListLatest") {
 				t.Fatalf("expected operation detail, got %v", err)
 			}
@@ -69,7 +69,7 @@ func TestMapSQLiteErrorMapsByCode(t *testing.T) {
 	}
 }
 
-func TestMapSQLiteErrorMapsConstraintByExtendedCode(t *testing.T) {
+func TestSQLiteToPersistMapsConstraintByExtendedCode(t *testing.T) {
 	tests := []struct {
 		name         string
 		extendedCode sqlite3.ErrNoExtended
@@ -85,14 +85,14 @@ func TestMapSQLiteErrorMapsConstraintByExtendedCode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapSQLiteError(
+			err := dberrors.ToPersist(
 				"ListLatest",
 				sqlite3.Error{
 					Code:         sqlite3.ErrConstraint,
 					ExtendedCode: tt.extendedCode,
 				},
 			)
-			assert.ErrorIs(t, "MapSQLiteError("+tt.name+")", err, tt.wantErr)
+			assert.ErrorIs(t, "ToPersist("+tt.name+")", err, tt.wantErr)
 			if !strings.Contains(err.Error(), "operation=ListLatest") {
 				t.Fatalf("expected operation detail, got %v", err)
 			}
@@ -100,14 +100,14 @@ func TestMapSQLiteErrorMapsConstraintByExtendedCode(t *testing.T) {
 	}
 }
 
-func TestMapSQLiteDeleteErrorMapsDifferences(t *testing.T) {
-	err := shared.MapSQLiteDeleteError(
+func TestSQLiteToPersistDeleteErrorMapsDifferences(t *testing.T) {
+	err := dberrors.ToPersistDelete(
 		"DeleteImage",
 		sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintForeignKey},
 	)
 	assert.ErrorIs(
 		t,
-		"MapSQLiteDeleteError(foreign_key)",
+		"ToPersistDelete(foreign_key)",
 		err,
 		persist.ErrForeignKeyReferenced,
 	)
@@ -116,7 +116,7 @@ func TestMapSQLiteDeleteErrorMapsDifferences(t *testing.T) {
 	}
 }
 
-func TestMapSQLiteErrorMapsByMessageWithDB(t *testing.T) {
+func TestSQLiteToPersistMapsByMessageWithDB(t *testing.T) {
 	tests := []struct {
 		name    string
 		build   func(*sql.DB) error
@@ -163,8 +163,8 @@ func TestMapSQLiteErrorMapsByMessageWithDB(t *testing.T) {
 			rawErr := tt.build(db)
 			assert.Error(t, "rawErr", rawErr)
 
-			err = shared.MapSQLiteError("ListLatest", rawErr)
-			assert.ErrorIs(t, fmt.Sprintf("MapSQLiteError(%s)", tt.name), err, tt.wantErr)
+			err = dberrors.ToPersist("ListLatest", rawErr)
+			assert.ErrorIs(t, fmt.Sprintf("ToPersist(%s)", tt.name), err, tt.wantErr)
 			if !strings.Contains(err.Error(), "operation=ListLatest") {
 				t.Fatalf("expected operation detail, got %v", err)
 			}
@@ -172,8 +172,8 @@ func TestMapSQLiteErrorMapsByMessageWithDB(t *testing.T) {
 	}
 }
 
-func TestMapSQLiteErrorMapsAbortRollbackToTxAborted(t *testing.T) {
-	err := shared.MapSQLiteError(
+func TestSQLiteToPersistMapsAbortRollbackToTxAborted(t *testing.T) {
+	err := dberrors.ToPersist(
 		"ListLatest",
 		sqlite3.Error{
 			Code:         sqlite3.ErrAbort,
@@ -182,7 +182,7 @@ func TestMapSQLiteErrorMapsAbortRollbackToTxAborted(t *testing.T) {
 	)
 	assert.ErrorIs(
 		t,
-		"MapSQLiteError(abort_rollback)",
+		"ToPersist(abort_rollback)",
 		err,
 		persist.ErrTxAborted,
 	)
@@ -191,19 +191,19 @@ func TestMapSQLiteErrorMapsAbortRollbackToTxAborted(t *testing.T) {
 	}
 }
 
-func TestMapSQLiteErrorPassesThrough(t *testing.T) {
-	if err := shared.MapSQLiteError("ListLatest", nil); err != nil {
+func TestSQLiteToPersistPassesThrough(t *testing.T) {
+	if err := dberrors.ToPersist("ListLatest", nil); err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
 
 	source := sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintVTab}
-	err := shared.MapSQLiteError("ListLatest", source)
+	err := dberrors.ToPersist("ListLatest", source)
 	if !errors.Is(err, source) {
 		t.Fatalf("expected pass-through sqlite error, got %v", err)
 	}
 
 	generic := errors.New("unknown")
-	err = shared.MapSQLiteError("ListLatest", generic)
+	err = dberrors.ToPersist("ListLatest", generic)
 	if !errors.Is(err, generic) {
 		t.Fatalf("expected pass-through generic error, got %v", err)
 	}

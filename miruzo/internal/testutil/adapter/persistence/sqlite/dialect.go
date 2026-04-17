@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
-	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 )
 
@@ -21,9 +21,9 @@ func (sqliteDialect) MapError(
 ) error {
 	switch mapping {
 	case contract.DBErrorMappingDefault:
-		err = dbshared.MapSQLiteError(operation, err)
+		err = dberrors.ToPersist(operation, err)
 	case contract.DBErrorMappingDelete:
-		err = dbshared.MapSQLiteDeleteError(operation, err)
+		err = dberrors.ToPersistDelete(operation, err)
 	}
 	return err
 }

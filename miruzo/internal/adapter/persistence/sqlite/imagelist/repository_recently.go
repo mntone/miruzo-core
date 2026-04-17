@@ -5,7 +5,7 @@ import (
 	"time"
 
 	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
-	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -45,7 +45,7 @@ func (repo repository) ListRecently(
 			int64(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, sqliteshared.MapSQLiteError("ListRecently", err)
+			return nil, dberrors.ToPersist("ListRecently", err)
 		}
 
 		return mapRecentlyRows(rows)
@@ -60,7 +60,7 @@ func (repo repository) ListRecently(
 		},
 	)
 	if err != nil {
-		return nil, sqliteshared.MapSQLiteError("ListRecently", err)
+		return nil, dberrors.ToPersist("ListRecently", err)
 	}
 
 	return mapRecentlyAfterRows(rows)

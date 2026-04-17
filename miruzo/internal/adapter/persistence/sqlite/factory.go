@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/role"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	database "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
 )
@@ -12,7 +12,7 @@ import (
 func buildConnectConfig(appConfig config.DatabaseConfig) database.ConnectConfig {
 	return database.ConnectConfig{
 		DSN:              appConfig.DSN,
-		ConnectionTuning: shared.NewConnectionTuningFromConfig(appConfig),
+		ConnectionTuning: persistshared.NewConnectionTuningFromConfig(appConfig),
 	}
 }
 

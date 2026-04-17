@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
-	sharedSQLite "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -35,7 +35,7 @@ func (prov sqliteProvider) Session(
 	if err != nil {
 		return fmt.Errorf(
 			"begin sqlite transaction: %w",
-			sharedSQLite.MapSQLiteError("Session()", err),
+			dberrors.ToPersist("Session()", err),
 		)
 	}
 
@@ -46,9 +46,9 @@ func (prov sqliteProvider) Session(
 		if rollbackErr != nil {
 			return fmt.Errorf(
 				"rollback sqlite: %w",
-				shared.JoinErrors(
+				persistshared.JoinErrors(
 					err,
-					sharedSQLite.MapSQLiteError("Session()", rollbackErr),
+					dberrors.ToPersist("Session()", rollbackErr),
 				),
 			)
 		}
@@ -60,7 +60,7 @@ func (prov sqliteProvider) Session(
 	if err != nil {
 		return fmt.Errorf(
 			"commit sqlite: %w",
-			sharedSQLite.MapSQLiteError("Session()", err),
+			dberrors.ToPersist("Session()", err),
 		)
 	}
 

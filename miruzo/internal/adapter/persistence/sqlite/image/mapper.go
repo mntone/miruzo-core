@@ -3,7 +3,7 @@ package image
 import (
 	"fmt"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -20,17 +20,17 @@ func MapImage(r gen.Image) (persist.Image, error) {
 		)
 	}
 
-	original, err := shared.MapVariant(r.Original)
+	original, err := persistshared.MapVariant(r.Original)
 	if err != nil {
 		return persist.Image{}, err
 	}
 
-	fallback, err := shared.MapNullableVariant(r.Fallback)
+	fallback, err := persistshared.MapNullableVariant(r.Fallback)
 	if err != nil {
 		return persist.Image{}, err
 	}
 
-	variants, err := shared.MapVariants(r.Variants)
+	variants, err := persistshared.MapVariants(r.Variants)
 	if err != nil {
 		return persist.Image{}, err
 	}

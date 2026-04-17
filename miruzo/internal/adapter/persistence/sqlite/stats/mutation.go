@@ -7,7 +7,7 @@ import (
 	"time"
 
 	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
-	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -25,7 +25,7 @@ func (repo repository) ApplyDecay(
 		EvaluatedAt: persistshared.NullTimeFromTime(evaluatedAt),
 	})
 	if err != nil {
-		return sqliteshared.MapSQLiteError("ApplyDecay", err)
+		return dberrors.ToPersist("ApplyDecay", err)
 	}
 
 	if rowCount == 0 {
@@ -47,7 +47,7 @@ func (repo repository) ApplyHallOfFameGranted(
 		HallOfFameScoreThreshold: hallOfFameScoreThreshold,
 	})
 	if err != nil {
-		return sqliteshared.MapSQLiteError("ApplyHallOfFameGranted", err)
+		return dberrors.ToPersist("ApplyHallOfFameGranted", err)
 	}
 
 	if rowCount == 0 {
@@ -63,7 +63,7 @@ func (repo repository) ApplyHallOfFameRevoked(
 ) error {
 	rowCount, err := repo.queries.ApplyHallOfFameRevokedToStats(ctx, ingestID)
 	if err != nil {
-		return sqliteshared.MapSQLiteError("ApplyHallOfFameRevoked", err)
+		return dberrors.ToPersist("ApplyHallOfFameRevoked", err)
 	}
 
 	if rowCount == 0 {
@@ -93,7 +93,7 @@ func (repo repository) ApplyLove(
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, sqliteshared.MapSQLiteError("ApplyLove", err)
+		return model.LoveStats{}, dberrors.ToPersist("ApplyLove", err)
 	}
 
 	return model.LoveStats{
@@ -123,7 +123,7 @@ func (repo repository) ApplyLoveCanceled(
 			return model.LoveStats{}, persist.ErrConflict
 		}
 
-		return model.LoveStats{}, sqliteshared.MapSQLiteError("ApplyLoveCanceled", err)
+		return model.LoveStats{}, dberrors.ToPersist("ApplyLoveCanceled", err)
 	}
 
 	return model.LoveStats{
@@ -145,7 +145,7 @@ func (repo repository) ApplyView(
 		ViewedAt:   persistshared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
-		return sqliteshared.MapSQLiteError("ApplyView", err)
+		return dberrors.ToPersist("ApplyView", err)
 	}
 
 	if rowCount == 0 {
@@ -167,7 +167,7 @@ func (repo repository) ApplyViewWithMilestone(
 		ViewedAt:   persistshared.NullTimeFromTime(viewedAt),
 	})
 	if err != nil {
-		return sqliteshared.MapSQLiteError("ApplyViewWithMilestone", err)
+		return dberrors.ToPersist("ApplyViewWithMilestone", err)
 	}
 
 	if rowCount == 0 {

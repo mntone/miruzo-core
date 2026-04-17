@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -44,7 +44,7 @@ func (repo repository) ListChronological(
 			int64(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapSQLiteError("ListChronological", err)
+			return nil, dberrors.ToPersist("ListChronological", err)
 		}
 
 		return mapChronologicalRows(rows)
@@ -59,7 +59,7 @@ func (repo repository) ListChronological(
 		},
 	)
 	if err != nil {
-		return nil, shared.MapSQLiteError("ListChronological", err)
+		return nil, dberrors.ToPersist("ListChronological", err)
 	}
 
 	return mapChronologicalAfterRows(rows)

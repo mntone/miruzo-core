@@ -5,7 +5,7 @@ import (
 	"iter"
 
 	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
-	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -25,7 +25,7 @@ func (repo repository) IterateStatsForDailyDecay(
 				MaxCount:     batchCount64,
 			})
 			if err != nil {
-				yield(persist.DailyDecayStats{}, sqliteshared.MapSQLiteError("IterateStatsForDailyDecay", err))
+				yield(persist.DailyDecayStats{}, dberrors.ToPersist("IterateStatsForDailyDecay", err))
 				return
 			}
 			if len(rows) == 0 {

@@ -3,7 +3,7 @@ package imagelist
 import (
 	"context"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -47,7 +47,7 @@ func (repo repository) ListEngaged(
 			},
 		)
 		if err != nil {
-			return nil, shared.MapSQLiteError("ListEngaged", err)
+			return nil, dberrors.ToPersist("ListEngaged", err)
 		}
 
 		return mapEngagedRows(rows)
@@ -63,7 +63,7 @@ func (repo repository) ListEngaged(
 		},
 	)
 	if err != nil {
-		return nil, shared.MapSQLiteError("ListEngaged", err)
+		return nil, dberrors.ToPersist("ListEngaged", err)
 	}
 
 	return mapEngagedAfterRows(rows)

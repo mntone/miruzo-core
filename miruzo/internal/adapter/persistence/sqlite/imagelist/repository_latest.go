@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -35,7 +35,7 @@ func (repo repository) ListLatest(
 			int64(spec.MaxCount),
 		)
 		if err != nil {
-			return nil, shared.MapSQLiteError("ListLatest", err)
+			return nil, dberrors.ToPersist("ListLatest", err)
 		}
 
 		return mapLatestRows(rows)
@@ -50,7 +50,7 @@ func (repo repository) ListLatest(
 		},
 	)
 	if err != nil {
-		return nil, shared.MapSQLiteError("ListLatest", err)
+		return nil, dberrors.ToPersist("ListLatest", err)
 	}
 
 	return mapLatestRows(rows)

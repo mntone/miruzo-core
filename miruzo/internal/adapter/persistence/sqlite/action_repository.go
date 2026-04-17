@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -28,7 +28,7 @@ func (repo actionRepository) Create(
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return 0, shared.MapSQLiteError("Create", err)
+		return 0, dberrors.ToPersist("Create", err)
 	}
 
 	return actionID, nil
@@ -46,7 +46,7 @@ func (repo actionRepository) CreateDailyDecayIfAbsent(
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return shared.MapSQLiteError("CreateDailyDecayIfAbsent", err)
+		return dberrors.ToPersist("CreateDailyDecayIfAbsent", err)
 	}
 
 	if rowCount == 0 {
@@ -70,7 +70,7 @@ func (repo actionRepository) CreateLoveIfAbsent(
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return shared.MapSQLiteError("CreateLoveIfAbsent", err)
+		return dberrors.ToPersist("CreateLoveIfAbsent", err)
 	}
 
 	if rowCount == 0 {
@@ -94,7 +94,7 @@ func (repo actionRepository) CreateHallOfFameIfAbsent(
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return shared.MapSQLiteError("CreateHallOfFameIfAbsent", err)
+		return dberrors.ToPersist("CreateHallOfFameIfAbsent", err)
 	}
 
 	if rowCount == 0 {
@@ -116,7 +116,7 @@ func (repo actionRepository) ExistsSince(
 		SinceOccurredAt: sinceOccurredAt,
 	})
 	if err != nil {
-		return false, shared.MapSQLiteError("ExistsSince", err)
+		return false, dberrors.ToPersist("ExistsSince", err)
 	}
 
 	return exists != 0, nil

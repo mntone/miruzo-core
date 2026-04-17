@@ -7,7 +7,7 @@ import (
 
 	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
-	sqliteshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -98,7 +98,7 @@ func (s sqliteTxSession) InsertImage(t testing.TB, e persist.Image) error {
 		originalBytes, fallbackBytes, layersBytes,
 	)
 	if err != nil {
-		return sqliteshared.MapSQLiteError("InsertImage", err)
+		return dberrors.ToPersist("InsertImage", err)
 	}
 
 	return nil
