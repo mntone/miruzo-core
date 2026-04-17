@@ -1,4 +1,4 @@
-package shared
+package dberrors
 
 import (
 	"context"
@@ -145,7 +145,7 @@ var mysqlToPersistError = map[uint16]error{
 	errCantExecuteInReadOnlyTx: persist.ErrTxReadonly,
 }
 
-func toPersistError(operation string, persistError error, mySQLError *mysql.MySQLError) error {
+func wrapMySQLError(operation string, persistError error, mySQLError *mysql.MySQLError) error {
 	return fmt.Errorf(
 		"%w: operation=%s number=%d sqlstate=%s: %s",
 		persistError,
@@ -156,7 +156,7 @@ func toPersistError(operation string, persistError error, mySQLError *mysql.MySQ
 	)
 }
 
-func MapMySQLError(operation string, err error) error {
+func ToPersist(operation string, err error) error {
 	if err == nil {
 		return nil
 	}
@@ -201,19 +201,19 @@ func MapMySQLError(operation string, err error) error {
 		switch mySQLError.Number {
 		case errGetErrno:
 			if strings.Contains(mySQLError.Message, "errno 28") {
-				return toPersistError(operation, persist.ErrStorageFull, mySQLError)
+				return wrapMySQLError(operation, persist.ErrStorageFull, mySQLError)
 			}
-			return toPersistError(operation, persist.ErrStorageUnavailable, mySQLError)
+			return wrapMySQLError(operation, persist.ErrStorageUnavailable, mySQLError)
 		case errOptionPreventsStatement:
 			messageLower := strings.ToLower(mySQLError.Message)
 			if strings.Contains(messageLower, "read only") ||
 				strings.Contains(messageLower, "super_read_only") {
-				return toPersistError(operation, persist.ErrStorageReadonly, mySQLError)
+				return wrapMySQLError(operation, persist.ErrStorageReadonly, mySQLError)
 			}
 		}
 
 		if persistError, ok := mysqlToPersistError[mySQLError.Number]; ok {
-			return toPersistError(operation, persistError, mySQLError)
+			return wrapMySQLError(operation, persistError, mySQLError)
 		}
 	}
 	return err

@@ -1,4 +1,4 @@
-package shared_test
+package dberrors_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
@@ -22,7 +22,7 @@ func (timeoutError) Temporary() bool { return true }
 
 var _ net.Error = timeoutError{}
 
-func TestMapMySQLErrorMapsContextErrors(t *testing.T) {
+func TestMySQLToPersistMapsContextErrors(t *testing.T) {
 	tests := []struct {
 		name    string
 		build   func() error
@@ -46,10 +46,10 @@ func TestMapMySQLErrorMapsContextErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapMySQLError("ListLatest", tt.build())
+			err := dberrors.ToPersist("ListLatest", tt.build())
 			assert.ErrorIs(
 				t,
-				"MapMySQLError("+tt.name+")",
+				"ToPersist("+tt.name+")",
 				err,
 				tt.wantErr,
 			)
@@ -60,7 +60,7 @@ func TestMapMySQLErrorMapsContextErrors(t *testing.T) {
 	}
 }
 
-func TestMapMySQLErrorMapsNumbers(t *testing.T) {
+func TestMySQLToPersistMapsNumbers(t *testing.T) {
 	tests := []struct {
 		name    string
 		number  uint16
@@ -140,7 +140,7 @@ func TestMapMySQLErrorMapsNumbers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapMySQLError(
+			err := dberrors.ToPersist(
 				"ListLatest",
 				fmt.Errorf(
 					"query failed: %w",
@@ -153,7 +153,7 @@ func TestMapMySQLErrorMapsNumbers(t *testing.T) {
 			)
 			assert.ErrorIs(
 				t,
-				fmt.Sprintf("MapMySQLError(%d)", tt.number),
+				fmt.Sprintf("ToPersist(%d)", tt.number),
 				err,
 				tt.wantErr,
 			)
@@ -170,7 +170,7 @@ func TestMapMySQLErrorMapsNumbers(t *testing.T) {
 	}
 }
 
-func TestMapMySQLErrorMapsGetErrnoByMessage(t *testing.T) {
+func TestMySQLToPersistMapsGetErrnoByMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		message string
@@ -182,7 +182,7 @@ func TestMapMySQLErrorMapsGetErrnoByMessage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapMySQLError(
+			err := dberrors.ToPersist(
 				"ListLatest",
 				&mysql.MySQLError{
 					Number:   1030,
@@ -192,7 +192,7 @@ func TestMapMySQLErrorMapsGetErrnoByMessage(t *testing.T) {
 			)
 			assert.ErrorIs(
 				t,
-				"MapMySQLError(1030)",
+				"ToPersist(1030)",
 				err,
 				tt.wantErr,
 			)
@@ -200,7 +200,7 @@ func TestMapMySQLErrorMapsGetErrnoByMessage(t *testing.T) {
 	}
 }
 
-func TestMapMySQLErrorMapsOptionPreventsStatementReadOnly(t *testing.T) {
+func TestMySQLToPersistMapsOptionPreventsStatementReadOnly(t *testing.T) {
 	tests := []struct {
 		name    string
 		message string
@@ -218,19 +218,19 @@ func TestMapMySQLErrorMapsOptionPreventsStatementReadOnly(t *testing.T) {
 				SQLState: [5]byte{'H', 'Y', '0', '0', '0'},
 				Message:  tt.message,
 			}
-			err := shared.MapMySQLError("ListLatest", source)
+			err := dberrors.ToPersist("ListLatest", source)
 			if tt.wantErr == nil {
 				if !errors.Is(err, source) {
 					t.Fatalf("expected pass-through error, got %v", err)
 				}
 				return
 			}
-			assert.ErrorIs(t, "MapMySQLError(1290)", err, tt.wantErr)
+			assert.ErrorIs(t, "ToPersist(1290)", err, tt.wantErr)
 		})
 	}
 }
 
-func TestMapMySQLErrorMapsMySQLAndNetworkErrors(t *testing.T) {
+func TestMySQLToPersistMapsMySQLAndNetworkErrors(t *testing.T) {
 	tests := []struct {
 		name    string
 		inErr   error
@@ -242,8 +242,8 @@ func TestMapMySQLErrorMapsMySQLAndNetworkErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapMySQLError("ListLatest", tt.inErr)
-			assert.ErrorIs(t, "MapMySQLError("+tt.name+")", err, tt.wantErr)
+			err := dberrors.ToPersist("ListLatest", tt.inErr)
+			assert.ErrorIs(t, "ToPersist("+tt.name+")", err, tt.wantErr)
 			if !strings.Contains(err.Error(), "operation=ListLatest") {
 				t.Fatalf("expected operation detail, got %v", err)
 			}
@@ -251,7 +251,7 @@ func TestMapMySQLErrorMapsMySQLAndNetworkErrors(t *testing.T) {
 	}
 }
 
-func TestMapMySQLErrorPassesThroughErrors(t *testing.T) {
+func TestMySQLToPersistPassesThroughErrors(t *testing.T) {
 	tests := []struct {
 		name  string
 		inErr error
@@ -263,7 +263,7 @@ func TestMapMySQLErrorPassesThroughErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := shared.MapMySQLError("ListLatest", tt.inErr)
+			err := dberrors.ToPersist("ListLatest", tt.inErr)
 			if !errors.Is(err, tt.inErr) {
 				t.Fatalf("err = got %v, want original error", err)
 			}

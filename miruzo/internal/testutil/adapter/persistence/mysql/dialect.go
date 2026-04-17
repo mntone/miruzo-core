@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
-	dbshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 )
 
@@ -19,7 +19,7 @@ func (mysqlDialect) MapError(
 ) error {
 	switch mapping {
 	case contract.DBErrorMappingDefault, contract.DBErrorMappingDelete:
-		err = dbshared.MapMySQLError(operation, err)
+		err = dberrors.ToPersist(operation, err)
 	}
 	return err
 }

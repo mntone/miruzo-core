@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql"
-	mysqlshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/dberrors"
 	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/mysql/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
@@ -98,7 +98,7 @@ func (s mysqlTxSession) InsertImage(t testing.TB, e persist.Image) error {
 		originalBytes, fallbackBytes, layersBytes,
 	)
 	if err != nil {
-		return mysqlshared.MapMySQLError("InsertImage", err)
+		return dberrors.ToPersist("InsertImage", err)
 	}
 
 	return nil
