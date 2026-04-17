@@ -13,6 +13,7 @@ import (
 type sqlDialect string
 
 const (
+	dialectMySQL    sqlDialect = "mysql"
 	dialectPostgres sqlDialect = "postgres"
 	dialectSQLite   sqlDialect = "sqlite"
 )
@@ -54,6 +55,7 @@ func minifySQL(input []byte, dialect sqlDialect) []byte {
 
 	state := stateNormal
 	space_pending := false
+	var identifierQuote byte
 	var dollarDelimiter []byte
 
 	for i := 0; i < len(input); i++ {
@@ -77,8 +79,9 @@ func minifySQL(input []byte, dialect sqlDialect) []byte {
 				continue
 			}
 
-			if c == '"' {
+			if c == '"' || c == '`' {
 				state = stateIdentifier
+				identifierQuote = c
 				output.WriteByte(c)
 				continue
 			}
@@ -111,6 +114,16 @@ func minifySQL(input []byte, dialect sqlDialect) []byte {
 			output.WriteByte(c)
 
 			if c == '\'' {
+				if dialect == dialectMySQL {
+					backslashCount := 0
+					for j := i - 1; j >= 0 && input[j] == '\\'; j-- {
+						backslashCount++
+					}
+					if backslashCount%2 == 1 {
+						continue
+					}
+				}
+
 				if i+1 < len(input) && input[i+1] == '\'' {
 					output.WriteByte(input[i+1])
 					i++
@@ -122,8 +135,14 @@ func minifySQL(input []byte, dialect sqlDialect) []byte {
 		case stateIdentifier:
 			output.WriteByte(c)
 
-			if c == '"' {
+			if c == identifierQuote {
+				if i+1 < len(input) && input[i+1] == identifierQuote {
+					output.WriteByte(input[i+1])
+					i++
+					continue
+				}
 				state = stateNormal
+				identifierQuote = 0
 			}
 
 		case stateLineComment:
@@ -238,10 +257,9 @@ func main() {
 	positional := make([]string, 0, 2)
 
 	for _, arg := range args {
-		if strings.HasPrefix(arg, "--dialect=") {
-			value := strings.TrimPrefix(arg, "--dialect=")
+		if value, ok := strings.CutPrefix(arg, "--dialect="); ok {
 			switch sqlDialect(value) {
-			case dialectPostgres, dialectSQLite:
+			case dialectMySQL, dialectPostgres, dialectSQLite:
 				dialect = sqlDialect(value)
 			default:
 				fmt.Fprintln(os.Stderr, "invalid dialect:", value)
@@ -253,7 +271,7 @@ func main() {
 	}
 
 	if len(positional) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: sql_minify <input> <output> [--dialect=postgres|sqlite]")
+		fmt.Fprintln(os.Stderr, "usage: sql_minify <input> <output> [--dialect=mysql|postgres|sqlite]")
 		os.Exit(1)
 	}
 
