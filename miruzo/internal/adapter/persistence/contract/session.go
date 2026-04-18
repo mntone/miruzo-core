@@ -74,7 +74,7 @@ func (s TxSession) AssertExecErrorIs(
 	args ...any,
 ) {
 	t.Helper()
-	err := s.MapError("Exec()", s.Exec(t, stmt, args...), errorMapping)
+	err := s.ToPersistError("Exec()", s.Exec(t, stmt, args...), errorMapping)
 	assert.ErrorIs(t, "Exec() error", err, wantError)
 }
 

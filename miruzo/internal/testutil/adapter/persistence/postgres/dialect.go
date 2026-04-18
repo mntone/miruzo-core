@@ -14,7 +14,7 @@ func (postgresDialect) Backend() backend.Backend {
 	return backend.PostgreSQL
 }
 
-func (postgresDialect) MapError(
+func (postgresDialect) ToPersistError(
 	operation string,
 	err error,
 	mapping contract.DBErrorMapping,

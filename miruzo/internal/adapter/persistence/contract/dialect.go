@@ -16,7 +16,7 @@ const (
 )
 
 type Dialect interface {
-	MapError(operation string, err error, mapping DBErrorMapping) error
+	ToPersistError(operation string, err error, mapping DBErrorMapping) error
 	BindVarStyle() BindVarStyle
 
 	// Param returns placeholder for index.

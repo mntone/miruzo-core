@@ -12,7 +12,7 @@ func (mysqlDialect) Backend() backend.Backend {
 	return backend.MySQL
 }
 
-func (mysqlDialect) MapError(
+func (mysqlDialect) ToPersistError(
 	operation string,
 	err error,
 	mapping contract.DBErrorMapping,

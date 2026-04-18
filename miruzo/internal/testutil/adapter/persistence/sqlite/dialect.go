@@ -14,7 +14,7 @@ func (sqliteDialect) Backend() backend.Backend {
 	return backend.SQLite
 }
 
-func (sqliteDialect) MapError(
+func (sqliteDialect) ToPersistError(
 	operation string,
 	err error,
 	mapping contract.DBErrorMapping,
