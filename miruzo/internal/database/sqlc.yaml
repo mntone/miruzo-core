@@ -97,7 +97,9 @@ sql:
         - column: "jobs.started_at"
           go_type: time.Time
         - column: "jobs.finished_at"
-          go_type: time.Time
+          go_type:
+            import: database/sql
+            type: NullTime
         - column: "users.id"
           go_type: int16
         - column: "users.daily_love_used"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite/dberrors"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/sqlite/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -40,7 +41,7 @@ func (repo jobRepository) MarkFinished(
 ) error {
 	rowCount, err := repo.queries.MarkJobFinished(ctx, gen.MarkJobFinishedParams{
 		Name:       name,
-		FinishedAt: finishedAt,
+		FinishedAt: persistshared.NullTimeFromTime(finishedAt),
 	})
 	if err != nil {
 		return dberrors.ToPersist("MarkFinished", err)
