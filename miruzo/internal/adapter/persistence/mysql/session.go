@@ -20,7 +20,9 @@ func (repos mysqlRepositories) ImageList() persist.ImageListRepository {
 }
 
 func (repos mysqlRepositories) Job() persist.JobRepository {
-	return nil
+	return jobRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos mysqlRepositories) Settings() persist.SettingsRepository {

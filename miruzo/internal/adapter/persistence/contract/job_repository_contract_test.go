@@ -19,6 +19,11 @@ func TestJobRepositoryMarks(t *testing.T) {
 			finishedAt := startedAt.Add(2 * time.Second)
 			err = ops.Job().MarkFinished(t.Context(), "test_job", finishedAt)
 			assert.NilError(t, "MarkFinished() error", err)
+
+			// In MySQL, this path can report affected_rows=2.
+			startedAt2 := time.Date(2026, 1, 11, 5, 5, 0, 0, time.UTC)
+			err = ops.Job().MarkStarted(t.Context(), "test_job", startedAt2)
+			assert.NilError(t, "MarkStarted() error", err)
 		})
 	})
 }
