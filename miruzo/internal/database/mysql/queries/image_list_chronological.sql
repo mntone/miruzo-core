@@ -1,0 +1,13 @@
+-- name: ListImagesChronological :many
+SELECT sqlc.embed(images), ingests.captured_at
+FROM ingests JOIN images ON images.ingest_id = ingests.id
+ORDER BY ingests.captured_at DESC, ingests.id DESC
+LIMIT ?;
+
+-- name: ListImagesChronologicalAfter :many
+SELECT sqlc.embed(images), ingests.captured_at
+FROM ingests JOIN images ON images.ingest_id = ingests.id
+WHERE ingests.captured_at < sqlc.arg(cursor_at)
+   OR (ingests.captured_at = sqlc.arg(cursor_at) AND ingests.id < sqlc.arg(cursor_id))
+ORDER BY ingests.captured_at DESC, ingests.id DESC
+LIMIT ?;

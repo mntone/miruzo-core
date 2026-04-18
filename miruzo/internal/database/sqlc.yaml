@@ -7,6 +7,17 @@ sql:
       go:
         package: gen
         out: mysql/gen
+        overrides:
+        - column: "images.original"
+          go_type:
+            type: "[]byte"
+        - column: "images.fallback"
+          go_type:
+            type: "[]byte"
+            pointer: true
+        - column: "images.variants"
+          go_type:
+            type: "[]byte"
   - engine: postgresql
     queries: postgres/queries/
     schema: postgres/migrations

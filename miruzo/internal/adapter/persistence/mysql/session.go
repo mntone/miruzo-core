@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/imagelist"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/mysql/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -16,7 +17,7 @@ func newRepositories(queries *gen.Queries) mysqlRepositories {
 }
 
 func (repos mysqlRepositories) ImageList() persist.ImageListRepository {
-	return nil
+	return imagelist.NewRepository(repos.queries)
 }
 
 func (repos mysqlRepositories) Job() persist.JobRepository {
