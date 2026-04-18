@@ -60,7 +60,9 @@ func (repos mysqlSessionRepositories) Stats() persist.StatsRepository {
 }
 
 func (repos mysqlSessionRepositories) View() persist.ViewRepository {
-	return nil
+	return viewRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos mysqlSessionRepositories) User() persist.SessionUserRepository {
