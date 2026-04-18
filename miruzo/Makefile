@@ -37,6 +37,7 @@ build:
 
 clean:
 	rm -rf ./bin
+	rm -rf ./internal/database/mysql/gen    ./internal/database/mysql/migrations_min
 	rm -rf ./internal/database/postgres/gen ./internal/database/postgres/migrations_min
 	rm -f ./internal/database/sqlite/gen/db.go
 	rm -f ./internal/database/sqlite/gen/models.go
@@ -47,6 +48,7 @@ dev: air-check
 	air
 
 generate: sqlc-check
+	cd ./internal/database/mysql/migrations && go run ../../../../../tools/sql_minify/main.go ../migrations ../migrations_min --dialect=mysql
 	cd ./internal/database/postgres/migrations && go run ../../../../../tools/sql_minify/main.go ../migrations ../migrations_min --dialect=postgres
 	cd ./internal/database/sqlite/migrations && go run ../../../../../tools/sql_minify/main.go ../migrations ../migrations_min --dialect=sqlite
 	cd ./internal/database && sqlc generate

@@ -14,7 +14,6 @@ regardless of who is executing them.
 - `uv` (Python package/dependency manager)
 - Database backend version requirements:
   - MySQL `8.0.16+` (`CHECK` support required)
-    - Note: MySQL support in Go API is planned but not implemented yet
   - PostgreSQL `14+`
   - SQLite `3.37.0+` (`RETURNING` and `STRICT` support required)
 - Python ingest database drivers (`miruzo-py`):
@@ -45,21 +44,22 @@ regardless of who is executing them.
 - Configure runtime files:
   - API: use `miruzo/config.yaml` (`miruzo/internal/app/config.sample.yaml`
     can be used as the base).
-    - Current Go API backends are `sqlite` and `postgres`.
-      `database.backend=mysql` is not supported yet.
+    - Current Go API backends are `mysql`, `postgres`, and `sqlite`.
   - Ingest: copy [`miruzo-py/.env.development`](./miruzo-py/.env.development)
     to `miruzo-py/.env` and set:
     - `ENVIRONMENT` (`development` or `production`)
-    - `DATABASE_BACKEND` (`sqlite`, `postgres`, or `mysql`)
+    - `DATABASE_BACKEND` (`mysql`, `postgres`, or `sqlite`)
     - `DATABASE_URL`
-      - SQLite: `sqlite:///...`
-      - PostgreSQL: `postgresql+psycopg://...`
       - MySQL: `mysql+mysqldb://...`
+      - PostgreSQL: `postgresql+psycopg://...`
+      - SQLite: `sqlite:///...`
     - Path-related variables (`MEDIA_ROOT`, `PUBLIC_MEDIA_ROOT`,
       `GATAKU_ROOT`, `GATAKU_ASSETS_ROOT`, `GATAKU_SYMLINK_DIRNAME`) may use
       defaults on first setup and be customized later if required.
 - Optional test database DSN environment variables:
-  - Go tests: `MIRUZO_TEST_POSTGRES_URL`
+  - Go tests:
+    - `MIRUZO_TEST_MYSQL_URL`
+    - `MIRUZO_TEST_POSTGRES_URL`
   - Python tests:
     - `MIRUZO_PY_TEST_MYSQL_URL`
     - `MIRUZO_PY_TEST_POSTGRES_URL`
@@ -171,7 +171,7 @@ regardless of who is executing them.
 - Run focused suites as needed:
   - `cd miruzo && go test ./internal/service/...` for service logic
   - `cd miruzo && go test ./internal/adapter/persistence/contract/...` for
-    repository contract behavior (SQLite + PostgreSQL)
+    repository contract behavior (MySQL + PostgreSQL + SQLite)
   - `cd miruzo-py && uv run pytest tests/importers` for importer flows
   - `cd miruzo-py && uv run pytest tests/persist` for SQLAlchemy Core
     repositories

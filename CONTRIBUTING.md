@@ -77,20 +77,21 @@ Configure runtime files:
 - API: use `miruzo/config.yaml` (base: `miruzo/internal/app/config.sample.yaml`)
 - Ingest: copy `miruzo-py/.env.development` to `miruzo-py/.env` and set:
   - `ENVIRONMENT` (`development` or `production`)
-  - `DATABASE_BACKEND` (`sqlite`, `postgres`, or `mysql`)
-  - `DATABASE_URL` (`sqlite:///...`, `postgresql+psycopg://...`,
-    `mysql+mysqldb://...`)
+  - `DATABASE_BACKEND` (`mysql`, `postgres`, or `sqlite`)
+  - `DATABASE_URL` (`mysql+mysqldb://...`, `postgresql+psycopg://...`,
+    `sqlite:///...`)
   - Path-related variables (`MEDIA_ROOT`, `PUBLIC_MEDIA_ROOT`, `GATAKU_ROOT`,
     `GATAKU_ASSETS_ROOT`, `GATAKU_SYMLINK_DIRNAME`) are optional for initial
     setup and can stay on defaults.
 - Optional test database DSN environment variables:
-  - Go tests: `MIRUZO_TEST_POSTGRES_URL`
+  - Go tests:
+    - `MIRUZO_TEST_MYSQL_URL`
+    - `MIRUZO_TEST_POSTGRES_URL`
   - Python tests:
     - `MIRUZO_PY_TEST_MYSQL_URL`
     - `MIRUZO_PY_TEST_POSTGRES_URL`
 
-Current Go API database backends are `sqlite` and `postgres`.
-`database.backend=mysql` is not supported yet.
+Current Go API database backends are `mysql`, `postgres`, and `sqlite`.
 
 ## 🔁 Workflow
 

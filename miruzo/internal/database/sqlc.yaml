@@ -8,6 +8,9 @@ sql:
         package: gen
         out: mysql/gen
         overrides:
+        - column: "ingests.executions"
+          go_type:
+            type: "[]byte"
         - column: "images.original"
           go_type:
             type: "[]byte"

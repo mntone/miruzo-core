@@ -28,6 +28,7 @@ func RunDefaultHarnesses(
 ) {
 	t.Helper()
 	backends := []backend.Backend{
+		backend.MySQL,
 		backend.PostgreSQL,
 		backend.SQLite,
 	}

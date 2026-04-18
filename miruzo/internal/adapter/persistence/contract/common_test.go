@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/contract"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil"
+	testutilMySQL "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/mysql"
 	testutilPostgres "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/postgres"
 	testutilSQLite "github.com/mntone/miruzo-core/miruzo/internal/testutil/adapter/persistence/sqlite"
 )
@@ -17,6 +18,8 @@ func toHarnesses(t *testing.T, backends []backend.Backend) []contract.Harness {
 	var harnesses []contract.Harness = make([]contract.Harness, 0, len(backends))
 	for _, b := range backends {
 		switch b {
+		case backend.MySQL:
+			harnesses = append(harnesses, testutilMySQL.NewHarness(t, cleanupRegistry))
 		case backend.PostgreSQL:
 			harnesses = append(harnesses, testutilPostgres.NewHarness(t, cleanupRegistry))
 		case backend.SQLite:

@@ -13,8 +13,7 @@ imports gataku assets into supported database backends.
 
 - Go API for image browsing and reaction workflows
 - Python ingest pipeline for importing and processing source assets
-- Shared support for SQLite and PostgreSQL
-- Optional MySQL support in Python ingest
+- Shared support for MySQL, PostgreSQL, and SQLite
 - Generated SQL access via sqlc for Go repositories
 
 
@@ -46,11 +45,11 @@ For details, see [`docs/unit.md`](./docs/unit.md).
 
 Backend/runtime matrix:
 
-| Backend    | Version                         | Go driver                       | Go API    | Python driver             |
-| ---------- | ------------------------------- | ------------------------------- | --------- | ------------------------- |
-| MySQL      | 8.0.16+ (`CHECK`)               | `go-sql-driver/mysql` (planned) | not yet   | `mysqlclient` (`MySQLdb`) |
-| PostgreSQL | 14+                             | `jackc/pgx/v5`                  | supported | `psycopg3` (`psycopg`)    |
-| SQLite     | 3.37.0+ (`RETURNING`, `STRICT`) | `mattn/go-sqlite3`              | supported | `sqlite3` (stdlib)        |
+| Backend    | Version                         | Go driver             | Go API    | Python driver             |
+| ---------- | ------------------------------- | --------------------- | --------- | ------------------------- |
+| MySQL      | 8.0.16+ (`CHECK`)               | `go-sql-driver/mysql` | supported | `mysqlclient` (`MySQLdb`) |
+| PostgreSQL | 14+                             | `jackc/pgx/v5`        | supported | `psycopg3` (`psycopg`)    |
+| SQLite     | 3.37.0+ (`RETURNING`, `STRICT`) | `mattn/go-sqlite3`    | supported | `sqlite3` (stdlib)        |
 
 
 ## 🛠️ Setup
@@ -71,8 +70,7 @@ Prebuilt binary releases are planned. Until then, use source setup.
 
 - Base file: `miruzo/internal/app/config.sample.yaml`
 - Local default file: [`miruzo/config.yaml`](./miruzo/config.yaml)
-- Current Go API backends: `sqlite`, `postgres`
-- `database.backend=mysql` is not supported yet
+- Current Go API backends: `mysql`, `postgres`, `sqlite`
 
 ### Python ingest (`miruzo-py/.env`)
 
@@ -80,11 +78,11 @@ Prebuilt binary releases are planned. Until then, use source setup.
   `miruzo-py/.env`
 - Set these variables explicitly:
   - `ENVIRONMENT` (`development` or `production`)
-  - `DATABASE_BACKEND` (`sqlite`, `postgres`, or `mysql`)
+  - `DATABASE_BACKEND` (`mysql`, `postgres`, or `sqlite`)
   - `DATABASE_URL`
-    - SQLite: `sqlite:///...`
-    - PostgreSQL: `postgresql+psycopg://...`
     - MySQL: `mysql+mysqldb://...`
+    - PostgreSQL: `postgresql+psycopg://...`
+    - SQLite: `sqlite:///...`
 - Path-related variables (`MEDIA_ROOT`, `PUBLIC_MEDIA_ROOT`, `GATAKU_ROOT`,
   `GATAKU_ASSETS_ROOT`, `GATAKU_SYMLINK_DIRNAME`) can be left as defaults on
   first setup, then customized only when needed.
@@ -131,7 +129,9 @@ cd miruzo-py && uv run pytest tests/persist
 
 Optional test database DSN environment variables:
 
-- Go tests: `MIRUZO_TEST_POSTGRES_URL`
+- Go tests:
+  - `MIRUZO_TEST_MYSQL_URL`
+  - `MIRUZO_TEST_POSTGRES_URL`
 - Python tests:
   - `MIRUZO_PY_TEST_MYSQL_URL`
   - `MIRUZO_PY_TEST_POSTGRES_URL`
