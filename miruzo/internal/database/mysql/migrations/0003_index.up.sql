@@ -3,7 +3,7 @@ CREATE INDEX ix_actions_love_lookup
 ON actions (kind, ingest_id, occurred_at DESC, id DESC);
 
 CREATE INDEX ix_actions_love_canceled_lookup
-ON actions (kind, ingest_id, occurred_at);
+ON actions (kind, ingest_id, period_start_at, occurred_at);
 
 -- Create index for imagelist
 CREATE INDEX ix_images_latest
