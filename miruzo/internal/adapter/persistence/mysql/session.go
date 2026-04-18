@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/imagelist"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql/stats"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/mysql/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
@@ -55,7 +56,7 @@ func (repos mysqlSessionRepositories) Action() persist.ActionRepository {
 }
 
 func (repos mysqlSessionRepositories) Stats() persist.StatsRepository {
-	return nil
+	return stats.NewRepository(repos.queries)
 }
 
 func (repos mysqlSessionRepositories) View() persist.ViewRepository {
