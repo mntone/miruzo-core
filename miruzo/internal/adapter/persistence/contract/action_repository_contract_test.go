@@ -265,7 +265,7 @@ func TestActionRepositoryCreates(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-			actionID, err := ops.Action().Create(
+			err := ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,
@@ -273,7 +273,6 @@ func TestActionRepositoryCreates(t *testing.T) {
 				baseTime,
 			)
 			assert.NilError(t, "Create() error", err)
-			assert.GreaterThan(t, "actionID", actionID, 0)
 		})
 	})
 }
@@ -286,7 +285,7 @@ func TestActionRepositoryCreateReturnsConflictOnDuplicateDecayPerPeriod(t *testi
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
-			_, err := ops.Action().Create(
+			err := ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeDecay,
@@ -295,7 +294,7 @@ func TestActionRepositoryCreateReturnsConflictOnDuplicateDecayPerPeriod(t *testi
 			)
 			assert.NilError(t, "Create() first error", err)
 
-			_, err = ops.Action().Create(
+			err = ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeDecay,
@@ -315,7 +314,7 @@ func TestActionRepositoryCreateAllowsDuplicatePeriodForNonDecay(t *testing.T) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
-			_, err := ops.Action().Create(
+			err := ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,
@@ -324,7 +323,7 @@ func TestActionRepositoryCreateAllowsDuplicatePeriodForNonDecay(t *testing.T) {
 			)
 			assert.NilError(t, "Create() first error", err)
 
-			_, err = ops.Action().Create(
+			err = ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,
@@ -372,7 +371,7 @@ func TestActionRepositoryCreateDailyDecayIfAbsentAllowsDuplicatePeriodForNonDeca
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-			_, err := ops.Action().Create(
+			err := ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,
@@ -487,7 +486,7 @@ func TestActionRepositoryCreateLoveIfAbsentAllowsDuplicateOccurredAtForNonLove(t
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
-			_, err := ops.Action().Create(
+			err := ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,
@@ -576,7 +575,7 @@ func TestActionRepositoryCreateHallOfFameIfAbsentAllowsDuplicateOccurredAtForNon
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
-			_, err := ops.Action().Create(
+			err := ops.Action().Create(
 				t.Context(),
 				ingest.ID,
 				model.ActionTypeView,

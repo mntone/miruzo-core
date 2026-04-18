@@ -64,7 +64,7 @@ func TestDailyDecayServiceApplyUpdatesScoresAndResetsDailyLoveUsed(t *testing.T)
 			EvaluateScore(baseTime).
 			Build(),
 	)
-	_, _ = prov.ActionStub.Create(context.Background(), 4, model.ActionTypeDecay, evaluatedAt, resolv.PeriodStart(baseTime))
+	_ = prov.ActionStub.Create(context.Background(), 4, model.ActionTypeDecay, evaluatedAt, resolv.PeriodStart(baseTime))
 
 	err := service.ApplyDailyDecay(context.Background())
 	assert.NilError(t, "ApplyDailyDecay() error", err)

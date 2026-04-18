@@ -1,4 +1,4 @@
--- name: CreateAction :execlastid
+-- name: CreateAction :execrows
 INSERT INTO actions(ingest_id, kind, occurred_at, period_start_at) VALUES(?, ?, ?, ?);
 
 -- name: CreateDailyDecayActionIfAbsent :execrows

@@ -131,12 +131,11 @@ func (s TxSession) MustAddAction(
 	kind model.ActionType,
 	at time.Time,
 	periodStartAt time.Time,
-) model.ActionIDType {
+) {
 	t.Helper()
 
-	actionID, err := s.Action().Create(t.Context(), ingestID, kind, at, periodStartAt)
+	err := s.Action().Create(t.Context(), ingestID, kind, at, periodStartAt)
 	assert.NilError(t, "MustAddAction() error", err)
-	return actionID
 }
 
 func (s TxSession) MustRemoveUser(t *testing.T) {

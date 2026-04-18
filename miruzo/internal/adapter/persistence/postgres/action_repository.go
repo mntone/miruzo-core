@@ -20,18 +20,22 @@ func (repo actionRepository) Create(
 	kind model.ActionType,
 	occurredAt time.Time,
 	periodStartAt time.Time,
-) (model.ActionIDType, error) {
-	actionID, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
+) error {
+	rowCount, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
 		IngestID:      ingestID,
 		Kind:          int16(kind),
 		OccurredAt:    occurredAt,
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return 0, dberrors.ToPersist("Create", err)
+		return dberrors.ToPersist("Create", err)
 	}
 
-	return actionID, nil
+	if rowCount == 0 {
+		return persist.ErrConflict
+	}
+
+	return nil
 }
 
 func (repo actionRepository) CreateDailyDecayIfAbsent(

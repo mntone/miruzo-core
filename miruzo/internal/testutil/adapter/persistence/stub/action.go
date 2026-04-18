@@ -122,7 +122,7 @@ func (repo *actionRepository) Create(
 	kind model.ActionType,
 	occurredAt time.Time,
 	periodStartAt time.Time,
-) (model.ActionIDType, error) {
+) error {
 	repo.CreateArgs = append(repo.CreateArgs, actionRepositoryCreateArgs{
 		IngestID:      ingestID,
 		Type:          kind,
@@ -131,11 +131,11 @@ func (repo *actionRepository) Create(
 	})
 
 	if repo.CreateError != nil {
-		return 0, repo.CreateError
+		return repo.CreateError
 	}
 
-	actionID := repo.appendCreatedAction(ingestID, kind, occurredAt, periodStartAt)
-	return actionID, nil
+	repo.appendCreatedAction(ingestID, kind, occurredAt, periodStartAt)
+	return nil
 }
 
 func (repo *actionRepository) CreateDailyDecayIfAbsent(

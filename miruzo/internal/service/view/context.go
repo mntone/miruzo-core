@@ -89,7 +89,7 @@ func (srv *Service) GetContext(requestContext context.Context, args ContextArgs)
 				return err
 			}
 
-			_, err = repos.Action().Create(
+			err = repos.Action().Create(
 				ctx,
 				args.IngestID,
 				model.ActionTypeView,
