@@ -17,7 +17,6 @@ func (srv *Service) LoveCancel(
 ) (LoveResult, error) {
 	canceledAt := srv.clk.Now()
 	periodStartAt, periodEndAt := srv.dailyPeriodResolver.PeriodRange(canceledAt)
-	dayStartOffset := srv.dailyPeriodResolver.StartOffset()
 	scoreDelta := srv.scoreCalculator.LoveCanceledDelta()
 
 	result := LoveResult{
@@ -29,7 +28,7 @@ func (srv *Service) LoveCancel(
 		},
 	}
 	err := srv.prov.Session(requestContext, func(ctx context.Context, repos persist.SessionRepositories) error {
-		stats, err := repos.Stats().ApplyLoveCanceled(ctx, ingestID, scoreDelta, canceledAt, periodStartAt, dayStartOffset)
+		stats, err := repos.Stats().ApplyLoveCanceled(ctx, ingestID, scoreDelta, canceledAt, periodStartAt)
 		if err != nil {
 			return err
 		}

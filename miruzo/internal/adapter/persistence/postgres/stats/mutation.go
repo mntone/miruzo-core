@@ -7,7 +7,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/dberrors"
-	postgresshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/postgres/gen"
 	"github.com/mntone/miruzo-core/miruzo/internal/model"
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
@@ -110,14 +109,12 @@ func (repo repository) ApplyLoveCanceled(
 	scoreDelta model.ScoreType,
 	loveCanceledAt time.Time,
 	periodStartAt time.Time,
-	dayStartOffset time.Duration,
 ) (model.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
 		PeriodStartAt:  &periodStartAt,
 		LoveCanceledAt: &loveCanceledAt,
-		DayStartOffset: postgresshared.PgtypeIntervalFromDuration(dayStartOffset),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

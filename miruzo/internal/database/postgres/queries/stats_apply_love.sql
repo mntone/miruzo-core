@@ -24,10 +24,7 @@ WITH latest AS (
 	    WHERE b.ingest_id=a.ingest_id
 	      AND b.kind=14/*love_canceled*/
 	      AND b.occurred_at >= a.occurred_at
-	      AND b.occurred_at <
-	            DATE_TRUNC('day', a.occurred_at - sqlc.arg(day_start_offset)::interval)
-	            + interval '1 day'
-	            + sqlc.arg(day_start_offset)::interval
+	      AND b.period_start_at=a.period_start_at
 	  )
 	ORDER BY a.occurred_at DESC, a.id DESC
 	LIMIT 1

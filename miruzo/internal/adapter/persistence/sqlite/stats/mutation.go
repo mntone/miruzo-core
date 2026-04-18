@@ -109,14 +109,12 @@ func (repo repository) ApplyLoveCanceled(
 	scoreDelta model.ScoreType,
 	loveCanceledAt time.Time,
 	periodStartAt time.Time,
-	dayStartOffset time.Duration,
 ) (model.LoveStats, error) {
 	loveStats, err := repo.queries.ApplyLoveCanceledToStats(ctx, gen.ApplyLoveCanceledToStatsParams{
 		IngestID:       ingestID,
 		ScoreDelta:     scoreDelta,
 		PeriodStartAt:  persistshared.NullTimeFromTime(periodStartAt),
 		LoveCanceledAt: persistshared.NullTimeFromTime(loveCanceledAt),
-		DayStartOffset: int64(dayStartOffset.Seconds()),
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

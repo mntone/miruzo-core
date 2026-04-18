@@ -32,11 +32,10 @@ type statsRepositoryApplyLoveArgs struct {
 }
 
 type statsRepositoryApplyLoveCanceledArgs struct {
-	IngestID       model.IngestIDType
-	ScoreDelta     model.ScoreType
-	LoveCancelAt   time.Time
-	PeriodStartAt  time.Time
-	DayStartOffset time.Duration
+	IngestID      model.IngestIDType
+	ScoreDelta    model.ScoreType
+	LoveCancelAt  time.Time
+	PeriodStartAt time.Time
 }
 
 type statsRepositoryApplyViewArgs struct {
@@ -233,14 +232,12 @@ func (repo *statsRepository) ApplyLoveCanceled(
 	scoreDelta model.ScoreType,
 	loveCancelAt time.Time,
 	periodStartAt time.Time,
-	dayStartOffset time.Duration,
 ) (model.LoveStats, error) {
 	repo.ApplyLoveCanceledArgs = append(repo.ApplyLoveCanceledArgs, statsRepositoryApplyLoveCanceledArgs{
-		IngestID:       ingestID,
-		ScoreDelta:     scoreDelta,
-		LoveCancelAt:   loveCancelAt,
-		PeriodStartAt:  periodStartAt,
-		DayStartOffset: dayStartOffset,
+		IngestID:      ingestID,
+		ScoreDelta:    scoreDelta,
+		LoveCancelAt:  loveCancelAt,
+		PeriodStartAt: periodStartAt,
 	})
 
 	if repo.ApplyLoveCanceledError != nil {

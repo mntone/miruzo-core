@@ -53,7 +53,6 @@ type StatsRepository interface {
 		scoreDelta model.ScoreType,
 		loveCanceledAt time.Time,
 		periodStartAt time.Time,
-		dayStartOffset time.Duration,
 	) (model.LoveStats, error)
 
 	ApplyView(

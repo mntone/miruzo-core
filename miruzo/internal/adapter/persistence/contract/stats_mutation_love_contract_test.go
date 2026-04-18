@@ -393,7 +393,6 @@ func TestStatsRepositoryApplyLoveCanceledUpdatesTimestamps(t *testing.T) {
 						scoreDelta,
 						baseTime.Add(tt.loveCancelOffset),
 						baseTime.Add(time.Duration(tt.periodDayOffset)*24*time.Hour),
-						loveDayStartOffset,
 					)
 					assert.NilError(t, "ApplyLoveCanceled() error", err)
 					assert.Equal(t, "ApplyLoveCanceled().Score", loveStats.Score, stats.Score+scoreDelta)
@@ -564,7 +563,6 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflict(t *testing.T) {
 						scoreDelta,
 						baseTime.Add(tt.loveCancelOffset),
 						baseTime.Add(time.Duration(tt.periodDayOffset)*24*time.Hour),
-						loveDayStartOffset,
 					)
 					assert.ErrorIs(t, "ApplyLoveCanceled() error", err, persist.ErrConflict)
 				})
@@ -590,7 +588,6 @@ func TestStatsRepositoryApplyLoveCanceledReturnsConflictWithoutStats(t *testing.
 				scoreDelta,
 				loveCancelAt,
 				periodStart,
-				loveDayStartOffset,
 			)
 			assert.ErrorIs(t, "ApplyLoveCanceled() error", err, persist.ErrConflict)
 		})

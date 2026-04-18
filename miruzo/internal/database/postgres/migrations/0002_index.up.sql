@@ -4,7 +4,7 @@ ON actions (ingest_id, occurred_at DESC, id DESC)
 WHERE kind=13;
 
 CREATE INDEX ix_actions_love_canceled_lookup
-ON actions (ingest_id, occurred_at)
+ON actions (ingest_id, period_start_at, occurred_at)
 WHERE kind=14;
 
 -- Create index for imagelist

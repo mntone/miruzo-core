@@ -24,14 +24,7 @@ RETURNING score, first_loved_at, last_loved_at;
 -- 	    WHERE b.ingest_id=a.ingest_id
 -- 	      AND b.kind=14/*love_canceled*/
 -- 	      AND b.occurred_at >= a.occurred_at
--- 	      AND b.occurred_at <
--- 	            datetime(
--- 	              a.occurred_at,
--- 	              '-' || sqlc.arg(day_start_offset) || ' seconds',
--- 	              'start of day',
--- 	              '+1 day',
--- 	              '+' || sqlc.arg(day_start_offset) || ' seconds'
--- 	            )
+-- 	      AND b.period_start_at=a.period_start_at
 -- 	  )
 -- 	ORDER BY a.occurred_at DESC, a.id DESC
 -- 	LIMIT 1
