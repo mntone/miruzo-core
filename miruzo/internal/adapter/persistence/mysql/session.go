@@ -26,7 +26,9 @@ func (repos mysqlRepositories) Job() persist.JobRepository {
 }
 
 func (repos mysqlRepositories) Settings() persist.SettingsRepository {
-	return nil
+	return settingsRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos mysqlRepositories) User() persist.UserRepository {
