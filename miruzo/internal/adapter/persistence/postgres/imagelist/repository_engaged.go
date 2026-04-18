@@ -36,7 +36,7 @@ func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageW
 func (repo repository) ListEngaged(
 	ctx context.Context,
 	spec persist.EngagedImageListSpec,
-) ([]persist.ImageWithCursorKey[int16], error) {
+) ([]persist.ImageWithCursorKey[model.ScoreType], error) {
 	cursor, present := spec.CursorKey.Get()
 	if !present {
 		rows, err := repo.queries.ListImagesEngaged(
@@ -57,7 +57,7 @@ func (repo repository) ListEngaged(
 		ctx,
 		gen.ListImagesEngagedAfterParams{
 			ScoreThreshold: spec.ScoreThreshold,
-			CursorInt:      cursor.Primary,
+			CursorInt:      int16(cursor.Primary),
 			CursorID:       cursor.Secondary,
 			MaxCount:       int32(spec.MaxCount),
 		},

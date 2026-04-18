@@ -97,7 +97,7 @@ func (repo repository) ApplyLove(
 	}
 
 	return model.LoveStats{
-		Score:        model.ScoreType(loveStats.Score),
+		Score:        loveStats.Score,
 		FirstLovedAt: persistshared.OptionTimeFromSql(loveStats.FirstLovedAt),
 		LastLovedAt:  persistshared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil
@@ -125,7 +125,7 @@ func (repo repository) ApplyLoveCanceled(
 	}
 
 	return model.LoveStats{
-		Score:        model.ScoreType(loveStats.Score),
+		Score:        loveStats.Score,
 		FirstLovedAt: persistshared.OptionTimeFromSql(loveStats.FirstLovedAt),
 		LastLovedAt:  persistshared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil

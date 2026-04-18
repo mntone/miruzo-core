@@ -21,6 +21,14 @@ sql:
         - column: "images.variants"
           go_type:
             type: "[]byte"
+        - column: "stats.score"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: ScoreType
+        - column: "stats.score_evaluated"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: ScoreType
         - column: "users.daily_love_used"
           go_type:
             import: github.com/mntone/miruzo-core/miruzo/internal/model
@@ -60,6 +68,14 @@ sql:
             import: github.com/mntone/miruzo-core/miruzo/internal/persist
             type: Variant
             slice: true
+        - column: "stats.score"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: ScoreType
+        - column: "stats.score_evaluated"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: ScoreType
         - column: "users.daily_love_used"
           go_type:
             import: github.com/mntone/miruzo-core/miruzo/internal/model
@@ -87,9 +103,13 @@ sql:
           go_type:
             type: "[]byte"
         - column: "stats.score"
-          go_type: int16
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: ScoreType
         - column: "stats.score_evaluated"
-          go_type: int16
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: ScoreType
         - column: "actions.occurred_at"
           go_type: time.Time
         - column: "actions.period_start_at"

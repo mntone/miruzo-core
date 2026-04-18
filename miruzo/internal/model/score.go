@@ -2,7 +2,7 @@ package model
 
 import "encoding/json"
 
-type ScoreType = int16
+type ScoreType int16
 
 type ScoreViewBonusRule struct {
 	Days  int32

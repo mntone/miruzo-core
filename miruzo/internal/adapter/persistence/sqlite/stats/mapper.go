@@ -9,8 +9,8 @@ import (
 func MapStats(r gen.Stat) model.Stats {
 	return model.Stats{
 		IngestID:         r.IngestID,
-		Score:            model.ScoreType(r.Score),
-		ScoreEvaluated:   model.ScoreType(r.ScoreEvaluated),
+		Score:            r.Score,
+		ScoreEvaluated:   r.ScoreEvaluated,
 		ScoreEvaluatedAt: persistshared.OptionTimeFromSql(r.ScoreEvaluatedAt),
 
 		LastViewedAt: persistshared.OptionTimeFromSql(r.LastViewedAt),

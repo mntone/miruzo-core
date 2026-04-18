@@ -16,7 +16,7 @@ func mapEngagedRows(rows []gen.ListImagesEngagedRow) ([]persist.ImageWithCursorK
 			return row.Image
 		},
 		func(row gen.ListImagesEngagedRow) model.ScoreType {
-			return model.ScoreType(row.ScoreEvaluated)
+			return row.ScoreEvaluated
 		},
 	)
 }
@@ -28,7 +28,7 @@ func mapEngagedAfterRows(rows []gen.ListImagesEngagedAfterRow) ([]persist.ImageW
 			return row.Image
 		},
 		func(row gen.ListImagesEngagedAfterRow) model.ScoreType {
-			return model.ScoreType(row.ScoreEvaluated)
+			return row.ScoreEvaluated
 		},
 	)
 }

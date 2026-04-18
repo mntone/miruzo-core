@@ -82,7 +82,7 @@ type Image struct {
 }
 
 type ImageListCursorScalar interface {
-	~ScoreType | time.Time
+	ScoreType | time.Time
 }
 
 type ImageListCursorKey[ScalarType ImageListCursorScalar] struct {

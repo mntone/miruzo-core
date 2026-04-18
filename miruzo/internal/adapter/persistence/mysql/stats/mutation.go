@@ -82,7 +82,7 @@ func (repo repository) getLoveStats(
 	}
 
 	return model.LoveStats{
-		Score:        model.ScoreType(loveStats.Score),
+		Score:        loveStats.Score,
 		FirstLovedAt: persistshared.OptionTimeFromSql(loveStats.FirstLovedAt),
 		LastLovedAt:  persistshared.OptionTimeFromSql(loveStats.LastLovedAt),
 	}, nil
