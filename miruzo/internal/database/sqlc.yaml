@@ -21,6 +21,10 @@ sql:
         - column: "images.variants"
           go_type:
             type: "[]byte"
+        - column: "users.daily_love_used"
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: QuotaInt
   - engine: postgresql
     queries: postgres/queries/
     schema: postgres/migrations
@@ -57,7 +61,9 @@ sql:
             type: Variant
             slice: true
         - column: "users.daily_love_used"
-          go_type: int32
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: QuotaInt
   - engine: sqlite
     queries: sqlite/queries/
     schema: sqlite/migrations
@@ -92,5 +98,9 @@ sql:
           go_type: time.Time
         - column: "jobs.finished_at"
           go_type: time.Time
+        - column: "users.id"
+          go_type: int16
         - column: "users.daily_love_used"
-          go_type: int32
+          go_type:
+            import: github.com/mntone/miruzo-core/miruzo/internal/model
+            type: QuotaInt

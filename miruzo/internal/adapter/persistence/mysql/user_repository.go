@@ -28,8 +28,8 @@ func (repo userRepository) Get(
 	}
 
 	return persist.User{
-		ID:            int16(user.ID),
-		DailyLoveUsed: model.QuotaInt(user.DailyLoveUsed),
+		ID:            user.ID,
+		DailyLoveUsed: user.DailyLoveUsed,
 	}, nil
 }
 
@@ -37,7 +37,7 @@ func (repo userRepository) IncrementDailyLoveUsed(
 	ctx context.Context,
 	dailyLoveLimit model.QuotaInt,
 ) (model.QuotaInt, error) {
-	rowCount, err := repo.queries.IncrementDailyLoveUsed(ctx, int8(dailyLoveLimit))
+	rowCount, err := repo.queries.IncrementDailyLoveUsed(ctx, dailyLoveLimit)
 	if err != nil {
 		return 0, dberrors.ToPersist("IncrementDailyLoveUsed", err)
 	}
@@ -51,7 +51,7 @@ func (repo userRepository) IncrementDailyLoveUsed(
 		return 0, dberrors.ToPersist("IncrementDailyLoveUsed", err)
 	}
 
-	return model.QuotaInt(dailyLoveUsed), nil
+	return dailyLoveUsed, nil
 }
 
 func (repo userRepository) DecrementDailyLoveUsed(ctx context.Context) (model.QuotaInt, error) {
@@ -73,7 +73,7 @@ func (repo userRepository) DecrementDailyLoveUsed(ctx context.Context) (model.Qu
 		return 0, dberrors.ToPersist("DecrementDailyLoveUsed", err)
 	}
 
-	return model.QuotaInt(dailyLoveUsed), nil
+	return dailyLoveUsed, nil
 }
 
 func (repo userRepository) ResetDailyLoveUsed(ctx context.Context) error {

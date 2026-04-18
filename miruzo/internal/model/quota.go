@@ -44,7 +44,7 @@ func (p *PeriodType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type QuotaInt int32
+type QuotaInt int8
 
 // Keep in sync with database CHECK constraints (users.daily_love_used).
 const MaxQuotaInt QuotaInt = 100
