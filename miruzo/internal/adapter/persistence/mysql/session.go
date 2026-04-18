@@ -42,7 +42,9 @@ func NewSessionRepositories(queries *gen.Queries) mysqlSessionRepositories {
 }
 
 func (repos mysqlSessionRepositories) Action() persist.ActionRepository {
-	return nil
+	return actionRepository{
+		queries: repos.queries,
+	}
 }
 
 func (repos mysqlSessionRepositories) Stats() persist.StatsRepository {

@@ -1,5 +1,12 @@
 version: "2"
 sql:
+  - engine: mysql
+    queries: mysql/queries/
+    schema: mysql/migrations
+    gen:
+      go:
+        package: gen
+        out: mysql/gen
   - engine: postgresql
     queries: postgres/queries/
     schema: postgres/migrations
