@@ -32,7 +32,9 @@ func (repos mysqlRepositories) Settings() persist.SettingsRepository {
 }
 
 func (repos mysqlRepositories) User() persist.UserRepository {
-	return nil
+	return userRepository{
+		queries: repos.queries,
+	}
 }
 
 type mysqlSessionRepositories struct {
@@ -60,5 +62,7 @@ func (repos mysqlSessionRepositories) View() persist.ViewRepository {
 }
 
 func (repos mysqlSessionRepositories) User() persist.SessionUserRepository {
-	return nil
+	return userRepository{
+		queries: repos.queries,
+	}
 }

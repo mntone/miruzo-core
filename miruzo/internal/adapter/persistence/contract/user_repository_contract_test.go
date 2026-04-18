@@ -144,6 +144,19 @@ func TestUserRepositoryResetDailyLoveUsedResets(t *testing.T) {
 	})
 }
 
+func TestUserRepositoryResetDailyLoveUsedKeepsZero(t *testing.T) {
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			err := ops.User().ResetDailyLoveUsed(t.Context())
+			assert.NilError(t, "ResetDailyLoveUsed() error", err)
+
+			user, err := ops.User().Get(t.Context())
+			assert.NilError(t, "Get() error", err)
+			assert.Equal(t, "Get().DailyLoveUsed", user.DailyLoveUsed, 0)
+		})
+	})
+}
+
 func TestUserRepositoryResetDailyLoveUsedReturnsNotFoundWhenUserMissing(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
