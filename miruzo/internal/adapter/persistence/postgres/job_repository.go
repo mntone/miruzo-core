@@ -9,6 +9,11 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
+const (
+	jobStartedOperationName  = "MarkStarted"
+	jobFinishedOperationName = "MarkFinished"
+)
+
 type jobRepository struct {
 	queries *gen.Queries
 }
@@ -18,19 +23,29 @@ func (repo jobRepository) MarkStarted(
 	name string,
 	startedAt time.Time,
 ) error {
-	rowCount, err := repo.queries.MarkJobStarted(ctx, gen.MarkJobStartedParams{
+	affectedRows, err := repo.queries.MarkJobStarted(ctx, gen.MarkJobStartedParams{
 		Name:      name,
 		StartedAt: startedAt,
 	})
 	if err != nil {
-		return dberrors.ToPersist("MarkStarted", err)
+		return dberrors.ToPersist(jobStartedOperationName, err)
+	}
+	if affectedRows == 1 {
+		return nil
 	}
 
-	if rowCount == 0 {
-		return persist.ErrConflict
+	var baseError error
+	if affectedRows == 0 {
+		baseError = persist.ErrConflict
+	} else {
+		baseError = persist.ErrInvariantViolation
 	}
-
-	return nil
+	return dberrors.WrapKV(
+		baseError,
+		jobStartedOperationName,
+		"affected_rows", affectedRows,
+		"name", name,
+	)
 }
 
 func (repo jobRepository) MarkFinished(
@@ -38,17 +53,27 @@ func (repo jobRepository) MarkFinished(
 	name string,
 	finishedAt time.Time,
 ) error {
-	rowCount, err := repo.queries.MarkJobFinished(ctx, gen.MarkJobFinishedParams{
+	affectedRows, err := repo.queries.MarkJobFinished(ctx, gen.MarkJobFinishedParams{
 		Name:       name,
 		FinishedAt: &finishedAt,
 	})
 	if err != nil {
-		return dberrors.ToPersist("MarkFinished", err)
+		return dberrors.ToPersist(jobFinishedOperationName, err)
+	}
+	if affectedRows == 1 {
+		return nil
 	}
 
-	if rowCount == 0 {
-		return persist.ErrConflict
+	var baseError error
+	if affectedRows == 0 {
+		baseError = persist.ErrConflict
+	} else {
+		baseError = persist.ErrInvariantViolation
 	}
-
-	return nil
+	return dberrors.WrapKV(
+		baseError,
+		jobFinishedOperationName,
+		"affected_rows", affectedRows,
+		"name", name,
+	)
 }

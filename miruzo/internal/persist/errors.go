@@ -47,6 +47,10 @@ var (
 	ErrResourceBusy     = fmt.Errorf("%w: resource busy", ErrContention) // Used for SQLite ErrBusy/ErrLocked.
 	ErrTxSerialization  = fmt.Errorf("%w: transaction serialization", ErrContention)
 
+	// Invariant errors
+	ErrInvariant          = errors.New("invariant")
+	ErrInvariantViolation = fmt.Errorf("%w violation", ErrInvariant)
+
 	// Resource exhaustion
 	ErrResourceExhausted  = errors.New("resource exhausted")
 	ErrOutOfMemory        = fmt.Errorf("%w: out of memory", ErrResourceExhausted)
