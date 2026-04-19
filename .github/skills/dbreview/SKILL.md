@@ -1,6 +1,8 @@
 ---
 name: dbreview
-description: Review DB changes for migration safety, schema/query consistency, and cross-dialect issues (SQLite/PostgreSQL)
+description: >
+  Review DB changes for migration safety, schema/query consistency, and
+  cross-dialect issues (MySQL/PostgreSQL/SQLite)
 ---
 
 # DB Review Skill (miruzo)
@@ -11,7 +13,7 @@ Review database-related changes and detect risks in:
 - SQL queries (sqlc)
 - repository / adapter changes
 
-Focus on correctness and cross-dialect safety (SQLite / PostgreSQL).
+Focus on correctness and cross-dialect safety (MySQL / PostgreSQL / SQLite).
 
 ## Input
 - migration SQL (up/down)
@@ -37,7 +39,7 @@ Ignore non-database logic unless it affects DB consistency.
 ### Checked
 - migration symmetry
 - schema/query consistency
-- dialect differences (SQLite vs PostgreSQL)
+- dialect differences (MySQL vs PostgreSQL vs SQLite)
 - indexes and constraints
 
 ### Required Tests (Must be satisfied)
@@ -61,7 +63,7 @@ Ignore non-database logic unless it affects DB consistency.
 - Are default value changes reflected in queries or logic?
 
 ### 3. Dialect Differences
-Check for differences between SQLite and PostgreSQL:
+Check for differences between MySQL, PostgreSQL, and SQLite:
 - `RETURNING` usage
 - `ON CONFLICT` behavior
 - JSON functions
