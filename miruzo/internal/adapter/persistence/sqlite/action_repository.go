@@ -10,6 +10,13 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/persist"
 )
 
+const (
+	actionCreateOperationName           = "Create"
+	actionCreateDailyDecayOperationName = "CreateDailyDecayIfAbsent"
+	actionCreateLoveOperationName       = "CreateLoveIfAbsent"
+	actionCreateHallOfFameOperationName = "CreateHallOfFameIfAbsent"
+)
+
 type actionRepository struct {
 	queries *gen.Queries
 }
@@ -21,21 +28,33 @@ func (repo actionRepository) Create(
 	occurredAt time.Time,
 	periodStartAt time.Time,
 ) error {
-	rowCount, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
+	affectedRows, err := repo.queries.CreateAction(ctx, gen.CreateActionParams{
 		IngestID:      ingestID,
 		Kind:          int64(kind),
 		OccurredAt:    occurredAt,
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return dberrors.ToPersist("Create", err)
+		return dberrors.ToPersist(actionCreateOperationName, err)
+	}
+	if affectedRows == 1 {
+		return nil
 	}
 
-	if rowCount == 0 {
-		return persist.ErrConflict
+	var baseError error
+	if affectedRows == 0 {
+		baseError = persist.ErrActionAlreadyExists
+	} else {
+		baseError = persist.ErrInvariantViolation
 	}
-
-	return nil
+	return dberrors.WrapKV(
+		baseError,
+		actionCreateOperationName,
+		"affected_rows", affectedRows,
+		"ingest_id", ingestID,
+		"occurred_at", occurredAt.Format(time.RFC3339Nano),
+		"period_start_at", periodStartAt.Format(time.RFC3339Nano),
+	)
 }
 
 func (repo actionRepository) CreateDailyDecayIfAbsent(
@@ -44,20 +63,32 @@ func (repo actionRepository) CreateDailyDecayIfAbsent(
 	occurredAt time.Time,
 	periodStartAt time.Time,
 ) error {
-	rowCount, err := repo.queries.CreateDailyDecayActionIfAbsent(ctx, gen.CreateDailyDecayActionIfAbsentParams{
+	affectedRows, err := repo.queries.CreateDailyDecayActionIfAbsent(ctx, gen.CreateDailyDecayActionIfAbsentParams{
 		IngestID:      ingestID,
 		OccurredAt:    occurredAt,
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return dberrors.ToPersist("CreateDailyDecayIfAbsent", err)
+		return dberrors.ToPersist(actionCreateDailyDecayOperationName, err)
+	}
+	if affectedRows == 1 {
+		return nil
 	}
 
-	if rowCount == 0 {
-		return persist.ErrConflict
+	var baseError error
+	if affectedRows == 0 {
+		baseError = persist.ErrActionAlreadyExists
+	} else {
+		baseError = persist.ErrInvariantViolation
 	}
-
-	return nil
+	return dberrors.WrapKV(
+		baseError,
+		actionCreateDailyDecayOperationName,
+		"affected_rows", affectedRows,
+		"ingest_id", ingestID,
+		"occurred_at", occurredAt.Format(time.RFC3339Nano),
+		"period_start_at", periodStartAt.Format(time.RFC3339Nano),
+	)
 }
 
 func (repo actionRepository) CreateLoveIfAbsent(
@@ -67,21 +98,33 @@ func (repo actionRepository) CreateLoveIfAbsent(
 	occurredAt time.Time,
 	periodStartAt time.Time,
 ) error {
-	rowCount, err := repo.queries.CreateLoveActionIfAbsent(ctx, gen.CreateLoveActionIfAbsentParams{
+	affectedRows, err := repo.queries.CreateLoveActionIfAbsent(ctx, gen.CreateLoveActionIfAbsentParams{
 		IngestID:      ingestID,
 		Kind:          int64(loveType),
 		OccurredAt:    occurredAt,
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return dberrors.ToPersist("CreateLoveIfAbsent", err)
+		return dberrors.ToPersist(actionCreateLoveOperationName, err)
+	}
+	if affectedRows == 1 {
+		return nil
 	}
 
-	if rowCount == 0 {
-		return persist.ErrConflict
+	var baseError error
+	if affectedRows == 0 {
+		baseError = persist.ErrActionAlreadyExists
+	} else {
+		baseError = persist.ErrInvariantViolation
 	}
-
-	return nil
+	return dberrors.WrapKV(
+		baseError,
+		actionCreateLoveOperationName,
+		"affected_rows", affectedRows,
+		"ingest_id", ingestID,
+		"occurred_at", occurredAt.Format(time.RFC3339Nano),
+		"period_start_at", periodStartAt.Format(time.RFC3339Nano),
+	)
 }
 
 func (repo actionRepository) CreateHallOfFameIfAbsent(
@@ -91,21 +134,33 @@ func (repo actionRepository) CreateHallOfFameIfAbsent(
 	occurredAt time.Time,
 	periodStartAt time.Time,
 ) error {
-	rowCount, err := repo.queries.CreateHallOfFameActionIfAbsent(ctx, gen.CreateHallOfFameActionIfAbsentParams{
+	affectedRows, err := repo.queries.CreateHallOfFameActionIfAbsent(ctx, gen.CreateHallOfFameActionIfAbsentParams{
 		IngestID:      ingestID,
 		Kind:          int64(hallOfFameType),
 		OccurredAt:    occurredAt,
 		PeriodStartAt: periodStartAt,
 	})
 	if err != nil {
-		return dberrors.ToPersist("CreateHallOfFameIfAbsent", err)
+		return dberrors.ToPersist(actionCreateHallOfFameOperationName, err)
+	}
+	if affectedRows == 1 {
+		return nil
 	}
 
-	if rowCount == 0 {
-		return persist.ErrConflict
+	var baseError error
+	if affectedRows == 0 {
+		baseError = persist.ErrActionAlreadyExists
+	} else {
+		baseError = persist.ErrInvariantViolation
 	}
-
-	return nil
+	return dberrors.WrapKV(
+		baseError,
+		actionCreateHallOfFameOperationName,
+		"affected_rows", affectedRows,
+		"ingest_id", ingestID,
+		"occurred_at", occurredAt.Format(time.RFC3339Nano),
+		"period_start_at", periodStartAt.Format(time.RFC3339Nano),
+	)
 }
 
 func (repo actionRepository) ExistsSince(

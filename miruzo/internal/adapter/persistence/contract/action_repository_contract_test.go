@@ -2,6 +2,7 @@ package contract_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -342,6 +343,7 @@ func TestActionRepositoryCreateDailyDecayIfAbsentReturnsConflictOnDuplicatePerio
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
@@ -359,7 +361,13 @@ func TestActionRepositoryCreateDailyDecayIfAbsentReturnsConflictOnDuplicatePerio
 				baseTime.Add(time.Second),
 				periodStartAt,
 			)
-			assert.ErrorIs(t, "CreateDailyDecayIfAbsent() second error", err, persist.ErrConflict)
+			errName := "CreateDailyDecayIfAbsent() second error"
+			assert.ErrorIs(t, errName, err, persist.ErrConflict)
+
+			errString := err.Error()
+			assert.Contains(t, errName, errString, "operation=CreateDailyDecayIfAbsent")
+			assert.Contains(t, errName, errString, "affected_rows=0")
+			assert.Contains(t, errName, errString, "ingest_id="+strconv.Itoa(int(ingest.ID)))
 		})
 	})
 }
@@ -369,6 +377,7 @@ func TestActionRepositoryCreateDailyDecayIfAbsentAllowsDuplicatePeriodForNonDeca
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 			err := ops.Action().Create(
@@ -397,6 +406,7 @@ func TestActionRepositoryCreateDailyDecayIfAbsentAllowsDifferentPeriod(t *testin
 	nextPeriodStartAt := periodStartAt.Add(24 * time.Hour)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
@@ -426,6 +436,7 @@ func TestActionRepositoryCreateLoveIfAbsentReturnsConflictOnDuplicateOccurredAt(
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
@@ -445,7 +456,13 @@ func TestActionRepositoryCreateLoveIfAbsentReturnsConflictOnDuplicateOccurredAt(
 				baseTime,
 				periodStartAt,
 			)
-			assert.ErrorIs(t, "CreateLoveIfAbsent() second error", err, persist.ErrConflict)
+			errName := "CreateLoveIfAbsent() second error"
+			assert.ErrorIs(t, errName, err, persist.ErrConflict)
+
+			errString := err.Error()
+			assert.Contains(t, errName, errString, "operation=CreateLoveIfAbsent")
+			assert.Contains(t, errName, errString, "affected_rows=0")
+			assert.Contains(t, errName, errString, "ingest_id="+strconv.Itoa(int(ingest.ID)))
 		})
 	})
 }
@@ -455,6 +472,7 @@ func TestActionRepositoryCreateLoveIfAbsentAllowsDifferentOccurredAt(t *testing.
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
@@ -484,6 +502,7 @@ func TestActionRepositoryCreateLoveIfAbsentAllowsDuplicateOccurredAtForNonLove(t
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 			err := ops.Action().Create(
@@ -514,6 +533,7 @@ func TestActionRepositoryCreateHallOfFameIfAbsentReturnsConflictOnDuplicateOccur
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
@@ -533,7 +553,13 @@ func TestActionRepositoryCreateHallOfFameIfAbsentReturnsConflictOnDuplicateOccur
 				baseTime,
 				periodStartAt,
 			)
-			assert.ErrorIs(t, "CreateHallOfFameIfAbsent() second error", err, persist.ErrConflict)
+			errName := "CreateHallOfFameIfAbsent() second error"
+			assert.ErrorIs(t, errName, err, persist.ErrConflict)
+
+			errString := err.Error()
+			assert.Contains(t, errName, errString, "operation=CreateHallOfFameIfAbsent")
+			assert.Contains(t, errName, errString, "affected_rows=0")
+			assert.Contains(t, errName, errString, "ingest_id="+strconv.Itoa(int(ingest.ID)))
 		})
 	})
 }
@@ -543,6 +569,7 @@ func TestActionRepositoryCreateHallOfFameIfAbsentAllowsDifferentOccurredAt(t *te
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
@@ -572,6 +599,7 @@ func TestActionRepositoryCreateHallOfFameIfAbsentAllowsDuplicateOccurredAtForNon
 	periodStartAt := actionResolver.PeriodStart(baseTime)
 
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
 		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
 			ingest := ops.MustAddIngest(t, mb.Ingest().Build())
 
