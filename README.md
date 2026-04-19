@@ -70,7 +70,7 @@ Prebuilt binary releases are planned. Until then, use source setup.
 
 - Base file: `miruzo/internal/app/config.sample.yaml`
 - Local default file: [`miruzo/config.yaml`](./miruzo/config.yaml)
-- Current Go API backends: `mysql`, `postgres`, `sqlite`
+- Current Go API backends: `mysql`, `postgresql`, `sqlite`
 
 ### Python ingest (`miruzo-py/.env`)
 

@@ -44,7 +44,7 @@ regardless of who is executing them.
 - Configure runtime files:
   - API: use `miruzo/config.yaml` (`miruzo/internal/app/config.sample.yaml`
     can be used as the base).
-    - Current Go API backends are `mysql`, `postgres`, and `sqlite`.
+    - Current Go API backends are `mysql`, `postgresql`, and `sqlite`.
   - Ingest: copy [`miruzo-py/.env.development`](./miruzo-py/.env.development)
     to `miruzo-py/.env` and set:
     - `ENVIRONMENT` (`development` or `production`)

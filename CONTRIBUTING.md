@@ -91,7 +91,7 @@ Configure runtime files:
     - `MIRUZO_PY_TEST_MYSQL_URL`
     - `MIRUZO_PY_TEST_POSTGRES_URL`
 
-Current Go API database backends are `mysql`, `postgres`, and `sqlite`.
+Current Go API database backends are `mysql`, `postgresql`, and `sqlite`.
 
 ## 🔁 Workflow
 

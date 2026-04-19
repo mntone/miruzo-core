@@ -4,7 +4,7 @@ type Backend string
 
 const (
 	MySQL      Backend = "mysql"
-	PostgreSQL Backend = "postgres"
+	PostgreSQL Backend = "postgresql"
 	SQLite     Backend = "sqlite"
 )
 
