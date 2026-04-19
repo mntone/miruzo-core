@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
@@ -31,6 +32,20 @@ func DefaultDatabaseConfig() DatabaseConfig {
 func (c *DatabaseConfig) Validate() error {
 	if c.DSN == "" {
 		return errors.New("dsn must not be empty")
+	}
+	switch c.Backend {
+	case backend.MySQL:
+		// no operation
+	case backend.PostgreSQL:
+		if !strings.HasPrefix(c.DSN, "postgresql://") {
+			return errors.New("dsn must start with 'postgresql://' prefix")
+		}
+	case backend.SQLite:
+		if !strings.HasPrefix(c.DSN, "file:") {
+			return errors.New("dsn must start with 'file:' prefix")
+		}
+	default:
+		return errors.New("backend must be one of 'mysql', 'postgresql' or 'sqlite'")
 	}
 	if c.MaxOpenConnections < 1 {
 		return errors.New("max_open_conns must be >= 1")
