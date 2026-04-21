@@ -6,19 +6,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Open(ctx context.Context, cfg ConnectConfig) (*pgxpool.Pool, error) {
-	poolConfig, err := pgxpool.ParseConfig(cfg.DSN)
-	if err != nil {
-		return nil, err
-	}
-	poolConfig.ConnConfig.ConnectTimeout = cfg.ConnectionTimeout
-	poolConfig.MaxConnIdleTime = cfg.MaxConnectionIdleTime
-	poolConfig.MaxConnLifetime = cfg.MaxConnectionLifeTime
-	poolConfig.MinConns = cfg.PoolWarmConnections
-	poolConfig.MaxConns = cfg.MaxOpenConnections
-	poolConfig.ConnConfig.RuntimeParams["timezone"] = "UTC"
-
-	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+func Open(ctx context.Context, cfg *ConnectConfig) (*pgxpool.Pool, error) {
+	pool, err := pgxpool.NewWithConfig(ctx, cfg.baseConfig)
 	if err != nil {
 		return nil, err
 	}

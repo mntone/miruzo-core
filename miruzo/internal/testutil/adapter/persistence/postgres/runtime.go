@@ -26,9 +26,11 @@ var (
 )
 
 func openPoolFromDSN(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
-	cfg := database.ConnectConfig{
-		DSN:              dsn,
+	cfg, err := database.NewConnectConfigFromDSN(dsn, database.ConnectOptions{
 		ConnectionTuning: shared.NewTestConnectionTuning(),
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return database.Open(ctx, cfg)

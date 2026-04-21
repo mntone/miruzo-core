@@ -9,22 +9,22 @@ import (
 	database "github.com/mntone/miruzo-core/miruzo/internal/database/sqlite"
 )
 
-func buildConnectConfig(appConfig config.DatabaseConfig) database.ConnectConfig {
-	return database.ConnectConfig{
-		DSN:              appConfig.DSN,
-		ConnectionTuning: persistshared.NewConnectionTuningFromConfig(appConfig),
-	}
-}
-
 func OpenHandle(
 	ctx context.Context,
 	appConfig config.DatabaseConfig,
 	handleRole role.HandleRole,
 ) (sqliteHandle, error) {
-	cfg := buildConnectConfig(appConfig)
+	options := database.ConnectOptions{
+		ConnectionTuning: persistshared.NewConnectionTuningFromConfig(appConfig),
+	}
 	if handleRole == role.Management {
-		cfg.PoolWarmConnections = 1
-		cfg.MaxOpenConnections = 1
+		options.PoolWarmConnections = 1
+		options.MaxOpenConnections = 1
+	}
+
+	cfg, err := database.NewConnectConfigFromDSN(appConfig.DSN, options)
+	if err != nil {
+		return sqliteHandle{}, err
 	}
 
 	db, err := database.Open(ctx, cfg)

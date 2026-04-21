@@ -20,9 +20,12 @@ var (
 )
 
 func openMemoryDB(ctx context.Context, name string) (*sql.DB, error) {
-	cfg := database.ConnectConfig{
-		DSN:              fmt.Sprintf("file:%s?mode=memory&cache=shared", name),
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+	cfg, err := database.NewConnectConfigFromDSN(dsn, database.ConnectOptions{
 		ConnectionTuning: shared.NewTestConnectionTuning(),
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return database.Open(ctx, cfg)

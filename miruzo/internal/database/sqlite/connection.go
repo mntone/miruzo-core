@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"net/url"
 	"sync"
 
 	sqlite3 "github.com/mattn/go-sqlite3"
@@ -19,45 +18,19 @@ func configureSQLiteTimestampFormats() {
 	})
 }
 
-func buildSQLiteDSN(dsn string) (string, error) {
-	parsed, err := url.Parse(dsn)
-	if err != nil {
-		return "", err
-	}
-
-	queries := parsed.Query()
-	if !queries.Has("_txlock") {
-		queries.Set("_txlock", "immediate")
-	}
-	if !queries.Has("_foreign_keys") {
-		queries.Set("_foreign_keys", "1") // 1=ON
-	}
-	if !queries.Has("_journal_mode") && !queries.Has("_synchronous") {
-		queries.Set("_journal_mode", "WAL")
-	}
-
-	parsed.RawQuery = queries.Encode()
-	return parsed.String(), nil
-}
-
-func Open(ctx context.Context, cfg ConnectConfig) (*sql.DB, error) {
+func Open(ctx context.Context, cfg *ConnectConfig) (*sql.DB, error) {
 	configureSQLiteTimestampFormats()
 
-	dsn, err := buildSQLiteDSN(cfg.DSN)
+	db, err := sql.Open("sqlite3", cfg.dsn.String())
 	if err != nil {
 		return nil, err
 	}
+	db.SetConnMaxIdleTime(cfg.connTune.MaxConnectionIdleTime)
+	db.SetConnMaxLifetime(cfg.connTune.MaxConnectionLifeTime)
+	db.SetMaxIdleConns(int(cfg.connTune.PoolWarmConnections))
+	db.SetMaxOpenConns(int(cfg.connTune.MaxOpenConnections))
 
-	db, err := sql.Open("sqlite3", dsn)
-	if err != nil {
-		return nil, err
-	}
-	db.SetConnMaxIdleTime(cfg.MaxConnectionIdleTime)
-	db.SetConnMaxLifetime(cfg.MaxConnectionLifeTime)
-	db.SetMaxIdleConns(int(cfg.PoolWarmConnections))
-	db.SetMaxOpenConns(int(cfg.MaxOpenConnections))
-
-	timeoutContext, cancel := context.WithTimeout(ctx, cfg.ConnectionTimeout)
+	timeoutContext, cancel := context.WithTimeout(ctx, cfg.connTune.ConnectionTimeout)
 	defer cancel()
 
 	if err := db.PingContext(timeoutContext); err != nil {

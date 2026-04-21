@@ -26,10 +26,12 @@ var (
 )
 
 func openDBFromDSN(ctx context.Context, dsn string) (*sql.DB, error) {
-	cfg := database.ConnectConfig{
-		DSN:              dsn,
+	cfg, err := database.NewConnectConfigFromDSN(dsn, database.ConnectOptions{
 		MultiStatements:  true,
 		ConnectionTuning: shared.NewTestConnectionTuning(),
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return database.Open(ctx, cfg)
