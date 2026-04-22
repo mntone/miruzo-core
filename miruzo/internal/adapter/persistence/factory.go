@@ -12,6 +12,23 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 )
 
+func OpenAdminHandle(
+	ctx context.Context,
+	appConfig config.DatabaseConfig,
+	adminDatabaseName string,
+) (DatabaseAdminHandle, error) {
+	switch appConfig.Backend {
+	case backend.MySQL:
+		return mysql.OpenAdminHandle(ctx, appConfig, adminDatabaseName)
+	case backend.PostgreSQL:
+		return postgres.OpenAdminHandle(ctx, appConfig, adminDatabaseName)
+	case backend.SQLite:
+		return sqlite.OpenAdminHandle(appConfig, adminDatabaseName)
+	default:
+		return nil, fmt.Errorf("unsupported database backend: %s", appConfig.Backend)
+	}
+}
+
 func OpenAppHandle(
 	ctx context.Context,
 	appConfig config.DatabaseConfig,

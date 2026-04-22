@@ -6,6 +6,11 @@ type DatabaseCloser interface {
 	Close() error
 }
 
+type DatabaseAdminHandle interface {
+	DatabaseCloser
+	DatabaseAdmin
+}
+
 type DatabaseAppHandle interface {
 	DatabaseCloser
 	PersistenceProvider() persist.PersistenceProvider

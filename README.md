@@ -123,6 +123,9 @@ Focused suites:
 ```bash
 cd miruzo && go test ./internal/service/...
 cd miruzo && go test ./internal/adapter/persistence/contract/...
+cd miruzo && go test -tags integration \
+  ./internal/adapter/persistence/mysql \
+  ./internal/adapter/persistence/postgres
 cd miruzo-py && uv run pytest tests/importers
 cd miruzo-py && uv run pytest tests/persist
 ```

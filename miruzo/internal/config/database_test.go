@@ -67,6 +67,18 @@ func TestDatabaseConfigValidate(t *testing.T) {
 			wantErrText: "dsn must start with 'file:' prefix",
 		},
 		{
+			name: "sqlite_rejects_admin_dbname",
+			cfg: func() DatabaseConfig {
+				cfg := newValidDatabaseConfig(
+					backend.SQLite,
+					"file:../var/miruzo.sqlite",
+				)
+				cfg.AdminDatabaseName = "sqlite"
+				return cfg
+			}(),
+			wantErrText: "admin_dbname is not supported for sqlite backend",
+		},
+		{
 			name: "unsupported_backend_is_rejected",
 			cfg: newValidDatabaseConfig(
 				backend.Backend("postgres"),

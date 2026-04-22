@@ -172,6 +172,12 @@ regardless of who is executing them.
   - `cd miruzo && go test ./internal/service/...` for service logic
   - `cd miruzo && go test ./internal/adapter/persistence/contract/...` for
     repository contract behavior (MySQL + PostgreSQL + SQLite)
+  - Run admin lifecycle integration tests (MySQL/PostgreSQL):
+    ```bash
+    cd miruzo && go test -tags integration \
+      ./internal/adapter/persistence/mysql \
+      ./internal/adapter/persistence/postgres
+    ```
   - `cd miruzo-py && uv run pytest tests/importers` for importer flows
   - `cd miruzo-py && uv run pytest tests/persist` for SQLAlchemy Core
     repositories

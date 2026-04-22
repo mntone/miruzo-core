@@ -179,6 +179,14 @@ Focused suites:
 - `cd miruzo-py && uv run pytest tests/importers`
 - `cd miruzo-py && uv run pytest tests/persist`
 
+MySQL/PostgreSQL admin integration tests:
+
+```bash
+cd miruzo && go test -tags integration \
+  ./internal/adapter/persistence/mysql \
+  ./internal/adapter/persistence/postgres
+```
+
 Notes:
 
 - Reuse committed fixtures/helpers; do not hand-roll container lifecycle scripts

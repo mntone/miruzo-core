@@ -1,0 +1,123 @@
+package mysql
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+
+	persistshared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
+	"github.com/mntone/miruzo-core/miruzo/internal/config"
+	database "github.com/mntone/miruzo-core/miruzo/internal/database/mysql"
+)
+
+const (
+	adminCreateStmt = "CREATE DATABASE %s CHARSET utf8mb4 COLLATE utf8mb4_0900_bin"
+	adminDropStmt   = "DROP DATABASE %s"
+	adminExistsStmt = "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name=?)"
+)
+
+type mysqlAdminHandle struct {
+	db *sql.DB
+
+	databaseName string
+}
+
+func resolveAdminDatabaseName(
+	appConfig config.DatabaseConfig,
+	adminDatabaseName string,
+) string {
+	if adminDatabaseName != "" {
+		return adminDatabaseName
+	}
+	if appConfig.AdminDatabaseName != "" {
+		return appConfig.AdminDatabaseName
+	}
+	return "mysql"
+}
+
+func OpenAdminHandle(
+	ctx context.Context,
+	appConfig config.DatabaseConfig,
+	adminDatabaseName string,
+) (mysqlAdminHandle, error) {
+	options := database.ConnectOptions{
+		MultiStatements:  false,
+		ConnectionTuning: persistshared.NewConnectionTuningFromConfig(appConfig),
+	}
+	options.PoolWarmConnections = 1
+	options.MaxOpenConnections = 1
+
+	cfg, err := database.NewConnectConfigFromDSN(appConfig.DSN, options)
+	if err != nil {
+		return mysqlAdminHandle{}, err
+	}
+
+	adminDatabaseName = resolveAdminDatabaseName(appConfig, adminDatabaseName)
+	databaseName := cfg.Database()
+	db, err := database.Open(ctx, cfg.WithDatabase(adminDatabaseName))
+	if err != nil {
+		return mysqlAdminHandle{}, err
+	}
+
+	return mysqlAdminHandle{
+		db: db,
+
+		databaseName: databaseName,
+	}, nil
+}
+
+func (hdl mysqlAdminHandle) Close() error {
+	return hdl.db.Close()
+}
+
+func mysqlQuoteIdentifier(identifier string) string {
+	return "`" + strings.ReplaceAll(identifier, "`", "``") + "`"
+}
+
+func (hdl mysqlAdminHandle) Create(ctx context.Context) error {
+	// MySQL may return ER_DB_CREATE_EXISTS (1007, SQLSTATE HY000).
+	_, err := hdl.db.ExecContext(
+		ctx,
+		fmt.Sprintf(adminCreateStmt, mysqlQuoteIdentifier(hdl.databaseName)),
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"mysql admin create database %q failed: %w",
+			hdl.databaseName,
+			err,
+		)
+	}
+	return nil
+}
+
+func (hdl mysqlAdminHandle) Drop(ctx context.Context) error {
+	// MySQL may return ER_DB_DROP_EXISTS (1008, SQLSTATE HY000).
+	_, err := hdl.db.ExecContext(
+		ctx,
+		fmt.Sprintf(adminDropStmt, mysqlQuoteIdentifier(hdl.databaseName)),
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"mysql admin drop database %q failed: %w",
+			hdl.databaseName,
+			err,
+		)
+	}
+	return nil
+}
+
+func (hdl mysqlAdminHandle) Exists(ctx context.Context) (bool, error) {
+	row := hdl.db.QueryRowContext(ctx, adminExistsStmt, hdl.databaseName)
+
+	var exists bool
+	if err := row.Scan(&exists); err != nil {
+		return false, fmt.Errorf(
+			"mysql admin check database %q exists failed: %w",
+			hdl.databaseName,
+			err,
+		)
+	}
+
+	return exists, nil
+}
