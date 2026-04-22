@@ -25,39 +25,37 @@ type postgresAdminHandle struct {
 	appDatabaseName string
 }
 
-func resolveAdminDatabaseName(
-	appConfig config.DatabaseConfig,
-	adminDatabaseName string,
-) string {
-	if adminDatabaseName != "" {
-		return adminDatabaseName
-	}
-	if appConfig.AdminDatabaseName != "" {
-		return appConfig.AdminDatabaseName
-	}
-	return "postgres"
-}
-
 func OpenAdminHandle(
 	ctx context.Context,
 	appConfig config.DatabaseConfig,
-	adminDatabaseName string,
+	options persistshared.DatabaseAdminOptions,
 ) (postgresAdminHandle, error) {
-	options := database.ConnectOptions{
+	connOptions := database.ConnectOptions{
 		UseSimpleProtocol: true,
 		ConnectionTuning:  persistshared.NewConnectionTuningFromConfig(appConfig),
 	}
-	options.PoolWarmConnections = 1
-	options.MaxOpenConnections = 1
+	connOptions.PoolWarmConnections = 1
+	connOptions.MaxOpenConnections = 1
 
-	cfg, err := database.NewConnectConfigFromDSN(appConfig.DSN, options)
+	cfg, err := database.NewConnectConfigFromDSN(appConfig.DSN, connOptions)
 	if err != nil {
 		return postgresAdminHandle{}, err
 	}
 
-	adminDatabaseName = resolveAdminDatabaseName(appConfig, adminDatabaseName)
+	adminUserName, adminPassword := options.ResolveCredentials(
+		cfg.UserName(),
+		cfg.Password(),
+	)
+	adminDatabaseName := options.ResolveDatabaseName(
+		appConfig.AdminDatabaseName,
+		"postgres",
+	)
 	appDatabaseName := cfg.Database()
-	pool, err := database.Open(ctx, cfg.WithDatabase(adminDatabaseName))
+
+	adminConfig := cfg.
+		WithCredentials(adminUserName, adminPassword).
+		WithDatabase(adminDatabaseName)
+	pool, err := database.Open(ctx, adminConfig)
 	if err != nil {
 		return postgresAdminHandle{}, err
 	}

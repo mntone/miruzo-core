@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	adaptershared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 )
 
@@ -51,8 +52,9 @@ type sqliteAdminHandle struct {
 
 func OpenAdminHandle(
 	appConfig config.DatabaseConfig,
-	adminDatabaseName string,
+	options adaptershared.DatabaseAdminOptions,
 ) (sqliteAdminHandle, error) {
+	adminDatabaseName := options.DatabaseName
 	if adminDatabaseName == "" {
 		adminDatabaseName = appConfig.AdminDatabaseName
 	}
@@ -60,6 +62,16 @@ func OpenAdminHandle(
 		return sqliteAdminHandle{}, fmt.Errorf(
 			"sqlite backend does not support admin database override: %q",
 			adminDatabaseName,
+		)
+	}
+	if options.UserName != "" {
+		return sqliteAdminHandle{}, errors.New(
+			"sqlite backend does not support admin username override",
+		)
+	}
+	if options.Password != "" {
+		return sqliteAdminHandle{}, errors.New(
+			"sqlite backend does not support admin password override",
 		)
 	}
 

@@ -49,6 +49,14 @@ func (c *ConnectConfig) WithCredentials(userName, password string) *ConnectConfi
 	}
 }
 
+func (c *ConnectConfig) UserName() string {
+	return c.baseConfig.ConnConfig.User
+}
+
+func (c *ConnectConfig) Password() string {
+	return c.baseConfig.ConnConfig.Password
+}
+
 func (c *ConnectConfig) Database() string {
 	return c.baseConfig.ConnConfig.Database
 }

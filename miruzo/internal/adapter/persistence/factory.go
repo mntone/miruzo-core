@@ -7,6 +7,7 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/postgres"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/role"
+	adaptershared "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/sqlite"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
@@ -15,15 +16,15 @@ import (
 func OpenAdminHandle(
 	ctx context.Context,
 	appConfig config.DatabaseConfig,
-	adminDatabaseName string,
+	options adaptershared.DatabaseAdminOptions,
 ) (DatabaseAdminHandle, error) {
 	switch appConfig.Backend {
 	case backend.MySQL:
-		return mysql.OpenAdminHandle(ctx, appConfig, adminDatabaseName)
+		return mysql.OpenAdminHandle(ctx, appConfig, options)
 	case backend.PostgreSQL:
-		return postgres.OpenAdminHandle(ctx, appConfig, adminDatabaseName)
+		return postgres.OpenAdminHandle(ctx, appConfig, options)
 	case backend.SQLite:
-		return sqlite.OpenAdminHandle(appConfig, adminDatabaseName)
+		return sqlite.OpenAdminHandle(appConfig, options)
 	default:
 		return nil, fmt.Errorf("unsupported database backend: %s", appConfig.Backend)
 	}

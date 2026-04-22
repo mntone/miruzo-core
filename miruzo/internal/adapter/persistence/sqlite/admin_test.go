@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
@@ -14,10 +15,13 @@ func TestOpenAdminHandleRejectsAdminDatabaseName(t *testing.T) {
 	t.Parallel()
 
 	databasePath := filepath.Join(t.TempDir(), "admin-name.sqlite")
-	_, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN:               "file:" + databasePath,
-		AdminDatabaseName: "ignored",
-	}, "")
+	_, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN:               "file:" + databasePath,
+			AdminDatabaseName: "ignored",
+		},
+		shared.DatabaseAdminOptions{},
+	)
 	assert.Error(t, "OpenAdminHandle() error", err)
 
 	if err.Error() !=
@@ -34,10 +38,15 @@ func TestOpenAdminHandleRejectsAdminDatabaseNameOverride(t *testing.T) {
 	t.Parallel()
 
 	databasePath := filepath.Join(t.TempDir(), "admin-name-override.sqlite")
-	_, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN:               "file:" + databasePath,
-		AdminDatabaseName: "config-admin",
-	}, "cli-admin")
+	_, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN:               "file:" + databasePath,
+			AdminDatabaseName: "config-admin",
+		},
+		shared.DatabaseAdminOptions{
+			DatabaseName: "cli-admin",
+		},
+	)
 	assert.Error(t, "OpenAdminHandle() error", err)
 
 	if err.Error() !=
@@ -50,13 +59,62 @@ func TestOpenAdminHandleRejectsAdminDatabaseNameOverride(t *testing.T) {
 	}
 }
 
+func TestOpenAdminHandleRejectsAdminUserNameOverride(t *testing.T) {
+	t.Parallel()
+
+	databasePath := filepath.Join(t.TempDir(), "admin-username-override.sqlite")
+	_, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{
+			UserName: "admin",
+		},
+	)
+	assert.Error(t, "OpenAdminHandle() error", err)
+
+	if err.Error() != "sqlite backend does not support admin username override" {
+		t.Fatalf(
+			"OpenAdminHandle() error = %q, want %q",
+			err.Error(),
+			"sqlite backend does not support admin username override",
+		)
+	}
+}
+
+func TestOpenAdminHandleRejectsAdminPasswordOverride(t *testing.T) {
+	t.Parallel()
+
+	databasePath := filepath.Join(t.TempDir(), "admin-password-override.sqlite")
+	_, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{
+			Password: "secret",
+		},
+	)
+	assert.Error(t, "OpenAdminHandle() error", err)
+
+	if err.Error() != "sqlite backend does not support admin password override" {
+		t.Fatalf(
+			"OpenAdminHandle() error = %q, want %q",
+			err.Error(),
+			"sqlite backend does not support admin password override",
+		)
+	}
+}
+
 func TestDatabaseAdminCreateCreatesFile(t *testing.T) {
 	t.Parallel()
 
 	databasePath := filepath.Join(t.TempDir(), "create.sqlite")
-	admin, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN: "file:" + databasePath,
-	}, "")
+	admin, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{},
+	)
 	assert.NilError(t, "OpenAdminHandle() error", err)
 
 	err = admin.Create(context.Background())
@@ -73,9 +131,12 @@ func TestDatabaseAdminCreateReturnsErrExistWhenFileExists(t *testing.T) {
 	err := os.WriteFile(databasePath, []byte("x"), 0o644)
 	assert.NilError(t, "WriteFile() error", err)
 
-	admin, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN: "file:" + databasePath,
-	}, "")
+	admin, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{},
+	)
 	assert.NilError(t, "OpenAdminHandle() error", err)
 
 	err = admin.Create(context.Background())
@@ -89,9 +150,12 @@ func TestDatabaseAdminDropRemovesFile(t *testing.T) {
 	err := os.WriteFile(databasePath, []byte("x"), 0o644)
 	assert.NilError(t, "WriteFile() error", err)
 
-	admin, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN: "file:" + databasePath,
-	}, "")
+	admin, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{},
+	)
 	assert.NilError(t, "OpenAdminHandle() error", err)
 
 	err = admin.Drop(context.Background())
@@ -108,9 +172,12 @@ func TestDatabaseAdminExistsReturnsTrueWhenFileExists(t *testing.T) {
 	err := os.WriteFile(databasePath, []byte("x"), 0o644)
 	assert.NilError(t, "WriteFile() error", err)
 
-	admin, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN: "file:" + databasePath,
-	}, "")
+	admin, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{},
+	)
 	assert.NilError(t, "OpenAdminHandle() error", err)
 
 	exists, err := admin.Exists(context.Background())
@@ -122,9 +189,12 @@ func TestDatabaseAdminExistsReturnsFalseWhenFileDoesNotExist(t *testing.T) {
 	t.Parallel()
 
 	databasePath := filepath.Join(t.TempDir(), "not-found-check.sqlite")
-	admin, err := OpenAdminHandle(config.DatabaseConfig{
-		DSN: "file:" + databasePath,
-	}, "")
+	admin, err := OpenAdminHandle(
+		config.DatabaseConfig{
+			DSN: "file:" + databasePath,
+		},
+		shared.DatabaseAdminOptions{},
+	)
 	assert.NilError(t, "OpenAdminHandle() error", err)
 
 	exists, err := admin.Exists(context.Background())

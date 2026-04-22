@@ -6,8 +6,9 @@ import (
 	"context"
 	"testing"
 
-	adapterpersistence "github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence"
 	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/mysql"
+	"github.com/mntone/miruzo-core/miruzo/internal/adapter/persistence/shared"
 	"github.com/mntone/miruzo-core/miruzo/internal/config"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil"
@@ -35,8 +36,12 @@ func TestMySQLAdminHandleLifecycle(t *testing.T) {
 		t,
 		func(
 			ctx context.Context,
-		) (adapterpersistence.DatabaseAdminHandle, error) {
-			return mysql.OpenAdminHandle(ctx, dbConfig, "")
+		) (persistence.DatabaseAdminHandle, error) {
+			return mysql.OpenAdminHandle(
+				ctx,
+				dbConfig,
+				shared.DatabaseAdminOptions{},
+			)
 		},
 	)
 }
