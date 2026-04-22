@@ -1,11 +1,13 @@
 package postgres
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mntone/miruzo-core/miruzo/internal/database/shared"
 )
 
 type ConnectOptions struct {
+	UseSimpleProtocol bool
 	shared.ConnectionTuning
 }
 
@@ -23,6 +25,11 @@ func NewConnectConfigFromDSN(
 	}
 
 	baseConfig.ConnConfig.ConnectTimeout = options.ConnectionTimeout
+	if options.UseSimpleProtocol {
+		baseConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+		baseConfig.ConnConfig.StatementCacheCapacity = 0
+		baseConfig.ConnConfig.DescriptionCacheCapacity = 0
+	}
 	baseConfig.ConnConfig.RuntimeParams["timezone"] = "UTC"
 	baseConfig.MaxConnIdleTime = options.MaxConnectionIdleTime
 	baseConfig.MaxConnLifetime = options.MaxConnectionLifeTime
