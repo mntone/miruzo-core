@@ -20,9 +20,59 @@ const (
 )
 
 var (
-	once    sync.Once
-	db      *sql.DB
-	initErr error
+	// Runtime test resources are process-global and shared within this package.
+	dsnOnce     sync.Once
+	resolvedDSN string
+	dsnErr      error
+)
+
+func resolveMySQLTestDSN(
+	ctx context.Context,
+	reg *testutil.CleanupRegistry,
+) (string, error) {
+	dsn := os.Getenv(TEST_DSN_ENVNAME)
+	if dsn != "" {
+		return dsn, nil
+	}
+
+	container, err := startMySQLContainer(ctx)
+	if err != nil {
+		return "", err
+	}
+	reg.Register(func() error {
+		closeContext, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		return container.Terminate(closeContext)
+	})
+
+	dsn, err = container.ConnectionString(ctx)
+	if err != nil {
+		return "", fmt.Errorf("mysql get dsn: %w", err)
+	}
+
+	return dsn, nil
+}
+
+func GetMySQLTestDSN(t testing.TB, reg *testutil.CleanupRegistry) string {
+	t.Helper()
+
+	// Priority:
+	// 1) MIRUZO_TEST_MYSQL_URL (externally managed DB)
+	// 2) auto-start container (local dev / VSCode)
+	dsnOnce.Do(func() {
+		resolvedDSN, dsnErr = resolveMySQLTestDSN(context.Background(), reg)
+	})
+	if dsnErr != nil {
+		t.Fatal(dsnErr)
+	}
+	return resolvedDSN
+}
+
+var (
+	// Runtime test resources are process-global and shared within this package.
+	dbOnce sync.Once
+	db     *sql.DB
+	dbErr  error
 )
 
 func openDBFromDSN(ctx context.Context, dsn string) (*sql.DB, error) {
@@ -38,37 +88,18 @@ func openDBFromDSN(ctx context.Context, dsn string) (*sql.DB, error) {
 }
 
 // GetMySQLTestDB returns a shared *sql.DB for this package test process.
-// Priority:
-// 1) MIRUZO_TEST_MYSQL_URL (externally managed DB)
-// 2) auto-start container (local dev / VSCode)
+// It opens the DB from the DSN resolved by GetMySQLTestDSN and applies schema
+// migrations once.
 func GetMySQLTestDB(t testing.TB, reg *testutil.CleanupRegistry) *sql.DB {
 	t.Helper()
 
-	once.Do(func() {
+	dsn := GetMySQLTestDSN(t, reg)
+	dbOnce.Do(func() {
 		ctx := context.Background()
-		dsn := os.Getenv(TEST_DSN_ENVNAME)
-		if dsn == "" {
-			container, err := startMySQLContainer(ctx)
-			if err != nil {
-				initErr = err
-				return
-			}
-			reg.Register(func() error {
-				closeContext, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-				defer cancel()
-				return container.Terminate(closeContext)
-			})
-
-			dsn, err = container.ConnectionString(ctx)
-			if err != nil {
-				initErr = fmt.Errorf("mysql get dsn: %w", err)
-				return
-			}
-		}
 
 		localDB, err := openDBFromDSN(ctx, dsn)
 		if err != nil {
-			initErr = fmt.Errorf("mysql open: %w", err)
+			dbErr = fmt.Errorf("mysql open: %w", err)
 			return
 		}
 		reg.Register(func() error {
@@ -78,14 +109,14 @@ func GetMySQLTestDB(t testing.TB, reg *testutil.CleanupRegistry) *sql.DB {
 
 		err = mysql.NewMigrationRunnerFromDB(localDB).Up(ctx)
 		if err != nil {
-			initErr = fmt.Errorf("mysql migrate: %w", err)
+			dbErr = fmt.Errorf("mysql migrate: %w", err)
 			return
 		}
 
 		db = localDB
 	})
-	if initErr != nil {
-		t.Fatal(initErr)
+	if dbErr != nil {
+		t.Fatal(dbErr)
 	}
 
 	return db
