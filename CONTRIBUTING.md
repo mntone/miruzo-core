@@ -55,7 +55,7 @@ OS-specific setup (required for DB drivers / Go tools):
 - macOS:
   - Go tools (recommended):
     ```bash
-    brew install gopls delve go-air sqlc goreleaser
+    brew install gopls delve go-air sqlc goreleaser goversioninfo
     ```
   - Go tools (alternative):
     ```bash

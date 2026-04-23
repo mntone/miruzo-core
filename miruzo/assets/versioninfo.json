@@ -1,0 +1,17 @@
+{
+	"FixedFileInfo": {
+		"FileOS": "040004",
+		"FileType": "01",
+		"FileSubType": "00"
+	},
+	"StringFileInfo": {
+		"CompanyName": "mntone",
+		"LegalCopyright": "Copyright (c) 2026 mntone. Licensed under GPLv3.",
+		"ProductName": "miruzo"
+	},
+	"VarFileInfo": {
+		"Translation": {
+			"LangID": "0409"
+		}
+	}
+}

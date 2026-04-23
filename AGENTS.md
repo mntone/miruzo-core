@@ -34,7 +34,7 @@ regardless of who is executing them.
       and `uv sync --extra dev --extra mysql`
   - macOS:
     - Go tools (recommended):
-      `brew install gopls delve go-air sqlc goreleaser`
+      `brew install gopls delve go-air sqlc goreleaser goversioninfo`
     - Go tools (alternative):
       `cd miruzo && make tools`
     - PostgreSQL Python driver dependencies:

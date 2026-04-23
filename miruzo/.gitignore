@@ -1,5 +1,6 @@
 # Distribution / packaging
 bin/
+cmd/**/*.syso
 dist/
 internal/database/*/gen/*
 !internal/database/*/gen/*.manual.go
