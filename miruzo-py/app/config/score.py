@@ -11,5 +11,3 @@ class ScoreConfig:
 	"""
 
 	initial_score: int = 100
-	minimum_score: int = -20000
-	maximum_score: int = 200
