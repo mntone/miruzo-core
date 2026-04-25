@@ -10,6 +10,7 @@ CREATE TABLE settings(
 ) STRICT;
 
 -- Create ingests table
+-- details: docs/database.md
 CREATE TABLE ingests(
 	id INTEGER PRIMARY KEY AUTOINCREMENT
 		CONSTRAINT ck_ingests_id
@@ -30,8 +31,13 @@ CREATE TABLE ingests(
 			CHECK (
 				length(relative_path) BETWEEN 5 AND 255
 				AND relative_path NOT LIKE '/%'
+				AND relative_path NOT LIKE './%'
 				AND relative_path NOT LIKE '..%'
-			),
+				AND relative_path NOT LIKE '%//%'
+				AND relative_path NOT LIKE '%/./%'
+				AND relative_path NOT LIKE '%/../%'
+			)
+			UNIQUE,
 	fingerprint TEXT
 		CONSTRAINT uq_ingests_fingerprint
 			NOT NULL

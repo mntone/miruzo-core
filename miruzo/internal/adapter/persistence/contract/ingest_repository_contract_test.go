@@ -17,16 +17,32 @@ func TestIngestSchemaRejectsInvalidRelativePath(t *testing.T) {
 		relativePath string
 	}{
 		{
-			name:         "relative_path=.bin",
+			name:         "RejectsTooShortPath",
 			relativePath: ".bin",
 		},
 		{
-			name:         "relative_path=../orig/test.png",
+			name:         "RejectsAbsolutePath",
+			relativePath: "/orig/test.png",
+		},
+		{
+			name:         "RejectsCurrentRelativePath",
+			relativePath: "./orig/test.png",
+		},
+		{
+			name:         "RejectsParentRelativePath",
 			relativePath: "../orig/test.png",
 		},
 		{
-			name:         "relative_path=/orig/test.png",
-			relativePath: "/orig/test.png",
+			name:         "RejectsDuplicateSlashSegment",
+			relativePath: "orig//test.png",
+		},
+		{
+			name:         "RejectsCurrentDirSegment",
+			relativePath: "orig/./test.png",
+		},
+		{
+			name:         "RejectsParentDirSegment",
+			relativePath: "orig/../test.png",
 		},
 	}
 
@@ -53,6 +69,70 @@ func TestIngestSchemaRejectsInvalidRelativePath(t *testing.T) {
 				})
 			})
 		}
+	})
+}
+
+func TestIngestSchemaRejectsDuplicateRelativePath(t *testing.T) {
+	baseTime := time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
+	stmt := "INSERT INTO ingests(relative_path, fingerprint, ingested_at, captured_at, updated_at) VALUES(%s, %s, %s, %s, %s)"
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 5)...)
+
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ops.MustExec(
+				t,
+				dialectStmt,
+				"orig/test.png",
+				fmt.Sprintf("%064d", 1),
+				baseTime,
+				baseTime,
+				baseTime,
+			)
+			ops.AssertExecErrorIs(
+				t,
+				c.DBErrorMappingDefault,
+				persist.ErrUniqueViolation,
+				dialectStmt,
+				"orig/test.png",
+				fmt.Sprintf("%064d", 2),
+				baseTime,
+				baseTime,
+				baseTime,
+			)
+		})
+	})
+}
+
+func TestIngestSchemaRejectsDuplicateFingerprint(t *testing.T) {
+	baseTime := time.Date(2026, 1, 9, 15, 0, 0, 0, time.UTC)
+	stmt := "INSERT INTO ingests(relative_path, fingerprint, ingested_at, captured_at, updated_at) VALUES(%s, %s, %s, %s, %s)"
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		dialectStmt := fmt.Sprintf(stmt, h.ParamRange(1, 5)...)
+
+		h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+			ops.MustExec(
+				t,
+				dialectStmt,
+				"orig/test1.png",
+				fmt.Sprintf("%064d", 1),
+				baseTime,
+				baseTime,
+				baseTime,
+			)
+			ops.AssertExecErrorIs(
+				t,
+				c.DBErrorMappingDefault,
+				persist.ErrUniqueViolation,
+				dialectStmt,
+				"orig/test2.png",
+				fmt.Sprintf("%064d", 1),
+				baseTime,
+				baseTime,
+				baseTime,
+			)
+		})
 	})
 }
 

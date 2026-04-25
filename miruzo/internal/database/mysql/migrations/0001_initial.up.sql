@@ -7,6 +7,7 @@ CREATE TABLE settings(
 );
 
 -- Create ingests table
+-- details: docs/database.md
 CREATE TABLE ingests(
 	id BIGINT AUTO_INCREMENT PRIMARY KEY,
 	process TINYINT NOT NULL DEFAULT 0
@@ -20,7 +21,11 @@ CREATE TABLE ingests(
 			CHECK (
 				char_length(relative_path) >= 5
 				AND relative_path NOT LIKE '/%'
+				AND relative_path NOT LIKE './%'
 				AND relative_path NOT LIKE '..%'
+				AND relative_path NOT LIKE '%//%'
+				AND relative_path NOT LIKE '%/./%'
+				AND relative_path NOT LIKE '%/../%'
 			),
 	fingerprint VARCHAR(64) NOT NULL,
 	ingested_at DATETIME(6) NOT NULL,
@@ -29,6 +34,7 @@ CREATE TABLE ingests(
 	executions JSON NOT NULL DEFAULT ('[]')
 		CONSTRAINT ck_ingests_executions
 			CHECK (JSON_TYPE(executions) = 'ARRAY' AND JSON_LENGTH(executions) <= 5),
+	UNIQUE uq_ingests_relative_path (relative_path),
 	UNIQUE uq_ingests_fingerprint (fingerprint),
 	CONSTRAINT ck_ingests_captured_at CHECK (captured_at <= ingested_at),
 	CONSTRAINT ck_ingests_updated_at  CHECK (updated_at >= ingested_at)
