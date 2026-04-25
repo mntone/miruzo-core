@@ -5,24 +5,52 @@
 			"name": "miruzo-api (Debug)",
 			"type": "go",
 			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/miruzo/cmd/miruzo-api/main.go",
+			"mode": "exec",
+			"preLaunchTask": "go build ./cmd/miruzo-api (-Og -g)",
+			"program": "${workspaceFolder}/miruzo/bin/miruzo-api",
 			"cwd": "${workspaceFolder}/miruzo"
 		},
 		{
-			"name": "miruzo-cli job daily-decay (Debug)",
+			"name": "miruzo-cli database (Debug)",
 			"type": "go",
 			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/miruzo/cmd/miruzo-cli",
+			"mode": "exec",
+			"preLaunchTask": "go build ./cmd/miruzo-cli (-Og -g)",
+			"program": "${workspaceFolder}/miruzo/bin/miruzo-cli",
 			"cwd": "${workspaceFolder}/miruzo",
 			"args": [
-				"job",
-				"daily-decay",
+				"database",
+				"${input:cli_database_operation}",
 			],
 		},
 		{
-			"name": "gataku-import debug",
+			"name": "miruzo-cli job (Debug)",
+			"type": "go",
+			"request": "launch",
+			"mode": "exec",
+			"preLaunchTask": "go build ./cmd/miruzo-cli (-Og -g)",
+			"program": "${workspaceFolder}/miruzo/bin/miruzo-cli",
+			"cwd": "${workspaceFolder}/miruzo",
+			"args": [
+				"job",
+				"${input:cli_job_operation}",
+			],
+		},
+		{
+			"name": "miruzo-cli migrate (Debug)",
+			"type": "go",
+			"request": "launch",
+			"mode": "exec",
+			"preLaunchTask": "go build ./cmd/miruzo-cli (-Og -g)",
+			"program": "${workspaceFolder}/miruzo/bin/miruzo-cli",
+			"cwd": "${workspaceFolder}/miruzo",
+			"args": [
+				"migrate",
+				"${input:cli_migrate_operation}",
+			],
+		},
+		{
+			"name": "gataku-import (Debug)",
 			"type": "debugpy",
 			"cwd": "${workspaceFolder}/miruzo-py",
 			"request": "launch",
@@ -39,7 +67,7 @@
 		{
 			"id": "host",
 			"type": "pickString",
-			"description": "The host for miruzo API server",
+			"description": "Host for the miruzo API server.",
 			"default": "0.0.0.0",
 			"options": [
 				"127.0.0.1",
@@ -49,13 +77,40 @@
 		{
 			"id": "port",
 			"type": "promptString",
-			"description": "The port number for miruzo API server",
+			"description": "Port for the miruzo API server.",
 			"default": "1024"
+		},
+		{
+			"id": "cli_database_operation",
+			"type": "pickString",
+			"description": "Database command to run for miruzo-cli.",
+			"options": [
+				"create",
+				"drop"
+			],
+		},
+		{
+			"id": "cli_job_operation",
+			"type": "pickString",
+			"description": "Job command to run for miruzo-cli.",
+			"options": [
+				"daily-decay"
+			],
+		},
+		{
+			"id": "cli_migrate_operation",
+			"type": "pickString",
+			"description": "Migration command to run for miruzo-cli.",
+			"options": [
+				"up",
+				"down",
+				"version"
+			],
 		},
 		{
 			"id": "limit",
 			"type": "promptString",
-			"description": "The limit for gataku-import",
+			"description": "Record limit for gataku-import.",
 			"default": "50"
 		}
 	]

@@ -5,42 +5,40 @@ before:
     - go mod verify
 
 builds:
-  - &go_build_common
+  - &go_build_linux
     main: ./cmd/miruzo-api
-    id: miruzo-api
+    id: miruzo-api-linux
     binary: miruzo-api
-    gcflags:
-      - all=-trimpath={{.Env.GOPATH}}
+    flags:
+      - -trimpath
     ldflags:
-      - -s -w {{- if not .IsSnapshot }}-X main.version={{.Version}}-{{.ShortCommit}}{{- if .IsGitDirty }}+dev{{ end }}{{ end }}
+      - -s -w
+      - "{{- if not .IsSnapshot }}-X main.version={{.Version}}-{{.ShortCommit}}{{- if .IsGitDirty }}+dev{{ end }}{{ end }}"
+    # buildmode is not reliably supported in overrides.
+    # Define buildmode at the root build level or split builds by platform.
+    buildmode: pie
+    tags:
+      - libsqlite3
     env:
       - CGO_ENABLED=1
-      - CGO_CFLAGS='-Os'
-      - CGO_CXXFLAGS='-Os'
-      - CGO_FFLAGS='-Os'
-      - CGO_LDFLAGS='-Os'
-    goos:
-      - linux
-      - windows
-    goarch:
-      - '386'
-      - amd64
-      - arm64
-    goamd64:
-      - v3
-    ignore:
-      - goos: windows
-        goarch: '386'
-      - goos: windows
-        goarch: arm64
+      - CGO_CFLAGS=-Os -fno-plt -fstack-clash-protection -fstack-protector-strong -D_FORTIFY_SOURCE=3
+      - CGO_CXXFLAGS=-Os -fno-plt -fstack-clash-protection -fstack-protector-strong -D_FORTIFY_SOURCE=3
+      - CGO_FFLAGS=-Os -fno-plt -fstack-clash-protection -fstack-protector-strong -D_FORTIFY_SOURCE=3
+      - CGO_LDFLAGS=-Wl,-z,relro,-z,now,-z,noexecstack
+    goos: [linux]
+    goarch: ['386', amd64, arm64]
+    go386: [sse2]
+    goamd64: [v3]
     overrides:
       - goos: linux
         goarch: '386'
+        go386: sse2
         env:
           - CC=i686-linux-gnu-gcc
           - CXX=i686-linux-gnu-g++
       - goos: linux
         goarch: amd64
+        goamd64: v3
         env:
           - CC=x86_64-linux-gnu-gcc
           - CXX=x86_64-linux-gnu-g++
@@ -49,6 +47,25 @@ builds:
         env:
           - CC=aarch64-linux-gnu-gcc
           - CXX=aarch64-linux-gnu-g++
+  - &go_build_windows
+    main: ./cmd/miruzo-api
+    id: miruzo-api-windows
+    binary: miruzo-api
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - "{{- if not .IsSnapshot }}-X main.version={{.Version}}-{{.ShortCommit}}{{- if .IsGitDirty }}+dev{{ end }}{{ end }}"
+    env:
+      - CGO_ENABLED=1
+      - CGO_CFLAGS=-Os -fno-plt
+      - CGO_CXXFLAGS=-Os -fno-plt
+      - CGO_FFLAGS=-Os -fno-plt
+    goos: [windows]
+    goarch: [amd64]
+    go386: [sse2]
+    goamd64: [v3]
+    overrides:
       - goos: windows
         goarch: '386'
         go386: sse2
@@ -65,9 +82,13 @@ builds:
       pre:
         - cmd: bash ./scripts/build_windows_resource.sh {{ .Os }} {{ .Arch }} {{ .Version }} {{ .RawVersion }}
 
-  - <<: *go_build_common
+  - <<: *go_build_linux
     main: ./cmd/miruzo-cli
-    id: miruzo-cli
+    id: miruzo-cli-linux
+    binary: miruzo-cli
+  - <<: *go_build_windows
+    main: ./cmd/miruzo-cli
+    id: miruzo-cli-windows
     binary: miruzo-cli
 
 archives:

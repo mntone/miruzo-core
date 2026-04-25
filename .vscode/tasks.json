@@ -2,32 +2,21 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "miruzo-api: build (Debug)",
+			"label": "go build ./cmd/miruzo-api (-Og -g)",
 			"type": "shell",
-			"command": "go",
+			"command": "make build-api",
 			"options": {
 				"cwd": "${workspaceFolder}/miruzo"
 			},
-			"args": [
-				"build",
-				"-gcflags=all=-N -l",
-				"-tags=dev",
-				"-o",
-				"./bin/miruzo-api",
-				"./cmd/miruzo-api",
-			],
 			"problemMatcher": "$go",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
+			"group": "build",
 			"presentation": {
 				"reveal": "silent",
 				"panel": "shared"
 			}
 		},
 		{
-			"label": "miruzo-api: watch (Debug)",
+			"label": "go build ./cmd/miruzo-api && air (-Og -g)",
 			"type": "shell",
 			"command": "air",
 			"options": {
@@ -45,20 +34,12 @@
 			}
 		},
 		{
-			"label": "miruzo-cli: build (Debug)",
+			"label": "go build ./cmd/miruzo-cli (-Og -g)",
 			"type": "shell",
-			"command": "go",
+			"command": "make build-cli",
 			"options": {
 				"cwd": "${workspaceFolder}/miruzo"
 			},
-			"args": [
-				"build",
-				"-gcflags=all=-N -l",
-				"-tags=dev",
-				"-o",
-				"./bin/miruzo-cli",
-				"./cmd/miruzo-cli",
-			],
 			"problemMatcher": "$go",
 			"group": "build",
 			"presentation": {
