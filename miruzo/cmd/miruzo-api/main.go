@@ -32,6 +32,7 @@ func main() {
 		m.RequestLog(mux),
 		cfg.Server,
 	)
+	log.Printf("[miruzo-api] version %s", version)
 	log.Printf("[miruzo-api] listening on %s", httpServer.Addr)
 	if err := server.Run(httpServer, cfg.Server.ShutdownTimeout); err != nil {
 		log.Fatal(err)
