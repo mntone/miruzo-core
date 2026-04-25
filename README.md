@@ -51,6 +51,13 @@ Backend/runtime matrix:
 | PostgreSQL | 14+                             | `jackc/pgx/v5`        | supported | `psycopg3` (`psycopg`)    |
 | SQLite     | 3.37.0+ (`RETURNING`, `STRICT`) | `mattn/go-sqlite3`    | supported | `sqlite3` (stdlib)        |
 
+Release/distribution notes:
+
+- Official Linux and Windows release binaries are built on Debian 12.
+- Linux release binaries target a minimum expected glibc version of 2.36.
+- macOS is supported on a best-effort basis, but official release binaries
+  are not provided.
+
 
 ## 🛠️ Setup
 

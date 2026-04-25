@@ -38,6 +38,10 @@ cd ../miruzo-py && uv sync --extra dev
 OS-specific setup (required for DB drivers / Go tools):
 
 - Linux (Debian/Ubuntu):
+  - Go API native build dependencies (CGO + SQLite):
+    ```bash
+    sudo apt install -y build-essential libsqlite3-dev
+    ```
   - Go tools:
     ```bash
     cd miruzo && make tools
@@ -52,6 +56,20 @@ OS-specific setup (required for DB drivers / Go tools):
     sudo apt install -y build-essential default-libmysqlclient-dev pkg-config
     uv sync --extra dev --extra mysql
     ```
+  - Go API cross-build dependencies on AMD64:
+    ```bash
+    sudo dpkg --add-architecture i386
+    sudo dpkg --add-architecture arm64
+    sudo apt update
+    sudo apt install -y \
+      g++-i686-linux-gnu \
+      g++-aarch64-linux-gnu \
+      g++-mingw-w64-x86-64 \
+      libsqlite3-dev:i386 \
+      libsqlite3-dev:arm64
+    ```
+    - `g++-i686-linux-gnu` and `g++-aarch64-linux-gnu` are for Linux targets.
+    - `g++-mingw-w64-x86-64` is for Windows target.
 - macOS:
   - Go tools (recommended):
     ```bash
@@ -92,6 +110,12 @@ Configure runtime files:
     - `MIRUZO_PY_TEST_POSTGRES_URL`
 
 Current Go API database backends are `mysql`, `postgresql`, and `sqlite`.
+
+Release/distribution notes:
+
+- Official Linux and Windows release binaries are built on Debian 12.
+- Linux release binaries target a minimum expected glibc version of 2.36.
+- AArch64 Linux runtime is expected to work but is not fully validated in CI.
 
 ## 🔁 Workflow
 
