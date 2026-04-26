@@ -160,7 +160,7 @@ WHERE kind IN(15/*hall_of_fame_granted*/, 16/*hall_of_fame_revoked*/);
 CREATE TABLE jobs(
 	name TEXT PRIMARY KEY
 		CONSTRAINT ck_jobs_name
-			CHECK (length(name) BETWEEN 8 AND 16),
+			CHECK (length(name) BETWEEN 8 AND 16 AND name NOT GLOB '*[^a-z0-9_]*'),
 	started_at TEXT NOT NULL,
 	finished_at TEXT
 ) STRICT;

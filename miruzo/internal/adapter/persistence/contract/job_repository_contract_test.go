@@ -9,6 +9,84 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
+// --- Schema ---
+
+func TestJobRepositoryMarkStartedAcceptsValidName(t *testing.T) {
+	tests := []struct {
+		name    string
+		jobName string
+	}{
+		{
+			name:    "AcceptsMinLength",
+			jobName: "job_name",
+		},
+		{
+			name:    "AcceptsMaxLength",
+			jobName: "job_name_1234567",
+		},
+		{
+			name:    "AcceptsDigitsAndUnderscore",
+			jobName: "job_2026_04",
+		},
+	}
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
+		for _, tt := range tests {
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				t.Run(tt.name, func(t *testing.T) {
+					startedAt := time.Date(2026, 1, 10, 5, 5, 0, 0, time.UTC)
+					err := ops.Job().MarkStarted(t.Context(), tt.jobName, startedAt)
+					assert.NilError(t, "MarkStarted() error", err)
+				})
+			})
+		}
+	})
+}
+
+func TestJobRepositoryMarkStartedReturnsCheckViolation(t *testing.T) {
+	tests := []struct {
+		name    string
+		jobName string
+	}{
+		{
+			name:    "RejectsTooShortName",
+			jobName: "short",
+		},
+		{
+			name:    "RejectsTooLongName",
+			jobName: "too_long_job_name_1",
+		},
+		{
+			name:    "RejectsUppercaseChars",
+			jobName: "Job_Name",
+		},
+		{
+			name:    "RejectsDashChars",
+			jobName: "job-name",
+		},
+		{
+			name:    "RejectsDotChars",
+			jobName: "job.name",
+		},
+	}
+
+	runHarnesses(t, func(t *testing.T, h c.Harness) {
+		t.Parallel()
+		for _, tt := range tests {
+			h.RunInTx(t, func(t *testing.T, ops c.TxSession) {
+				t.Run(tt.name, func(t *testing.T) {
+					startedAt := time.Date(2026, 1, 10, 5, 5, 0, 0, time.UTC)
+					err := ops.Job().MarkStarted(t.Context(), tt.jobName, startedAt)
+					assert.ErrorIs(t, "MarkStarted() error", err, persist.ErrCheckViolation)
+				})
+			})
+		}
+	})
+}
+
+// --- Mark* ---
+
 func TestJobRepositoryMarks(t *testing.T) {
 	runHarnesses(t, func(t *testing.T, h c.Harness) {
 		t.Parallel()

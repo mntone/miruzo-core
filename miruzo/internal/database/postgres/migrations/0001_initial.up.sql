@@ -155,7 +155,7 @@ WHERE kind IN(15/*hall_of_fame_granted*/, 16/*hall_of_fame_revoked*/);
 CREATE TABLE jobs(
 	name CHAR(16) PRIMARY KEY
 		CONSTRAINT ck_jobs_name
-			CHECK (length(name) >= 8),
+			CHECK (rtrim(name) ~ '^[a-z\d_]{8,16}$'),
 	started_at FINITE_TIMESTAMP NOT NULL,
 	finished_at FINITE_TIMESTAMP
 );

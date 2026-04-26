@@ -139,7 +139,7 @@ CREATE TABLE actions(
 CREATE TABLE jobs(
 	name CHAR(16) PRIMARY KEY
 		CONSTRAINT ck_jobs_name
-			CHECK (char_length(name) >= 8),
+			CHECK (RTRIM(name) REGEXP '^[a-z0-9_]{8,16}$'),
 	started_at DATETIME(6) NOT NULL,
 	finished_at DATETIME(6)
 );
