@@ -9,9 +9,10 @@ import (
 )
 
 type DatabaseConfig struct {
-	Backend           backend.Backend `mapstructure:"backend"`
-	DSN               string          `mapstructure:"dsn"`
-	AdminDatabaseName string          `mapstructure:"admin_dbname"`
+	Backend       backend.Backend `mapstructure:"backend"`
+	DSN           string          `mapstructure:"dsn"`
+	AdminDatabase string          `mapstructure:"admin_database"`
+	AdminUserName string          `mapstructure:"admin_username"`
 
 	ConnectionTimeout     time.Duration `mapstructure:"conn_timeout"`
 	PoolWarmConnections   int32         `mapstructure:"pool_warm_conns"`
@@ -45,8 +46,11 @@ func (c *DatabaseConfig) Validate() error {
 		if !strings.HasPrefix(c.DSN, "file:") {
 			return errors.New("dsn must start with 'file:' prefix")
 		}
-		if c.AdminDatabaseName != "" {
-			return errors.New("admin_dbname is not supported for sqlite backend")
+		if c.AdminDatabase != "" {
+			return errors.New("admin_database is not supported for sqlite backend")
+		}
+		if c.AdminUserName != "" {
+			return errors.New("admin_username is not supported for sqlite backend")
 		}
 	default:
 		return errors.New("backend must be one of 'mysql', 'postgresql' or 'sqlite'")

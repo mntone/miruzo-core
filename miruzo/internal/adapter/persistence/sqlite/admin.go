@@ -54,19 +54,16 @@ func OpenAdminHandle(
 	appConfig config.DatabaseConfig,
 	options adaptershared.DatabaseAdminOptions,
 ) (sqliteAdminHandle, error) {
-	adminDatabaseName := options.DatabaseName
-	if adminDatabaseName == "" {
-		adminDatabaseName = appConfig.AdminDatabaseName
-	}
-	if adminDatabaseName != "" {
+	if options.Database != "" {
 		return sqliteAdminHandle{}, fmt.Errorf(
 			"sqlite backend does not support admin database override: %q",
-			adminDatabaseName,
+			options.Database,
 		)
 	}
 	if options.UserName != "" {
-		return sqliteAdminHandle{}, errors.New(
-			"sqlite backend does not support admin username override",
+		return sqliteAdminHandle{}, fmt.Errorf(
+			"sqlite backend does not support admin username override: %q",
+			options.UserName,
 		)
 	}
 	if options.Password != "" {

@@ -1,22 +1,9 @@
 package shared
 
 type DatabaseAdminOptions struct {
-	DatabaseName string
-	UserName     string
-	Password     string
-}
-
-func (o DatabaseAdminOptions) ResolveDatabaseName(
-	configDatabaseName string,
-	defaultDatabaseName string,
-) string {
-	if o.DatabaseName != "" {
-		return o.DatabaseName
-	}
-	if configDatabaseName != "" {
-		return configDatabaseName
-	}
-	return defaultDatabaseName
+	Database string
+	UserName string
+	Password string
 }
 
 func (o DatabaseAdminOptions) ResolveCredentials(

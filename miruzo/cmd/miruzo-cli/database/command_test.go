@@ -5,15 +5,197 @@ import (
 	"testing"
 
 	cliio "github.com/mntone/miruzo-core/miruzo/internal/cli/io"
+	"github.com/mntone/miruzo-core/miruzo/internal/config"
+	"github.com/mntone/miruzo-core/miruzo/internal/database/backend"
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
 func resetDatabaseFlags() {
-	adminDatabaseName = ""
+	adminDatabase = ""
 	adminUserName = ""
 	adminPassword = ""
 	adminPasswordStdin = false
 	adminPasswordEnv = ""
+}
+
+func TestValidateSQLiteAdminOverrides(t *testing.T) {
+	baseConfig := config.DatabaseConfig{
+		Backend: backend.SQLite,
+	}
+
+	t.Run("NoOverrides", func(t *testing.T) {
+		resetDatabaseFlags()
+		err := validateSQLiteAdminOverrides(baseConfig)
+		assert.NilError(t, "validateSQLiteAdminOverrides() error", err)
+	})
+
+	t.Run("CLIAdminDatabase", func(t *testing.T) {
+		resetDatabaseFlags()
+		adminDatabase = "sqlite"
+		err := validateSQLiteAdminOverrides(baseConfig)
+		assert.Error(t, "validateSQLiteAdminOverrides() error", err)
+		assert.Equal(
+			t,
+			"validateSQLiteAdminOverrides() error",
+			err.Error(),
+			"sqlite backend does not support --admin-database",
+		)
+	})
+
+	t.Run("CLIAdminUserName", func(t *testing.T) {
+		resetDatabaseFlags()
+		adminUserName = "root"
+		err := validateSQLiteAdminOverrides(baseConfig)
+		assert.Error(t, "validateSQLiteAdminOverrides() error", err)
+		assert.Equal(
+			t,
+			"validateSQLiteAdminOverrides() error",
+			err.Error(),
+			"sqlite backend does not support --admin-username",
+		)
+	})
+
+	t.Run("ConfigAdminDatabase", func(t *testing.T) {
+		resetDatabaseFlags()
+		cfg := baseConfig
+		cfg.AdminDatabase = "sqlite"
+		err := validateSQLiteAdminOverrides(cfg)
+		assert.Error(t, "validateSQLiteAdminOverrides() error", err)
+		assert.Equal(
+			t,
+			"validateSQLiteAdminOverrides() error",
+			err.Error(),
+			"sqlite backend does not support database.admin_database",
+		)
+	})
+
+	t.Run("ConfigAdminUserName", func(t *testing.T) {
+		resetDatabaseFlags()
+		cfg := baseConfig
+		cfg.AdminUserName = "root"
+		err := validateSQLiteAdminOverrides(cfg)
+		assert.Error(t, "validateSQLiteAdminOverrides() error", err)
+		assert.Equal(
+			t,
+			"validateSQLiteAdminOverrides() error",
+			err.Error(),
+			"sqlite backend does not support database.admin_username",
+		)
+	})
+}
+
+func TestResolveAdminDatabase(t *testing.T) {
+	tests := []struct {
+		name    string
+		backend backend.Backend
+		cli     string
+		config  string
+		want    string
+	}{
+		{
+			name:    "ResolveFromCLIOverride",
+			backend: backend.MySQL, // fallback: mysql
+			cli:     "cli_admin",
+			config:  "cfg_admin",
+			want:    "cli_admin",
+		},
+		{
+			name:    "ResolveFromConfigWhenCLIEmpty",
+			backend: backend.MySQL, // fallback: mysql
+			cli:     "",
+			config:  "cfg_admin",
+			want:    "cfg_admin",
+		},
+		{
+			name:    "ResolveDefaultForMySQLWhenUnset",
+			backend: backend.MySQL, // fallback: mysql
+			cli:     "",
+			config:  "",
+			want:    "mysql",
+		},
+		{
+			name:    "ResolveDefaultForPostgreSQLWhenUnset",
+			backend: backend.PostgreSQL, // fallback: postgres
+			cli:     "",
+			config:  "",
+			want:    "postgres",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adminDatabase = tt.cli
+			config := config.DatabaseConfig{
+				Backend:       tt.backend,
+				AdminDatabase: tt.config,
+			}
+
+			got := resolveAdminDatabase(config)
+			assert.Equal(
+				t,
+				"resolveAdminDatabase()",
+				got,
+				tt.want,
+			)
+		})
+	}
+}
+
+func TestResolveAdminUserName(t *testing.T) {
+	tests := []struct {
+		name    string
+		backend backend.Backend
+		cli     string
+		config  string
+		want    string
+	}{
+		{
+			name:    "ResolveFromCLIOverride",
+			backend: backend.MySQL,
+			cli:     "cli_user",
+			config:  "cfg_user",
+			want:    "cli_user",
+		},
+		{
+			name:    "ResolveFromConfigWhenCLIEmpty",
+			backend: backend.MySQL,
+			cli:     "",
+			config:  "cfg_user",
+			want:    "cfg_user",
+		},
+		{
+			name:    "ResolveDefaultForMySQLWhenUnset",
+			backend: backend.MySQL,
+			cli:     "",
+			config:  "",
+			want:    "",
+		},
+		{
+			name:    "ResolveDefaultForPostgreSQLWhenUnset",
+			backend: backend.PostgreSQL,
+			cli:     "",
+			config:  "",
+			want:    "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adminUserName = tt.cli
+			config := config.DatabaseConfig{
+				Backend:       tt.backend,
+				AdminUserName: tt.config,
+			}
+
+			got := resolveAdminUserName(config)
+			assert.Equal(
+				t,
+				"resolveAdminUserName()",
+				got,
+				tt.want,
+			)
+		})
+	}
 }
 
 func TestDatabaseCommandAdminDatabaseFlag(t *testing.T) {
@@ -48,7 +230,7 @@ func TestDatabaseCommandAdminDatabaseFlag(t *testing.T) {
 				assert.NilError(t, "Command.ParseFlags() error", err)
 			}
 
-			assert.Equal(t, "adminDatabaseName", adminDatabaseName, tt.wantDBName)
+			assert.Equal(t, "adminDatabaseName", adminDatabase, tt.wantDBName)
 			hasFlag := Command.Flags().Lookup("admin-database") != nil
 			assert.Equal(t, "admin-database flag exists", hasFlag, tt.wantHasFlag)
 		})

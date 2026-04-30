@@ -20,7 +20,8 @@ const (
 type mysqlAdminHandle struct {
 	db *sql.DB
 
-	databaseName string
+	appDatabase string
+	appUserName string
 }
 
 func OpenAdminHandle(
@@ -44,15 +45,10 @@ func OpenAdminHandle(
 		cfg.UserName(),
 		cfg.Password(),
 	)
-	adminDatabaseName := options.ResolveDatabaseName(
-		appConfig.AdminDatabaseName,
-		"mysql",
-	)
-	databaseName := cfg.Database()
 
 	adminConfig := cfg.
 		WithCredentials(adminUserName, adminPassword).
-		WithDatabase(adminDatabaseName)
+		WithDatabase(options.Database)
 	db, err := database.Open(ctx, adminConfig)
 	if err != nil {
 		return mysqlAdminHandle{}, err
@@ -61,7 +57,8 @@ func OpenAdminHandle(
 	return mysqlAdminHandle{
 		db: db,
 
-		databaseName: databaseName,
+		appDatabase: cfg.Database(),
+		appUserName: cfg.UserName(),
 	}, nil
 }
 
@@ -77,12 +74,12 @@ func (hdl mysqlAdminHandle) Create(ctx context.Context) error {
 	// MySQL may return ER_DB_CREATE_EXISTS (1007, SQLSTATE HY000).
 	_, err := hdl.db.ExecContext(
 		ctx,
-		fmt.Sprintf(adminCreateStmt, mysqlQuoteIdentifier(hdl.databaseName)),
+		fmt.Sprintf(adminCreateStmt, mysqlQuoteIdentifier(hdl.appDatabase)),
 	)
 	if err != nil {
 		return fmt.Errorf(
 			"mysql admin create database %q failed: %w",
-			hdl.databaseName,
+			hdl.appDatabase,
 			err,
 		)
 	}
@@ -93,12 +90,12 @@ func (hdl mysqlAdminHandle) Drop(ctx context.Context) error {
 	// MySQL may return ER_DB_DROP_EXISTS (1008, SQLSTATE HY000).
 	_, err := hdl.db.ExecContext(
 		ctx,
-		fmt.Sprintf(adminDropStmt, mysqlQuoteIdentifier(hdl.databaseName)),
+		fmt.Sprintf(adminDropStmt, mysqlQuoteIdentifier(hdl.appDatabase)),
 	)
 	if err != nil {
 		return fmt.Errorf(
 			"mysql admin drop database %q failed: %w",
-			hdl.databaseName,
+			hdl.appDatabase,
 			err,
 		)
 	}
@@ -106,13 +103,13 @@ func (hdl mysqlAdminHandle) Drop(ctx context.Context) error {
 }
 
 func (hdl mysqlAdminHandle) Exists(ctx context.Context) (bool, error) {
-	row := hdl.db.QueryRowContext(ctx, adminExistsStmt, hdl.databaseName)
+	row := hdl.db.QueryRowContext(ctx, adminExistsStmt, hdl.appDatabase)
 
 	var exists bool
 	if err := row.Scan(&exists); err != nil {
 		return false, fmt.Errorf(
 			"mysql admin check database %q exists failed: %w",
-			hdl.databaseName,
+			hdl.appDatabase,
 			err,
 		)
 	}

@@ -11,40 +11,17 @@ import (
 	"github.com/mntone/miruzo-core/miruzo/internal/testutil/assert"
 )
 
-func TestOpenAdminHandleRejectsAdminDatabaseName(t *testing.T) {
-	t.Parallel()
-
-	databasePath := filepath.Join(t.TempDir(), "admin-name.sqlite")
-	_, err := OpenAdminHandle(
-		config.DatabaseConfig{
-			DSN:               "file:" + databasePath,
-			AdminDatabaseName: "ignored",
-		},
-		shared.DatabaseAdminOptions{},
-	)
-	assert.Error(t, "OpenAdminHandle() error", err)
-
-	if err.Error() !=
-		"sqlite backend does not support admin database override: \"ignored\"" {
-		t.Fatalf(
-			"OpenAdminHandle() error = %q, want %q",
-			err.Error(),
-			"sqlite backend does not support admin database override: \"ignored\"",
-		)
-	}
-}
-
 func TestOpenAdminHandleRejectsAdminDatabaseNameOverride(t *testing.T) {
 	t.Parallel()
 
 	databasePath := filepath.Join(t.TempDir(), "admin-name-override.sqlite")
 	_, err := OpenAdminHandle(
 		config.DatabaseConfig{
-			DSN:               "file:" + databasePath,
-			AdminDatabaseName: "config-admin",
+			DSN:           "file:" + databasePath,
+			AdminDatabase: "config-admin",
 		},
 		shared.DatabaseAdminOptions{
-			DatabaseName: "cli-admin",
+			Database: "cli-admin",
 		},
 	)
 	assert.Error(t, "OpenAdminHandle() error", err)
@@ -73,7 +50,7 @@ func TestOpenAdminHandleRejectsAdminUserNameOverride(t *testing.T) {
 	)
 	assert.Error(t, "OpenAdminHandle() error", err)
 
-	if err.Error() != "sqlite backend does not support admin username override" {
+	if err.Error() != "sqlite backend does not support admin username override: \"admin\"" {
 		t.Fatalf(
 			"OpenAdminHandle() error = %q, want %q",
 			err.Error(),

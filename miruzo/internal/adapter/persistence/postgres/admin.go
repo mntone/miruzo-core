@@ -22,7 +22,8 @@ const (
 type postgresAdminHandle struct {
 	pool *pgxpool.Pool
 
-	appDatabaseName string
+	appDatabase string
+	appUserName string
 }
 
 func OpenAdminHandle(
@@ -46,15 +47,10 @@ func OpenAdminHandle(
 		cfg.UserName(),
 		cfg.Password(),
 	)
-	adminDatabaseName := options.ResolveDatabaseName(
-		appConfig.AdminDatabaseName,
-		"postgres",
-	)
-	appDatabaseName := cfg.Database()
 
 	adminConfig := cfg.
 		WithCredentials(adminUserName, adminPassword).
-		WithDatabase(adminDatabaseName)
+		WithDatabase(options.Database)
 	pool, err := database.Open(ctx, adminConfig)
 	if err != nil {
 		return postgresAdminHandle{}, err
@@ -63,7 +59,8 @@ func OpenAdminHandle(
 	return postgresAdminHandle{
 		pool: pool,
 
-		appDatabaseName: appDatabaseName,
+		appDatabase: cfg.Database(),
+		appUserName: cfg.UserName(),
 	}, nil
 }
 
@@ -95,12 +92,12 @@ func (hdl postgresAdminHandle) Create(ctx context.Context) error {
 	// PostgreSQL may return pgerrcode.DuplicateDatabase ("42P04").
 	_, err = hdl.pool.Exec(
 		ctx,
-		fmt.Sprintf(createStmt, postgresQuoteIdentifier(hdl.appDatabaseName)),
+		fmt.Sprintf(createStmt, postgresQuoteIdentifier(hdl.appDatabase)),
 	)
 	if err != nil {
 		return fmt.Errorf(
 			"postgres admin create database %q failed: %w",
-			hdl.appDatabaseName,
+			hdl.appDatabase,
 			err,
 		)
 	}
@@ -111,12 +108,12 @@ func (hdl postgresAdminHandle) Drop(ctx context.Context) error {
 	// PostgreSQL may return pgerrcode.InvalidCatalogName ("3D000").
 	_, err := hdl.pool.Exec(
 		ctx,
-		fmt.Sprintf(adminDropStmt, postgresQuoteIdentifier(hdl.appDatabaseName)),
+		fmt.Sprintf(adminDropStmt, postgresQuoteIdentifier(hdl.appDatabase)),
 	)
 	if err != nil {
 		return fmt.Errorf(
 			"postgres admin drop database %q failed: %w",
-			hdl.appDatabaseName,
+			hdl.appDatabase,
 			err,
 		)
 	}
@@ -124,13 +121,13 @@ func (hdl postgresAdminHandle) Drop(ctx context.Context) error {
 }
 
 func (hdl postgresAdminHandle) Exists(ctx context.Context) (bool, error) {
-	row := hdl.pool.QueryRow(ctx, adminExistsStmt, hdl.appDatabaseName)
+	row := hdl.pool.QueryRow(ctx, adminExistsStmt, hdl.appDatabase)
 
 	var exists bool
 	if err := row.Scan(&exists); err != nil {
 		return false, fmt.Errorf(
 			"postgres admin check database %q exists failed: %w",
-			hdl.appDatabaseName,
+			hdl.appDatabase,
 			err,
 		)
 	}
