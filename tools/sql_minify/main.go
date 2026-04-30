@@ -65,6 +65,10 @@ func minifySQL(input []byte, dialect sqlDialect) []byte {
 		case stateNormal:
 			if dialect == dialectPostgres && c == '$' {
 				if delimiter, ok := readDollarQuoteDelimiter(input, i); ok {
+					if space_pending {
+						output.WriteByte(' ')
+						space_pending = false
+					}
 					dollarDelimiter = delimiter
 					state = stateDollarQuote
 					output.Write(delimiter)
